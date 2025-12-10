@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import { useDomain } from '@/contexts';
 import './Navbar.css';
+import Logo from '../../image/Logo.svg';
 
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -16,10 +17,11 @@ export const Navbar = () => {
                     <button className="navbar-toggle" onClick={toggleMenu}>
                         ☰
                     </button>
+                    <img src={Logo} alt="Logo" className="navbar-logo" />
                     <h1 className="navbar-title">Robot Report System</h1>
                 </div>
 
-                <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>
+                {/* <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>
                     <Link to="/export-report" className="navbar-link" onClick={() => setIsOpen(false)}>
                         Export Report
                     </Link>
@@ -29,7 +31,7 @@ export const Navbar = () => {
                     <Link to="/report-image-config" className="navbar-link" onClick={() => setIsOpen(false)}>
                         Report Image Config
                     </Link>
-                </div>
+                </div> */}
 
                 {availableDomains.length > 1 && (
                     <div className="navbar-domain">
