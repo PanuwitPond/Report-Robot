@@ -10,4 +10,5 @@ export declare class StorageService implements OnModuleInit {
     getFileUrl(fileName: string, expirySeconds?: number): Promise<string>;
     deleteFile(fileName: string): Promise<void>;
     getFile(fileName: string): Promise<Buffer>;
+    listFiles(prefix?: string, recursive?: boolean): Promise<any[]>;
 }
