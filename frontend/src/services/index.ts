@@ -4,3 +4,4 @@ export * from './report.service';
 export * from './task.service';
 export * from './image.service';
 export * from './users.service';
+export * from './storage.service';

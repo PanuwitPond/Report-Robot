@@ -31,9 +31,22 @@ export const Sidebar = () => {
                     <img src={botImage} alt="Bot" className="sidebar-tab-icon" />
                 </button>
             </div>
-
             <nav className={`sidebar-menu ${activeTab ? 'visible' : ''}`}>
-                <button
+                {activeTab === 'pole' && (
+                    <>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/download-report')}
+                        >
+                            📂 Download Reports (Storage)
+                        </button>
+                        
+                        {/* คุณสามารถย้ายเมนูอื่นๆ มาใส่เงื่อนไขนี้ได้ถ้าต้องการให้มันแยกกันชัดเจน */}
+                    </>
+                )}
+                {activeTab === 'bot' && (
+                    <>
+                        <button
                     className="sidebar-menu-link"
                     onClick={() => handleMenuClick('/export-report')}
                 >
@@ -51,6 +64,8 @@ export const Sidebar = () => {
                 >
                     Report Image Config
                 </button>
+                    </>
+                )}
             </nav>
         </aside>
     );

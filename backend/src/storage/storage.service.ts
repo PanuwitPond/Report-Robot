@@ -19,18 +19,20 @@ export class StorageService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        // TODO: Enable MinIO when ready
-        // Temporarily disabled to allow backend to start without MinIO
-        console.log('⚠️ MinIO initialization skipped - MinIO not running');
-
-        // Uncomment when MinIO is running:
-        // const exists = await this.minioClient.bucketExists(this.bucketName);
-        // if (!exists) {
-        //     await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
-        //     console.log(`✅ Bucket ${this.bucketName} created`);
-        // }
+    // ลบ console.log เดิมออก แล้วเปิดใช้งานส่วนนี้แทนครับ:
+    
+    try {
+        const exists = await this.minioClient.bucketExists(this.bucketName);
+        if (!exists) {
+            await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
+            console.log(`✅ Bucket ${this.bucketName} created`);
+        } else {
+            console.log(`✅ Connected to MinIO Bucket: ${this.bucketName}`);
+        }
+    } catch (error) {
+        console.error('❌ MinIO Connection Failed:', error);
     }
-
+}
     async uploadFile(
         file: Express.Multer.File,
         domain: string,
@@ -71,6 +73,24 @@ export class StorageService implements OnModuleInit {
             stream.on('data', (chunk) => chunks.push(chunk));
             stream.on('end', () => resolve(Buffer.concat(chunks)));
             stream.on('error', reject);
+        });
+    }
+
+    // ในไฟล์ storage.service.ts
+
+    async listFiles(prefix: string = '', recursive: boolean = true): Promise<any[]> {
+        const stream = this.minioClient.listObjectsV2(this.bucketName, prefix, recursive);
+        const files = [];
+
+        return new Promise((resolve, reject) => {
+            // เมื่อเจอไฟล์ ให้เอาใส่ Array
+            stream.on('data', (obj) => files.push(obj));
+            
+            // เมื่อหาครบแล้ว ให้คืนค่า Array กลับไป
+            stream.on('end', () => resolve(files));
+            
+            // ถ้ามี error
+            stream.on('error', (err) => reject(err));
         });
     }
 }

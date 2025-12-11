@@ -26,7 +26,19 @@ let StorageService = class StorageService {
         this.bucketName = this.configService.get('MINIO_BUCKET');
     }
     async onModuleInit() {
-        console.log('⚠️ MinIO initialization skipped - MinIO not running');
+        try {
+            const exists = await this.minioClient.bucketExists(this.bucketName);
+            if (!exists) {
+                await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
+                console.log(`✅ Bucket ${this.bucketName} created`);
+            }
+            else {
+                console.log(`✅ Connected to MinIO Bucket: ${this.bucketName}`);
+            }
+        }
+        catch (error) {
+            console.error('❌ MinIO Connection Failed:', error);
+        }
     }
     async uploadFile(file, domain, folder = 'uploads') {
         const fileName = `${domain}/${folder}/${Date.now()}-${file.originalname}`;
@@ -48,6 +60,15 @@ let StorageService = class StorageService {
             stream.on('data', (chunk) => chunks.push(chunk));
             stream.on('end', () => resolve(Buffer.concat(chunks)));
             stream.on('error', reject);
+        });
+    }
+    async listFiles(prefix = '', recursive = true) {
+        const stream = this.minioClient.listObjectsV2(this.bucketName, prefix, recursive);
+        const files = [];
+        return new Promise((resolve, reject) => {
+            stream.on('data', (obj) => files.push(obj));
+            stream.on('end', () => resolve(files));
+            stream.on('error', (err) => reject(err));
         });
     }
 };
