@@ -1,0 +1,242 @@
+.side_bar{
+    height: auto;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    
+}
+.tools_select_box{
+    width: 100%;
+    height: auto;
+    margin-top: 15px;
+    border-radius: 10px;
+    
+}
+.roi_list{
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 4px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+    border-radius: 10px;
+    
+}
+.roi_list_header{
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    width:100%;
+    height: 38px;
+    background-color: #ffffff;
+    border-radius: 10px 10px 0px 0px ;
+    border-bottom: .5px solid rgb(176, 175, 175); 
+}
+.tools_select_box .ant-collapse-header {
+    font-weight: 600;
+    font-size: 20px;
+}
+.roi_list_header p {
+    font-weight: 700;
+    margin-left: 14px;
+    font-size: 14px;
+    margin: 0px 0px 0px 20px;
+}
+.roi_list_items{
+    width: 100%;
+    min-height: 300px;
+    height: auto;
+}
+.still_not_drawed{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    height: 400px;
+    color: #858585;
+    font-size: 18px;
+}
+.no_region_icon {
+    font-size: 40px;
+    color: #adadad;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(15deg);
+      }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+  
+.items_in_sidebar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px inset;
+    background-color: #f3f7fd;
+    border-radius: 5px;
+    padding: 3px;
+    margin: 10px;
+    transition: box-shadow 0.3s ease-in-out; 
+    flex-wrap: wrap;
+    text-align: center;
+}
+.items_in_sidebar:hover {
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    cursor: pointer;
+}
+.items_in_sidebar_focus {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px inset;
+  background-color: #f3f7fd;
+  border-radius: 5px;
+  border: 4px solid #3c82f6 ;
+  padding: 3px;
+  margin: 10px;
+  transition: box-shadow 0.3s ease-in-out; 
+  flex-wrap: wrap;
+  text-align: center;
+}
+.items_in_sidebar_focus:hover {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  cursor: pointer;
+}
+
+.item_name{
+    height: 45px;
+    width: 40%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    padding-left: 10px;
+    overflow: hidden;
+    gap: 5px;
+    font-size: 13px;
+    text-align: start;
+
+}
+.item_type{
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.tools_setup_item{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+.bin{
+    margin: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.edit{
+    margin: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.status_switch{
+    margin: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete_icon{
+    color: rgb(215, 14, 0);
+    font-size: 25px;
+}
+.Edit_icon{
+    color: #adb4c1;
+    font-size: 25px ;
+}
+.select-region-type{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.button_select_tools{
+    width: 32%;
+    height: 35px;
+}
+.set_region_name p {
+    margin-bottom: 10px;
+  }
+  
+  .set_region_name{
+    margin-top: 10px;
+  }
+  .box_button_control_reion{
+    margin-top: 25px;
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+  }
+  .button_control_reion{
+    width: 30%;
+    height: 45px;
+    margin-bottom: 20px;
+  }
+  .box_button_create_rule{
+    width: 100%;
+    height: auto;
+    padding: 10px;
+  }
+  .button_create_rule {
+    align-self: center;
+    width: 100%;
+    height: 45px;
+    font-size: 16px;
+    color: #fd6e2b !important;
+    border: 2px dashed #fd6e2b !important;
+    background-color: #ffeae0 !important;
+  }
+  
+  .button_create_rule:hover {
+    background-color: white  !important;
+    color: #f1560e !important;
+    border-color: #fd6e2b !important;
+  }
+
+ .button_show_type{
+    height: 1.8rem !important;
+    width: 5.5rem !important;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+ }
+
+ .custom-ok-button-delete{
+  width: 25%;
+  background-color: #ffffff !important;
+  color: rgb(255, 0, 0) !important;
+  border-color: rgb(255, 0, 0) !important;
+}
+.custom-cancel-button{
+  width: 25%;
+}
+
+  

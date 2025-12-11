@@ -1,0 +1,351 @@
+.container_tools {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #eff1f5;
+  padding: 0px 50px 100px 50px;
+}
+
+.header_tools_nav {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 0 10px 0px;
+  gap: 20px;
+}
+
+.header_tools_nav .ant-breadcrumb {
+  font-size: 15px;
+  margin-left: 10px;
+}
+
+.header_tools_nav a {
+  text-decoration: none;
+}
+
+.active_title {
+  font-weight: 400;
+  color: black;
+  transition: color ease-in 1s;
+}
+
+.cameraName_title {
+  font-size: 25px;
+  font-weight: 700;
+  color: black;
+  padding: 3px;
+  border-radius: 10px;
+  margin: 0;
+  transition: ease-in-out background-color 0.2s;
+}
+
+.cameraName_title:hover {
+  color: #000;
+  background-color: #f0f0f0;
+}
+
+.tools_box_main {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  width: 90%;
+}
+
+.canvas_box {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 63%;
+  width: auto;
+
+  padding: 10px 0px 10px 0px;
+}
+
+.tools_side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  padding: 10px 0px;
+  width: 35%;
+}
+
+.edit_box {
+  min-height: 450px;
+  height: auto;
+  width: 90%;
+  margin-bottom: 50px;
+}
+
+.button_control {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.button_control_image div {
+  margin-right: 10px;
+}
+
+.device_control {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.button_control_device {
+  margin-right: 15px;
+}
+
+.camera_info_box .ant-collapse-header {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.info_box {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.box_text_info {
+  display: flex;
+  flex-direction: row;
+  font-size: 18px;
+}
+
+.info_box_left,
+.info_box_right {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.text_info {
+  font-weight: 700;
+  padding-left: 10px;
+}
+.button_control{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.box_button_control_drawwing{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.button_control_drawwing{
+  background-color: white !important;
+  color: #fd6e2b !important;
+  border: 1px solid #fd6e2b !important ;
+
+}
+.save_button:hover{
+  background-color: white !important;
+  color: #fd6e2b !important;
+  border: 1px solid #fd6e2b !important ;
+}
+.save_button{
+  background-color: #fd6e2b;
+  color: white;
+  border-color: #fd6e2b;
+}
+.box_text_guild_drawEnd{
+  color: #3c82f6;
+  font-size: 15px ;
+}
+.box_text_guild_drawwing{
+  color: rgb(0, 0, 0);
+  font-size: 15px;
+}
+.footer_bar{
+  width: 100vw;
+  height: 64px;
+  display: flex;
+  justify-content: end;
+  background-color: white;
+  position:fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* เพิ่มเพื่อให้อยู่บนสุด หากมีเนื้อหาอื่น */
+}
+
+.box_bottom_save{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap:10px;
+  margin-right:20px;
+}
+
+.loading_waiting_imageObj{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-ok-button-discard{
+  width: 25%;
+  background-color: #ffffff !important;
+  color: rgb(255, 0, 0) !important;
+  border-color: rgb(255, 0, 0) !important;
+}
+.custom-ok-button-discard:hover{
+  background-color: #ffd4d4 !important;
+  color: rgb(255, 0, 0) !important;
+  border-color: rgb(255, 0, 0) !important;
+}
+
+.custom-ok-button-save{
+  width: 25%;
+  
+}
+
+.custom-cancel-button{
+  width: 25%;
+}
+.draw_image{
+  width:100% ;
+  height: 100%;
+}
+
+/* ================== Responsive ================== */
+
+@media (max-width: 1400px) {
+  .tools_box_main {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .canvas_box {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .tools_side {
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .tools_box_main {
+    flex-direction: column;
+  }
+
+  .edit_box {
+    width: 100%;
+    margin-bottom: 80px; /* Account for fixed footer */
+  }
+
+  .box_bottom_save {
+    margin-right: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .container_tools {
+    padding: 0 30px 100px 30px;
+  }
+
+  .cameraName_title {
+    font-size: 22px;
+  }
+
+  .box_text_guild_drawEnd,
+  .box_text_guild_drawwing {
+    font-size: 14px;
+  }
+
+  .button_control {
+    height: auto;
+    min-height: 40px;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .box_button_control_drawwing {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .container_tools {
+    padding: 0 15px 100px 15px;
+  }
+
+  .cameraName_title {
+    font-size: 20px;
+  }
+
+  .header_tools_nav {
+    gap: 10px;
+  }
+
+  .box_text_info {
+    flex-direction: column;
+    font-size: 14px;
+  }
+
+  .info_box_left,
+  .info_box_right {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .edit_box {
+    min-height: 200px;
+  }
+
+  .footer_bar {
+    height: 56px;
+  }
+
+  .box_bottom_save {
+    gap: 5px;
+  }
+
+  .custom-ok-button-save,
+  .custom-ok-button-discard,
+  .custom-cancel-button {
+    width: auto;
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container_tools {
+    padding: 0 10px 80px 10px;
+  }
+
+  .header_tools_nav .ant-breadcrumb {
+    font-size: 13px;
+  }
+
+  .cameraName_title {
+    font-size: 18px;
+  }
+
+  .box_text_guild_drawEnd,
+  .box_text_guild_drawwing {
+    font-size: 13px;
+  }
+
+  .box_bottom_save {
+    margin-right: 5px;
+  }
+}
+
+
