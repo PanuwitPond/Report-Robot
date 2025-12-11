@@ -261,4 +261,83 @@ export class UsersService {
             throw new InternalServerErrorException('Failed to fetch available roles from Keycloak');
         }
     }
+
+    /**
+     * Create a new user in Keycloak. If `password` is provided it will be set after creation.
+     */
+    async createUser(payload: {
+        username: string;
+        email?: string;
+        firstName?: string;
+        lastName?: string;
+        enabled?: boolean;
+        emailVerified?: boolean;
+        password?: string;
+        passwordTemporary?: boolean;
+    }): Promise<{ id: string }> {
+        try {
+            const token = await this.getAdminToken();
+            const keycloakUrl = this.configService.get('KEYCLOAK_URL');
+            const realm = this.configService.get('KEYCLOAK_REALM');
+
+            const usersUrl = `${keycloakUrl}/admin/realms/${realm}/users`;
+
+            const body: any = {
+                username: payload.username,
+                email: payload.email,
+                firstName: payload.firstName,
+                lastName: payload.lastName,
+                enabled: payload.enabled === undefined ? true : payload.enabled,
+                emailVerified: payload.emailVerified === undefined ? false : payload.emailVerified,
+            };
+
+            // Create user
+            await firstValueFrom(
+                this.httpService.post(usersUrl, body, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+            );
+
+            // After creation, search user to obtain id
+            const searchUrl = `${usersUrl}?username=${encodeURIComponent(payload.username)}`;
+            const { data: users } = await firstValueFrom(
+                this.httpService.get<KeycloakUser[]>(searchUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }),
+            );
+
+            const created = users && users.length ? users[0] : null;
+            if (!created) {
+                console.error('User created but not found in search:', payload.username);
+                throw new InternalServerErrorException('User created but could not be retrieved');
+            }
+
+            const userId = created.id;
+
+            // If password provided, set/reset password using admin API
+            if (payload.password) {
+                const resetUrl = `${keycloakUrl}/admin/realms/${realm}/users/${userId}/reset-password`;
+                const temporaryFlag = payload.passwordTemporary === undefined ? true : !!payload.passwordTemporary;
+                const cred = { type: 'password', value: payload.password, temporary: temporaryFlag };
+                await firstValueFrom(
+                    this.httpService.put(resetUrl, cred, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }),
+                );
+            }
+
+            return { id: userId };
+        } catch (error) {
+            console.error('Failed to create user:', error.response?.data || error.message);
+            throw new BadRequestException(error.response?.data?.errorMessage || 'Failed to create user');
+        }
+    }
 }

@@ -28,4 +28,9 @@ export const usersService = {
     async removeRole(userId: string, roleName: string): Promise<void> {
         await apiClient.delete(`/users/${userId}/roles/${roleName}`);
     },
+
+    async createUser(payload: any): Promise<{ id: string }> {
+        const { data } = await apiClient.post('/users', payload);
+        return data;
+    },
 };

@@ -9,6 +9,9 @@ export const ManageRolesPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
+    const [showAddUserModal, setShowAddUserModal] = useState(false);
+    const [newUser, setNewUser] = useState({ username: '', email: '', firstName: '', lastName: '', password: '', emailVerified: false, passwordTemporary: true });
+    const [isCreating, setIsCreating] = useState(false);
 
     const loadUsers = async () => {
         try {
@@ -94,10 +97,15 @@ export const ManageRolesPage = () => {
 
     return (
         <div className="manage-roles-page">
-            <div className="manage-roles-header">
-                <h1>Manage User Roles</h1>
-                <p>Manage roles and permissions for all users</p>
-            </div>
+                <div className="manage-roles-header">
+                    <div className="manage-roles-header-left">
+                        <h1>Manage User</h1>
+                        <p>Manage roles and permissions for all users</p>
+                    </div>
+                    <button className="btn-add-user" onClick={() => setShowAddUserModal(true)}>
+                        Add User
+                    </button>
+                </div>
 
             <div className="users-table-container">
                 <table className="users-table">
@@ -165,6 +173,78 @@ export const ManageRolesPage = () => {
                         <button className="btn-cancel" onClick={() => setShowRoleModal(false)}>
                             Cancel
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {showAddUserModal && (
+                <div className="modal-overlay" onClick={() => setShowAddUserModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth: '480px'}}>
+                        <h2>Create User</h2>
+                        <div className="form-row">
+                            <label>Username *</label>
+                            <input value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} />
+                        </div>
+                        <div className="form-row">
+                            <label>Email</label>
+                            <input value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
+                        </div>
+                        <div className="form-row">
+                            <label>First name</label>
+                            <input value={newUser.firstName} onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })} />
+                        </div>
+                        <div className="form-row">
+                            <label>Last name</label>
+                            <input value={newUser.lastName} onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })} />
+                        </div>
+                        <div className="form-row">
+                            <label>Password (optional)</label>
+                            <input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
+                        </div>
+                        <div className="form-row">
+                            <label>
+                                <input type="checkbox" checked={newUser.emailVerified} onChange={(e) => setNewUser({ ...newUser, emailVerified: e.target.checked })} />
+                                {' '}Email verified
+                            </label>
+                        </div>
+                        <div className="form-row">
+                            <label>
+                                <input type="checkbox" checked={newUser.passwordTemporary} onChange={(e) => setNewUser({ ...newUser, passwordTemporary: e.target.checked })} />
+                                {' '}Temporary password (on = user must change at first login)
+                            </label>
+                        </div>
+                        <div style={{display: 'flex', gap: '8px', marginTop: '12px'}}>
+                            <button className="btn-primary" onClick={async () => {
+                                if (!newUser.username) { alert('Username is required'); return; }
+                                if (newUser.emailVerified && !newUser.email) { alert('Email is required when Email verified is checked'); return; }
+                                try {
+                                    setIsCreating(true);
+                                    // Build payload explicitly to avoid sending unintended fields
+                                    const payload = {
+                                        username: newUser.username,
+                                        email: newUser.email || undefined,
+                                        firstName: newUser.firstName || undefined,
+                                        lastName: newUser.lastName || undefined,
+                                        password: newUser.password || undefined,
+                                        emailVerified: !!newUser.emailVerified,
+                                        passwordTemporary: !!newUser.passwordTemporary,
+                                    };
+
+                                    await usersService.createUser(payload);
+                                    await loadUsers();
+                                    setShowAddUserModal(false);
+                                    setNewUser({ username: '', email: '', firstName: '', lastName: '', password: '', emailVerified: false, passwordTemporary: true });
+                                    alert('User created');
+                                } catch (err: any) {
+                                    alert(err.response?.data?.message || err.response?.data || 'Failed to create user');
+                                } finally {
+                                    setIsCreating(false);
+                                }
+                            }} disabled={isCreating}>
+                                {isCreating ? 'Creating...' : 'Create'}
+                            </button>
+                            <button className="btn-cancel" onClick={() => setShowAddUserModal(false)}>Cancel</button>
+                        </div>
                     </div>
                 </div>
             )}

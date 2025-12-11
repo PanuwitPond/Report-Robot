@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -18,6 +18,22 @@ export class UsersController {
     @Get('available-roles')
     async getAvailableRoles() {
         return this.usersService.getAvailableRoles();
+    }
+
+    @Post()
+    async createUser(@Body() body: any) {
+        // Basic validation: username required
+        if (!body?.username) {
+            throw new BadRequestException('username is required');
+        }
+
+        // If emailVerified is requested, ensure email is provided
+        if (body.emailVerified && !body.email) {
+            throw new BadRequestException('email must be provided when emailVerified is true');
+        }
+
+        const result = await this.usersService.createUser(body);
+        return { id: result.id, message: 'User created successfully' };
     }
 
     @Post(':id/roles')

@@ -20,6 +20,51 @@
     font-size: 1rem;
 }
 
+.manage-roles-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.manage-roles-header-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-add-user {
+    padding: 0.6rem 1.1rem;
+    background: #6d28d9;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(109,40,217,0.15);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-add-user:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(109,40,217,0.18);
+}
+
+/* Responsive: stack header on narrow screens */
+@media (max-width: 720px) {
+    .manage-roles-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .btn-add-user {
+        align-self: stretch;
+        width: 100%;
+        text-align: center;
+    }
+}
+
 .users-table-container {
     background: white;
     border-radius: 8px;
@@ -176,16 +221,92 @@
 
 .modal-content {
     background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    min-width: 400px;
-    max-width: 500px;
+    padding: 2rem 2.25rem;
+    border-radius: 12px;
+    min-width: 420px;
+    max-width: 520px;
 }
 
 .modal-content h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
     color: #1a1a1a;
+}
+
+.modal-content .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.modal-content .form-row label {
+    font-size: 0.95rem;
+    color: #222;
+    font-weight: 600;
+}
+
+.modal-content .form-row input[type="text"],
+.modal-content .form-row input[type="password"],
+.modal-content .form-row input[type="email"],
+.modal-content .form-row textarea,
+.modal-content .form-row select {
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.modal-content .form-row input:focus,
+.modal-content .form-row textarea:focus,
+.modal-content .form-row select:focus {
+    border-color: #c4b5fd;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.08);
+}
+
+.modal-content .form-row .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.modal-content .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.btn-primary {
+    padding: 0.5rem 0.9rem;
+    background: #6d28d9;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 6px 14px rgba(109,40,217,0.12);
+}
+
+.btn-primary:hover { background: #5b21b6; transform: translateY(-1px); }
+
+.btn-cancel {
+    padding: 0.45rem 0.8rem;
+    background: #6b7280;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.modal-content .hint {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: -6px;
 }
 
 .role-options {

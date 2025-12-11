@@ -19,7 +19,7 @@ export const UserMenu = () => {
 
     const handleManageRoles = () => {
         setIsOpen(false);
-        navigate('/admin/manage-roles');
+        navigate('/admin/manage-user');
     };
 
     const isAdmin = user?.roles?.includes('admin');
@@ -43,7 +43,7 @@ export const UserMenu = () => {
                         <>
                             <button className="user-menu-item" onClick={handleManageRoles}>
                                 <span className="menu-icon">👥</span>
-                                Manage Roles
+                                Manage User
                             </button>
                             <div className="user-menu-divider"></div>
                         </>
