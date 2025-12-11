@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import type { User, UserRole } from '@/types';
 import { authService } from '@/services';
 
@@ -45,9 +46,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const login = async (username: string, password: string) => {
         try {
             const response = await authService.login(username, password);
-            setUser(response.user);
+
+            // Decode JWT to get user info including roles
+            const decodedToken: any = jwtDecode(response.accessToken);
+
+            const userWithRoles: User = {
+                ...response.user,
+                roles: decodedToken.realm_access?.roles || [],
+            };
+
+            setUser(userWithRoles);
             // Save user to localStorage
-            localStorage.setItem('user', JSON.stringify(response.user));
+            localStorage.setItem('user', JSON.stringify(userWithRoles));
         } catch (error) {
             console.error('Login error:', error);
             throw error;

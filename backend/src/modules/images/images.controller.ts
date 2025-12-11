@@ -9,11 +9,15 @@ import {
     Query,
     UploadedFile,
     UseInterceptors,
+    UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImagesService } from './images.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('images')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ImagesController {
     constructor(private readonly imagesService: ImagesService) { }
 

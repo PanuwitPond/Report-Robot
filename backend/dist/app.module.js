@@ -15,6 +15,7 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const reports_module_1 = require("./modules/reports/reports.module");
 const tasks_module_1 = require("./modules/tasks/tasks.module");
 const images_module_1 = require("./modules/images/images.module");
+const users_module_1 = require("./modules/users/users.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,6 +31,7 @@ exports.AppModule = AppModule = __decorate([
             reports_module_1.ReportsModule,
             tasks_module_1.TasksModule,
             images_module_1.ImagesModule,
+            users_module_1.UsersModule,
         ],
     })
 ], AppModule);

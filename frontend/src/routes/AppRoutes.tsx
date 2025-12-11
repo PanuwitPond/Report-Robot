@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Navbar, UserMenu } from '@/components/layout';
+import { Navbar, UserMenu, Sidebar } from '@/components/layout';
 import { ProtectedRoute } from './ProtectedRoute';
 import {
     SignInPage,
@@ -8,16 +8,22 @@ import {
     TaskEditorPage,
     AddImagePage,
     RobotImageConfigPage,
+    ManageRolesPage,
 } from '@/pages';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
-        <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem', background: '#0F0F1D' }}>
                 <Navbar />
                 <UserMenu />
             </div>
-            {children}
+            <div style={{ display: 'flex', flex: 1 }}>
+                <Sidebar />
+                <div style={{ flex: 1, overflow: 'auto' }}>
+                    {children}
+                </div>
+            </div>
         </div>
     );
 };
@@ -78,6 +84,17 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <RobotImageConfigPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/admin/manage-roles"
+                    element={
+                        <ProtectedRoute requiredRoles={['admin']}>
+                            <Layout>
+                                <ManageRolesPage />
                             </Layout>
                         </ProtectedRoute>
                     }

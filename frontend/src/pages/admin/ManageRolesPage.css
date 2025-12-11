@@ -1,0 +1,239 @@
+.manage-roles-page {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.manage-roles-header {
+    margin-bottom: 2rem;
+}
+
+.manage-roles-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1a1a1a;
+}
+
+.manage-roles-header p {
+    color: #666;
+    font-size: 1rem;
+}
+
+.users-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table thead {
+    background: #f8f9fa;
+}
+
+.users-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.users-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.users-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.roles-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
+}
+
+.role-admin {
+    background: #fee;
+    color: #c00;
+}
+
+.role-user {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.btn-edit {
+    padding: 0.5rem 1rem;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-edit:hover {
+    background: #4f46e5;
+}
+
+.manage-roles-note {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+}
+
+.manage-roles-note p {
+    margin: 0;
+    color: #856404;
+}
+
+.manage-roles-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    font-size: 1.25rem;
+    color: #666;
+}
+
+.manage-roles-error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    gap: 1rem;
+}
+
+.manage-roles-error p {
+    color: #c00;
+    font-size: 1.125rem;
+}
+
+.manage-roles-error button {
+    padding: 0.5rem 1.5rem;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.role-remove-btn {
+    margin-left: 0.5rem;
+    padding: 0 0.25rem;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.role-remove-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    min-width: 400px;
+    max-width: 500px;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+}
+
+.role-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.role-option {
+    padding: 0.75rem 1rem;
+    border: 2px solid;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.role-option.role-admin {
+    border-color: #c00;
+    color: #c00;
+    background: #fff;
+}
+
+.role-option.role-admin:hover {
+    background: #fee;
+}
+
+.role-option.role-user {
+    border-color: #1976d2;
+    color: #1976d2;
+    background: #fff;
+}
+
+.role-option.role-user:hover {
+    background: #e3f2fd;
+}
+
+.btn-cancel {
+    padding: 0.5rem 1.5rem;
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.btn-cancel:hover {
+    background: #555;
+}
