@@ -33,24 +33,56 @@ export const Sidebar = () => {
             </div>
 
             <nav className={`sidebar-menu ${activeTab ? 'visible' : ''}`}>
-                <button
-                    className="sidebar-menu-link"
-                    onClick={() => handleMenuClick('/export-report')}
-                >
-                    Export Report
-                </button>
-                <button
-                    className="sidebar-menu-link"
-                    onClick={() => handleMenuClick('/report-task-config')}
-                >
-                    Report Task Config
-                </button>
-                <button
-                    className="sidebar-menu-link"
-                    onClick={() => handleMenuClick('/report-image-config')}
-                >
-                    Report Image Config
-                </button>
+                {activeTab === 'pole' && (
+                    <>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/export-report')}
+                        >
+                            Export Report
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/download-report')}
+                        >
+                            Download Report
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/report-task-config')}
+                        >
+                            Report Task Config
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/report-image-config')}
+                        >
+                            Report Image Config
+                        </button>
+                    </>
+                )}
+                {activeTab === 'bot' && (
+                    <>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/task-editor')}
+                        >
+                            Task Editor
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/add-image')}
+                        >
+                            Add Image
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/report-image-config')}
+                        >
+                            Report Image Config
+                        </button>
+                    </>
+                )}
             </nav>
         </aside>
     );

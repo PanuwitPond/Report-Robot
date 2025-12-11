@@ -8,6 +8,7 @@ import {
     TaskEditorPage,
     AddImagePage,
     RobotImageConfigPage,
+    DownloadReportPage,
 } from '@/pages';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -83,6 +84,17 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <RobotImageConfigPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/download-report"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <DownloadReportPage />
                             </Layout>
                         </ProtectedRoute>
                     }
