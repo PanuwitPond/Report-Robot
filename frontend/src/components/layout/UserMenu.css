@@ -1,5 +1,6 @@
 .user-menu {
     position: relative;
+
 }
 
 .user-menu-button {
@@ -83,9 +84,20 @@
     font-size: 0.875rem;
     color: #374151;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .user-menu-item:hover {
     background: #f3f4f6;
+}
+
+.user-menu-item.logout-item:hover {
+    background: #fee;
     color: #ef4444;
+}
+
+.menu-icon {
+    font-size: 1rem;
 }

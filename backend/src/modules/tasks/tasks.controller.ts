@@ -9,12 +9,16 @@ import {
     Query,
     UploadedFile,
     UseInterceptors,
+    UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('tasks')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class TasksController {
     constructor(private readonly tasksService: TasksService) { }
 

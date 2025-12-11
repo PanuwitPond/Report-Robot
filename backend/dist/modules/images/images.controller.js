@@ -16,6 +16,8 @@ exports.ImagesController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const images_service_1 = require("./images.service");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 let ImagesController = class ImagesController {
     constructor(imagesService) {
         this.imagesService = imagesService;
@@ -82,6 +84,7 @@ __decorate([
 ], ImagesController.prototype, "delete", null);
 exports.ImagesController = ImagesController = __decorate([
     (0, common_1.Controller)('images'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [images_service_1.ImagesService])
 ], ImagesController);
 //# sourceMappingURL=images.controller.js.map

@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { ImagesModule } from './modules/images/images.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
     imports: [
@@ -19,6 +20,7 @@ import { ImagesModule } from './modules/images/images.module';
         ReportsModule,
         TasksModule,
         ImagesModule,
+        UsersModule,
     ],
 })
 export class AppModule { }
