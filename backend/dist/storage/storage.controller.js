@@ -19,17 +19,23 @@ let StorageController = class StorageController {
     constructor(storageService) {
         this.storageService = storageService;
     }
-    async getFileUrl(path) {
+    async getFileUrl(path, req, res) {
         const url = await this.storageService.getFileUrl(path);
-        return { url };
+        const accept = req.headers['accept'] || '';
+        if (typeof accept === 'string' && accept.includes('image')) {
+            return res.redirect(url);
+        }
+        return res.json({ url });
     }
 };
 exports.StorageController = StorageController;
 __decorate([
     (0, common_1.Get)('url'),
     __param(0, (0, common_1.Query)('path')),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], StorageController.prototype, "getFileUrl", null);
 exports.StorageController = StorageController = __decorate([

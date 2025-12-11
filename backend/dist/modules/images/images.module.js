@@ -12,12 +12,13 @@ const typeorm_1 = require("@nestjs/typeorm");
 const images_controller_1 = require("./images.controller");
 const images_service_1 = require("./images.service");
 const robot_image_entity_1 = require("./entities/robot-image.entity");
+const storage_module_1 = require("../../storage/storage.module");
 let ImagesModule = class ImagesModule {
 };
 exports.ImagesModule = ImagesModule;
 exports.ImagesModule = ImagesModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([robot_image_entity_1.RobotImage])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([robot_image_entity_1.RobotImage]), storage_module_1.StorageModule],
         controllers: [images_controller_1.ImagesController],
         providers: [images_service_1.ImagesService],
     })

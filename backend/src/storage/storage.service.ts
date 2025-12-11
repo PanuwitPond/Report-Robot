@@ -19,16 +19,18 @@ export class StorageService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        // TODO: Enable MinIO when ready
-        // Temporarily disabled to allow backend to start without MinIO
-        console.log('⚠️ MinIO initialization skipped - MinIO not running');
-
-        // Uncomment when MinIO is running:
-        // const exists = await this.minioClient.bucketExists(this.bucketName);
-        // if (!exists) {
-        //     await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
-        //     console.log(`✅ Bucket ${this.bucketName} created`);
-        // }
+        try {
+            const exists = await this.minioClient.bucketExists(this.bucketName);
+            if (!exists) {
+                await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
+                console.log(`✅ Bucket ${this.bucketName} created`);
+            } else {
+                console.log(`✅ Bucket ${this.bucketName} exists`);
+            }
+        } catch (err) {
+            // Do not throw — allow app to continue even if MinIO is not available.
+            console.warn('⚠️ MinIO initialization failed - continuing without MinIO', err?.message || err);
+        }
     }
 
     async uploadFile(
