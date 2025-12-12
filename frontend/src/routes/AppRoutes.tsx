@@ -11,6 +11,8 @@ import {
     ManageRolesPage,
     DownloadReportPage,
 } from '@/pages';
+import Devices from '@/componentss/devices';
+import Tools from '@/componentss/tools_draw';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
@@ -21,14 +23,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
             <div style={{ display: 'flex', flex: 1 }}>
                 <Sidebar />
-                <div style={{ flex: 1, overflow: 'auto' }}>
+                <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
                     {children}
                 </div>
             </div>
         </div>
     );
 };
-
 export const AppRoutes = () => {
     return (
         <BrowserRouter>
@@ -107,6 +108,28 @@ export const AppRoutes = () => {
                         <ProtectedRoute requiredRoles={['admin']}>
                             <Layout>
                                 <ManageRolesPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/devices"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <Devices />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/tools"  // หน้า Tools มักจะถูกเรียกจาก Devices table
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <Tools /> 
                             </Layout>
                         </ProtectedRoute>
                     }
