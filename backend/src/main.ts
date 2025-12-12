@@ -3,6 +3,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+    console.log('---------------------------------');
+    console.log('DEBUG ENV VARIABLES:');
+    console.log('DB Host 1:', process.env.DATABASE_HOST);
+    console.log('DB Host 2:', process.env.MIOC_DB_HOST);
+    console.log('---------------------------------');
     const app = await NestFactory.create(AppModule);
 
     // Enable CORS

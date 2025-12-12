@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const typeorm_1 = require("@nestjs/typeorm");
 const database_module_1 = require("./database/database.module");
 const storage_module_1 = require("./storage/storage.module");
 const auth_module_1 = require("./modules/auth/auth.module");
@@ -26,6 +27,21 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
             }),
             database_module_1.DatabaseModule,
+            typeorm_1.TypeOrmModule.forRootAsync({
+                name: 'mioc_conn',
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
+                    type: 'postgres',
+                    host: configService.get('MIOC_DB_HOST'),
+                    port: configService.get('MIOC_DB_PORT'),
+                    username: configService.get('MIOC_DB_USERNAME'),
+                    password: configService.get('MIOC_DB_PASSWORD'),
+                    database: configService.get('MIOC_DB_NAME'),
+                    synchronize: false,
+                    autoLoadEntities: false,
+                }),
+            }),
             storage_module_1.StorageModule,
             auth_module_1.AuthModule,
             reports_module_1.ReportsModule,

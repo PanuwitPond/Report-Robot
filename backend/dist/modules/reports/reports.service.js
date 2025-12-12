@@ -19,9 +19,11 @@ const typeorm_2 = require("typeorm");
 const report_entity_1 = require("./entities/report.entity");
 const storage_service_1 = require("../../storage/storage.service");
 let ReportsService = class ReportsService {
-    constructor(reportsRepository, storageService) {
+    constructor(reportsRepository, storageService, dataSource, miocDataSource) {
         this.reportsRepository = reportsRepository;
         this.storageService = storageService;
+        this.dataSource = dataSource;
+        this.miocDataSource = miocDataSource;
     }
     async findAll(domain) {
         return this.reportsRepository.find({
@@ -42,12 +44,39 @@ let ReportsService = class ReportsService {
         }
         return this.storageService.getFile(report.fileUrl);
     }
+    async getCamOwners() {
+        const result = await this.miocDataSource.query(`SELECT DISTINCT camera_owner 
+             FROM intrusion_rule_infos 
+             WHERE lower(camera_owner) NOT LIKE '%cancel%' 
+             ORDER BY camera_owner`);
+        return result.map((row) => row.camera_owner);
+    }
+    async fetchJasperReport(reportName, params) {
+        const jasperBaseUrl = 'http://192.168.100.135:8080/jasperserver/rest_v2/reports/mioc_report';
+        const username = process.env.JASPER_USERNAME || 'miocadmin';
+        const password = process.env.JASPER_PASSWORD || 'miocadmin';
+        const queryString = new URLSearchParams(params).toString();
+        const url = `${jasperBaseUrl}/${reportName}.pdf?${queryString}`;
+        const auth = Buffer.from(`${username}:${password}`).toString('base64');
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { Authorization: `Basic ${auth}` }
+        });
+        if (!response.ok) {
+            throw new Error(`Jasper Error: ${response.statusText}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        return Buffer.from(arrayBuffer);
+    }
 };
 exports.ReportsService = ReportsService;
 exports.ReportsService = ReportsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(report_entity_1.Report)),
+    __param(3, (0, typeorm_1.InjectDataSource)('mioc_conn')),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        storage_service_1.StorageService])
+        storage_service_1.StorageService,
+        typeorm_2.DataSource,
+        typeorm_2.DataSource])
 ], ReportsService);
 //# sourceMappingURL=reports.service.js.map
