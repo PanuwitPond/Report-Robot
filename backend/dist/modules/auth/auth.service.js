@@ -24,9 +24,24 @@ let AuthService = class AuthService {
         this.realm = this.configService.get('KEYCLOAK_REALM');
         this.clientId = this.configService.get('KEYCLOAK_CLIENT_ID');
         this.clientSecret = this.configService.get('KEYCLOAK_CLIENT_SECRET');
+        this.bypassAuth = this.configService.get('BYPASS_AUTH') === 'true';
     }
     async login(username, password) {
         try {
+            if (this.bypassAuth) {
+                console.log('🔄 BYPASS MODE ENABLED - Returning dummy tokens for:', username);
+                return {
+                    accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlcm5hbWUiOiJhZG1pbiIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJhZG1pbiIsIm1ldHRib3QtdXNlciIsIm1ldHRwb2xlLXVzZXIiXX0sImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+                    refreshToken: 'dummy-refresh-token',
+                    expiresIn: 10800,
+                    user: {
+                        id: `bypass-${username}`,
+                        username: username,
+                        email: `${username}@test.local`,
+                        roles: ['admin', 'mettbot-user', 'mettpole-user'],
+                    }
+                };
+            }
             const tokenUrl = `${this.keycloakUrl}/realms/${this.realm}/protocol/openid-connect/token`;
             console.log('--- Debug Login ---');
             console.log('Token URL:', tokenUrl);

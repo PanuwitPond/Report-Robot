@@ -2,10 +2,28 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+    private readonly bypassAuth: boolean;
+
+    constructor(private configService: ConfigService) {
+        super();
+        this.bypassAuth = this.configService.get<string>('BYPASS_AUTH') === 'true';
+    }
+
     async validate(req: Request): Promise<any> {
+        // 🔄 BYPASS MODE - Skip token validation
+        if (this.bypassAuth) {
+            console.log('🔄 BYPASS MODE ENABLED - Skipping JWT validation');
+            return {
+                userId: 'bypass-user-1',
+                username: 'admin',
+                roles: ['admin', 'mettbot-user', 'mettpole-user'],
+            };
+        }
+
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -2,6 +2,9 @@ import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts';
 
+// 🔄 BYPASS MODE - Set to true to skip route protection
+const BYPASS_AUTH = true;
+
 interface ProtectedRouteProps {
     children: ReactNode;
     requiredRoles?: string[];
@@ -21,6 +24,11 @@ export const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps)
                 <div className="spinner"></div>
             </div>
         );
+    }
+
+    // Bypass mode: allow all routes
+    if (BYPASS_AUTH) {
+        return <>{children}</>;
     }
 
     if (!isAuthenticated) {

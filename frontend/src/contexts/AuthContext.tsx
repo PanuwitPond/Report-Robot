@@ -3,6 +3,18 @@ import { jwtDecode } from 'jwt-decode';
 import type { User, UserRole } from '@/types';
 import { authService } from '@/services';
 
+// 🔄 BYPASS MODE - Set to true to skip authentication
+const BYPASS_AUTH = true;
+
+// Default bypass user
+const DEFAULT_BYPASS_USER: User = {
+    id: 'bypass-user-1',
+    username: 'admin',
+    email: 'admin@test.local',
+    roles: ['ADMIN', 'METTBOT_USER', 'METTPOLE_USER'],
+    domain: 'METTBOT',
+};
+
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
@@ -25,6 +37,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Check if user is already authenticated
         const initAuth = async () => {
             try {
+                if (BYPASS_AUTH) {
+                    // Bypass mode: auto-login with default user
+                    console.log('🔄 BYPASS MODE ENABLED - Auto-logging in as admin');
+                    setUser(DEFAULT_BYPASS_USER);
+                    localStorage.setItem('user', JSON.stringify(DEFAULT_BYPASS_USER));
+                    localStorage.setItem('access_token', 'bypass-token');
+                    setIsLoading(false);
+                    return;
+                }
+
                 const token = authService.getAccessToken();
                 if (token) {
                     // Restore user from localStorage
@@ -45,6 +67,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const login = async (username: string, password: string) => {
         try {
+            if (BYPASS_AUTH) {
+                // Bypass mode: accept any credentials
+                console.log('🔄 BYPASS MODE - Login accepted without verification');
+                const bypassUser: User = {
+                    id: `bypass-${username}`,
+                    username: username,
+                    email: `${username}@test.local`,
+                    roles: ['ADMIN', 'METTBOT_USER', 'METTPOLE_USER'],
+                    domain: 'METTBOT',
+                };
+                setUser(bypassUser);
+                localStorage.setItem('user', JSON.stringify(bypassUser));
+                localStorage.setItem('access_token', 'bypass-token');
+                return;
+            }
+
             const response = await authService.login(username, password);
 
             // Decode JWT to get user info including roles
@@ -66,7 +104,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const logout = async () => {
         try {
-            await authService.logout();
+            if (!BYPASS_AUTH) {
+                await authService.logout();
+            }
             setUser(null);
             // Remove user from localStorage
             localStorage.removeItem('user');
