@@ -1,0 +1,73 @@
+/* html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+} */
+/* .App {
+  text-align: center;
+  background-color: bisque;
+} */
+
+/* .img {
+  width: 250px;
+  height: auto; 
+  object-fit: contain; 
+} */
+
+/* .card{
+  border-radius: 15px;
+} */
+
+.App {
+  position: relative;
+  text-align: center;
+  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.App::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('./bg_img.jpg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(8px);
+  /* ปรับความเบลอ */
+  z-index: -1;
+  /* ส่งพื้นหลังไปอยู่ด้านล่างของเนื้อหา */
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 90%; /* จำกัดความกว้างไม่ให้เกิน 90% ของหน้าจอ */
+  max-height: 90%; /* จำกัดความสูงไม่ให้เกิน 90% ของหน้าจอ */
+  overflow: auto; /* เพิ่ม scroll หากเนื้อหาเยอะเกิน */
+  background-color: #fff; /* สีพื้นหลัง */
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  z-index: 1000; /* ให้อยู่บนสุด */
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* สีพื้นหลังโปร่งใส */
+  z-index: 999;
+}
+
+

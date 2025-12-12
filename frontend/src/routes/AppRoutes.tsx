@@ -12,6 +12,9 @@ import {
     DownloadReportPage,
 } from '@/pages';
 
+// นำเข้าหน้า MIOC ที่เพิ่งสร้าง (ถ้า Path ไม่ตรง ให้แก้ให้ตรงกับที่คุณสร้างไฟล์)
+import MiocDashboardPage from '../pages/MiocDashboardPage';
+
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -96,6 +99,18 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <RobotImageConfigPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* --- ส่วนที่เพิ่มใหม่สำหรับ MIOC --- */}
+                <Route
+                    path="/mioc-dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <MiocDashboardPage />
                             </Layout>
                         </ProtectedRoute>
                     }
