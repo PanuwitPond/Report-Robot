@@ -5,4 +5,12 @@ export declare class StorageController {
     getFileUrl(path: string): Promise<{
         url: string;
     }>;
+    uploadFile(file: Express.Multer.File, domain?: string): Promise<{
+        message: string;
+        path: string;
+    }>;
+    listFiles(folder: string): Promise<{
+        count: number;
+        files: any[];
+    }>;
 }
