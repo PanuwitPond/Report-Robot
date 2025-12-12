@@ -9,6 +9,7 @@ import {
     AddImagePage,
     RobotImageConfigPage,
     ManageRolesPage,
+    DownloadReportPage,
 } from '@/pages';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -33,6 +34,17 @@ export const AppRoutes = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/signin" element={<SignInPage />} />
+
+                <Route
+                    path="/download-report"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <DownloadReportPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
 
                 <Route
                     path="/export-report"
