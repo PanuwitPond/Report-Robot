@@ -18,7 +18,7 @@ export const Navbar = () => {
                         ☰
                     </button>
                     <img src={Logo} alt="Logo" className="navbar-logo" />
-                    <h1 className="navbar-title">Robot Report System</h1>
+                    <h1 className="navbar-title">AI Report System</h1>
                 </div>
 
                 {/* <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>

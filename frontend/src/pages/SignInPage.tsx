@@ -33,7 +33,7 @@ export const SignInPage = () => {
         <div className="signin-page">
             <div className="signin-container">
                 <div className="signin-card">
-                    <h1 className="signin-title">Robot Report System</h1>
+                    <h1 className="signin-title">AI Report System</h1>
                     <p className="signin-subtitle">Sign in to your account</p>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="signin-form">
