@@ -148,20 +148,25 @@ const PageReport: React.FC = () => {
     }, []);
 
     const month_option: OptionType[] = [
-        { value: 1, label: "1: มกราคม" },
-        { value: 2, label: "2: กุมภาพันธ์" },
-        { value: 3, label: "3: มีนาคม" },
-        { value: 4, label: "4: เมษายน" },
-        { value: 5, label: "5: พฤษภาคม" },
-        { value: 6, label: "6: มิถุนายน" },
-        { value: 7, label: "7: กรกฎาคม" },
-        { value: 8, label: "8: สิงหาคม" },
-        { value: 9, label: "9: กันยายน" },
-        { value: 10, label: "10: ตุลาคม" },
-        { value: 11, label: "11: พฤศจิกายน" },
-        { value: 12, label: "12: ธันวาคม" }
+        { value: 1, label: "มกราคม" },
+        { value: 2, label: "กุมภาพันธ์" },
+        { value: 3, label: "มีนาคม" },
+        { value: 4, label: "เมษายน" },
+        { value: 5, label: "พฤษภาคม" },
+        { value: 6, label: "มิถุนายน" },
+        { value: 7, label: "กรกฎาคม" },
+        { value: 8, label: "สิงหาคม" },
+        { value: 9, label: "กันยายน" },
+        { value: 10, label: "ตุลาคม" },
+        { value: 11, label: "พฤศจิกายน" },
+        { value: 12, label: "ธันวาคม" }
     ];
 
+   const currentYear = new Date().getFullYear();
+const year_option = Array.from({ length: 10 }, (_, i) => ({
+    value: currentYear - i,
+    label: `${currentYear - i}`
+}));
     return (
         // แก้ไข class -> className ทั้งหมด
         <div className="PageReport" style={{ height: 'auto', minHeight: '89vh', padding: '20px' }}>
@@ -191,15 +196,28 @@ const PageReport: React.FC = () => {
                             defaultValue={month_option[new Date().getMonth()]} // เลือกเดือนปัจจุบันเป็นค่าเริ่มต้น
                         />
 
-                        <div className="mb-3 mt-2" >
+                        <div className="mb-3 mt-2">
                             <label className="form-label">Year</label>
-                            <input
-                                type="text"
-                                className="form-control"
+                            <Select 
+                                className="form-control" // ถ้าเป็น react-select อาจจะต้องลบ class นี้ออก หรือใช้ classPrefix แทน
                                 id="exampleFormControlInput1"
-                                value={year}
-                                placeholder={new Date().getFullYear().toString()}
-                                onChange={(e) => setYear(e.target.value)}
+                                placeholder={currentYear.toString()}
+                                
+                                // --- ส่วนที่แก้ไข ---
+                                options={year_option} 
+                                
+                                // กรณีใช้ Library (เช่น React-Select) value มักต้องใส่เป็น Object ที่ตรงกับ options
+                                value={year_option.find(option => option.value === year)}
+                                
+                                // เวลาเลือกค่า Library ส่วนใหญ่จะส่งคืนเป็น Object {value, label} ไม่ใช่ event (e)
+                                onChange={(selectedOption) => {
+                                    if (selectedOption) {
+                                        setYear(selectedOption.value);
+                                    } else {
+                                        setYear(null); // หรือใส่ค่า default ที่ต้องการเมื่อ user ล้างค่า
+                                    }
+                                }}
+                                // ------------------
                             />
                         </div>
 
