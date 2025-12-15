@@ -1,4 +1,3 @@
-import React from 'react';
 // นำเข้า Component ที่ย้ายมา (สมมติชื่อ PageReport)
 import PageReport from '../pages/mioc/PageReport'; 
 

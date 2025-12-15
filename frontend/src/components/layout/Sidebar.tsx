@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
-// อย่าลืมนำไฟล์รูปภาพ MIOC มาใส่ในโฟลเดอร์ image และเปลี่ยนชื่อไฟล์ตรงนี้ให้ถูกต้อง
-import miocImage from '../../image/Logo.svg'; // ตัวอย่าง: ใช้ Logo.svg หรือเปลี่ยนเป็นไฟล์ของคุณเอง
+import miocImage from '../../image/Logo.svg';
 import './Sidebar.css';
 
 export const Sidebar = () => {
-    // เพิ่ม 'mioc' เข้าไปใน type ของ state
-    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mioc' | null>(null);
+    // เพิ่ม 'mioc' และ 'mroi' เข้าไปใน type ของ state
+    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mioc' | 'mroi' | null>(null);
     const navigate = useNavigate();
 
     const handleMenuClick = (path: string) => {
@@ -37,13 +36,22 @@ export const Sidebar = () => {
                     <img src={botImage} alt="Bot" className="sidebar-tab-icon" />
                 </button>
 
-                {/* --- ส่วนที่เพิ่มใหม่: ปุ่ม MIOC --- */}
+                {/* ปุ่ม MIOC */}
                 <button
                     className={`sidebar-tab-btn ${activeTab === 'mioc' ? 'active' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'mioc' ? null : 'mioc')}
                     title="MIOC"
                 >
                     <img src={miocImage} alt="MIOC" className="sidebar-tab-icon" />
+                </button>
+
+                {/* ปุ่ม MROI - เพิ่มใหม่ (Menu ที่ 4) */}
+                <button
+                    className={`sidebar-tab-btn ${activeTab === 'mroi' ? 'active' : ''}`}
+                    onClick={() => setActiveTab(activeTab === 'mroi' ? null : 'mroi')}
+                    title="MROI"
+                >
+                    <span className="sidebar-tab-text">🎥</span>
                 </button>
             </div>
 
@@ -84,7 +92,7 @@ export const Sidebar = () => {
                     </>
                 )}
 
-                {/* --- ส่วนที่เพิ่มใหม่: เมนูของ MIOC --- */}
+                {/* เมนูของ MIOC */}
                 {activeTab === 'mioc' && (
                     <>
                         <button
@@ -93,7 +101,24 @@ export const Sidebar = () => {
                         >
                             MIOC Dashboard
                         </button>
-                        {/* คุณสามารถเพิ่มปุ่มเมนูอื่นๆ ของ MIOC ต่อท้ายตรงนี้ได้ */}
+                    </>
+                )}
+
+                {/* เมนูของ MROI - เพิ่มใหม่ (Menu ที่ 4) */}
+                {activeTab === 'mroi' && (
+                    <>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi')}
+                        >
+                            🎥 MROI Dashboard
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi/devices')}
+                        >
+                            📹 Manage Devices
+                        </button>
                     </>
                 )}
             </nav>

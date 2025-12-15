@@ -8,6 +8,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { ImagesModule } from './modules/images/images.module';
 import { UsersModule } from './modules/users/users.module';
+import { MroiModule } from './modules/mroi/mroi.module';
 
 @Module({
     imports: [
@@ -41,6 +42,7 @@ import { UsersModule } from './modules/users/users.module';
         TasksModule,
         ImagesModule,
         UsersModule,
+        MroiModule, // เพิ่ม MROI Module
     ],
 })
 export class AppModule { }

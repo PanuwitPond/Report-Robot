@@ -12,8 +12,11 @@ import {
     DownloadReportPage,
 } from '@/pages';
 
-// นำเข้าหน้า MIOC ที่เพิ่งสร้าง (ถ้า Path ไม่ตรง ให้แก้ให้ตรงกับที่คุณสร้างไฟล์)
+// นำเข้าหน้า MIOC
 import MiocDashboardPage from '../pages/MiocDashboardPage';
+
+// นำเข้าหน้า MROI
+import { MroiDashboard, DevicesPage } from '../pages/mroi';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
@@ -111,6 +114,29 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <MiocDashboardPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* --- ส่วนที่เพิ่มใหม่สำหรับ MROI --- */}
+                <Route
+                    path="/mroi"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <MroiDashboard />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/devices"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <DevicesPage />
                             </Layout>
                         </ProtectedRoute>
                     }

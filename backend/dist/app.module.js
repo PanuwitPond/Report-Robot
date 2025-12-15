@@ -17,6 +17,7 @@ const reports_module_1 = require("./modules/reports/reports.module");
 const tasks_module_1 = require("./modules/tasks/tasks.module");
 const images_module_1 = require("./modules/images/images.module");
 const users_module_1 = require("./modules/users/users.module");
+const mroi_module_1 = require("./modules/mroi/mroi.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -48,6 +49,7 @@ exports.AppModule = AppModule = __decorate([
             tasks_module_1.TasksModule,
             images_module_1.ImagesModule,
             users_module_1.UsersModule,
+            mroi_module_1.MroiModule,
         ],
     })
 ], AppModule);
