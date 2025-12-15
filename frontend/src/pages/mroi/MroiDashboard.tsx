@@ -34,52 +34,62 @@ export const MroiDashboard: React.FC = () => {
             label: 'Total Devices',
             value: devices.length,
             icon: '📹',
-            color: '#667eea',
+            color: '#6366f1',
+            lightColor: '#eef2ff',
         },
         {
             label: 'Active Devices',
             value: activeDevices,
-            icon: '✅',
-            color: '#4ade80',
+            icon: '✓',
+            color: '#10b981',
+            lightColor: '#f0fdf4',
         },
         {
             label: 'Total ROIs',
             value: (rois as any[]).length,
-            icon: '🎯',
-            color: '#f97316',
+            icon: '◉',
+            color: '#f59e0b',
+            lightColor: '#fffbf0',
         },
         {
             label: 'Active ROIs',
             value: activeRois,
             icon: '⚡',
             color: '#ec4899',
+            lightColor: '#fdf2f8',
         },
         {
             label: 'Schedules',
             value: (schedules as any[]).length,
-            icon: '⏰',
-            color: '#06b6d4',
+            icon: '⏱',
+            color: '#0891b2',
+            lightColor: '#f0f9fa',
         },
         {
             label: 'Active Schedules',
             value: activeSchedules,
-            icon: '▶️',
+            icon: '▶',
             color: '#8b5cf6',
+            lightColor: '#faf5ff',
         },
     ];
 
     return (
         <div className="mroi-dashboard">
             <div className="dashboard-header">
-                <h1>🎥 MROI Dashboard</h1>
-                <p className="subtitle">Multiple Region of Interest Management System</p>
+                <div className="header-content">
+                    <h1 className="dashboard-title">MROI Dashboard</h1>
+                    <p className="dashboard-subtitle">Multiple Region of Interest Management System</p>
+                </div>
             </div>
 
             {/* Stats Grid */}
             <div className="stats-grid">
                 {stats.map((stat, idx) => (
-                    <div key={idx} className="stat-card" style={{ borderLeftColor: stat.color }}>
-                        <div className="stat-icon">{stat.icon}</div>
+                    <div key={idx} className="stat-card" style={{ backgroundColor: stat.lightColor }}>
+                        <div className="stat-icon-wrapper" style={{ color: stat.color }}>
+                            {stat.icon}
+                        </div>
                         <div className="stat-content">
                             <div className="stat-label">{stat.label}</div>
                             <div className="stat-value">{stat.value}</div>
@@ -89,69 +99,95 @@ export const MroiDashboard: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="dashboard-tabs">
-                <button
-                    className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('overview')}
-                >
-                    📊 Overview
-                </button>
-                <button
-                    className={`tab-btn ${activeTab === 'devices' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('devices')}
-                >
-                    📹 Devices ({devices.length})
-                </button>
-                <button
-                    className={`tab-btn ${activeTab === 'rois' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('rois')}
-                >
-                    🎯 ROIs ({(rois as any[]).length})
-                </button>
-                <button
-                    className={`tab-btn ${activeTab === 'schedules' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('schedules')}
-                >
-                    ⏰ Schedules ({(schedules as any[]).length})
-                </button>
+            <div className="dashboard-tabs-wrapper">
+                <div className="dashboard-tabs">
+                    <button
+                        className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('overview')}
+                    >
+                        <span className="tab-icon">◻</span>
+                        Overview
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'devices' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('devices')}
+                    >
+                        <span className="tab-icon">📹</span>
+                        Devices
+                        <span className="tab-count">({devices.length})</span>
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'rois' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('rois')}
+                    >
+                        <span className="tab-icon">◉</span>
+                        ROIs
+                        <span className="tab-count">({(rois as any[]).length})</span>
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'schedules' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('schedules')}
+                    >
+                        <span className="tab-icon">⏱</span>
+                        Schedules
+                        <span className="tab-count">({(schedules as any[]).length})</span>
+                    </button>
+                </div>
             </div>
 
             {/* Tab Content */}
-            <div className="tab-content">
+            <div className="tab-content-wrapper">
                 {activeTab === 'overview' && (
                     <div className="overview-content">
-                        <div className="info-card">
-                            <h3>📹 Device Management</h3>
-                            <p>Manage your RTSP cameras and create ROI zones for each device.</p>
-                            <p className="stats-text">
-                                <strong>{devices.length}</strong> cameras • <strong>{activeDevices}</strong> active
-                            </p>
+                        <div className="feature-card">
+                            <div className="feature-header">
+                                <div className="feature-icon" style={{ backgroundColor: '#eef2ff', color: '#6366f1' }}>
+                                    📹
+                                </div>
+                                <h3>Device Management</h3>
+                            </div>
+                            <p className="feature-description">Manage your RTSP cameras and create ROI zones for each device with ease.</p>
+                            <div className="feature-stats">
+                                <span><strong>{devices.length}</strong> cameras</span>
+                                <span className="separator">•</span>
+                                <span><strong>{activeDevices}</strong> active</span>
+                            </div>
                         </div>
 
-                        <div className="info-card">
-                            <h3>🎯 ROI Detection</h3>
-                            <p>
-                                Create multiple types of regions of interest:
-                                <br />
-                                • Intrusion detection zones
-                                <br />
-                                • Tripwire lines
-                                <br />
-                                • Density monitoring areas
-                                <br />
-                                • Zoom regions
-                            </p>
-                            <p className="stats-text">
-                                <strong>{(rois as any[]).length}</strong> total • <strong>{activeRois}</strong> active
-                            </p>
+                        <div className="feature-card">
+                            <div className="feature-header">
+                                <div className="feature-icon" style={{ backgroundColor: '#fffbf0', color: '#f59e0b' }}>
+                                    ◉
+                                </div>
+                                <h3>ROI Detection</h3>
+                            </div>
+                            <p className="feature-description">Create multiple types of regions of interest for comprehensive monitoring:</p>
+                            <ul className="feature-list">
+                                <li>Intrusion detection zones</li>
+                                <li>Tripwire lines</li>
+                                <li>Density monitoring areas</li>
+                                <li>Zoom regions</li>
+                            </ul>
+                            <div className="feature-stats">
+                                <span><strong>{(rois as any[]).length}</strong> total</span>
+                                <span className="separator">•</span>
+                                <span><strong>{activeRois}</strong> active</span>
+                            </div>
                         </div>
 
-                        <div className="info-card">
-                            <h3>⏰ Scheduling</h3>
-                            <p>Define time-based schedules to enable/disable ROIs or trigger actions automatically.</p>
-                            <p className="stats-text">
-                                <strong>{(schedules as any[]).length}</strong> schedules • <strong>{activeSchedules}</strong> active
-                            </p>
+                        <div className="feature-card">
+                            <div className="feature-header">
+                                <div className="feature-icon" style={{ backgroundColor: '#f0f9fa', color: '#0891b2' }}>
+                                    ⏱
+                                </div>
+                                <h3>Scheduling</h3>
+                            </div>
+                            <p className="feature-description">Define time-based schedules to enable/disable ROIs or trigger actions automatically.</p>
+                            <div className="feature-stats">
+                                <span><strong>{(schedules as any[]).length}</strong> schedules</span>
+                                <span className="separator">•</span>
+                                <span><strong>{activeSchedules}</strong> active</span>
+                            </div>
                         </div>
                     </div>
                 )}
