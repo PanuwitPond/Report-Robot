@@ -1,0 +1,3 @@
+# Git Info - Check what's staged/modified
+# This file is created to help track changes
+# Before proceeding: run `git status` in terminal

@@ -4,11 +4,13 @@ import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
 // อย่าลืมนำไฟล์รูปภาพ MIOC มาใส่ในโฟลเดอร์ image และเปลี่ยนชื่อไฟล์ตรงนี้ให้ถูกต้อง
 import miocImage from '../../image/Logo.svg'; // ตัวอย่าง: ใช้ Logo.svg หรือเปลี่ยนเป็นไฟล์ของคุณเอง
+// MROI Icon - Multiple Region of Interest
+import mrioImage from '../../image/mroi.svg';
 import './Sidebar.css';
 
 export const Sidebar = () => {
-    // เพิ่ม 'mioc' เข้าไปใน type ของ state
-    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mioc' | null>(null);
+    // เพิ่ม 'mioc' และ 'mroi' เข้าไปใน type ของ state
+    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mioc' | 'mroi' | null>(null);
     const navigate = useNavigate();
 
     const handleMenuClick = (path: string) => {
@@ -44,6 +46,15 @@ export const Sidebar = () => {
                     title="MIOC"
                 >
                     <img src={miocImage} alt="MIOC" className="sidebar-tab-icon" />
+                </button>
+
+                {/* --- ส่วนที่เพิ่มใหม่: ปุ่ม MROI (Multiple Region of Interest) --- */}
+                <button
+                    className={`sidebar-tab-btn ${activeTab === 'mroi' ? 'active' : ''}`}
+                    onClick={() => setActiveTab(activeTab === 'mroi' ? null : 'mroi')}
+                    title="MROI"
+                >
+                    <img src={mrioImage} alt="MROI" className="sidebar-tab-icon" />
                 </button>
             </div>
 
@@ -94,6 +105,30 @@ export const Sidebar = () => {
                             MIOC Dashboard
                         </button>
                         {/* คุณสามารถเพิ่มปุ่มเมนูอื่นๆ ของ MIOC ต่อท้ายตรงนี้ได้ */}
+                    </>
+                )}
+
+                {/* --- ส่วนที่เพิ่มใหม่: เมนูของ MROI (Multiple Region of Interest) --- */}
+                {activeTab === 'mroi' && (
+                    <>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi')}
+                        >
+                            🎯 MROI Dashboard
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi/devices')}
+                        >
+                            📹 Device Manager
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi/roi-config')}
+                        >
+                            ⚙️ ROI Configuration
+                        </button>
                     </>
                 )}
             </nav>

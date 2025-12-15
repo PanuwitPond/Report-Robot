@@ -15,6 +15,28 @@ import {
 // นำเข้าหน้า MIOC ที่เพิ่งสร้าง (ถ้า Path ไม่ตรง ให้แก้ให้ตรงกับที่คุณสร้างไฟล์)
 import MiocDashboardPage from '../pages/MiocDashboardPage';
 
+// MROI Dashboard Page Component - Simple iframe wrapper
+const MroiDashboardPage = () => {
+    return (
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '1rem', background: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
+                <h2 style={{ margin: 0, color: '#333' }}>MROI Dashboard (Multiple Region of Interest)</h2>
+                <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '0.9rem' }}>Camera ROI Configuration & Monitoring</p>
+            </div>
+            <iframe
+                src="http://localhost/mroi"
+                style={{
+                    flex: 1,
+                    border: 'none',
+                    width: '100%',
+                    minHeight: 'calc(100vh - 200px)'
+                }}
+                title="MROI Dashboard"
+            />
+        </div>
+    );
+};
+
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -111,6 +133,40 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <MiocDashboardPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* --- ส่วนที่เพิ่มใหม่สำหรับ MROI (Multiple Region of Interest) --- */}
+                <Route
+                    path="/mroi"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <MroiDashboardPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/devices"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <MroiDashboardPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/roi-config"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <MroiDashboardPage />
                             </Layout>
                         </ProtectedRoute>
                     }
