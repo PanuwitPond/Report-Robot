@@ -17,6 +17,7 @@ const reports_module_1 = require("./modules/reports/reports.module");
 const tasks_module_1 = require("./modules/tasks/tasks.module");
 const images_module_1 = require("./modules/images/images.module");
 const users_module_1 = require("./modules/users/users.module");
+const robots_module_1 = require("./modules/robots/robots.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -42,12 +43,45 @@ exports.AppModule = AppModule = __decorate([
                     autoLoadEntities: false,
                 }),
             }),
+            typeorm_1.TypeOrmModule.forRootAsync({
+                name: 'robot_conn',
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
+                    type: 'postgres',
+                    host: configService.get('ROBOT_DB_HOST'),
+                    port: configService.get('ROBOT_DB_PORT'),
+                    username: configService.get('ROBOT_DB_USER'),
+                    password: configService.get('ROBOT_DB_PASSWORD'),
+                    database: configService.get('ROBOT_DB_NAME'),
+                    synchronize: false,
+                    autoLoadEntities: false,
+                    ssl: { rejectUnauthorized: false }
+                }),
+            }),
+            typeorm_1.TypeOrmModule.forRootAsync({
+                name: 'wf_conn',
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
+                    type: 'postgres',
+                    host: configService.get('WF_DB_HOST'),
+                    port: configService.get('WF_DB_PORT'),
+                    username: configService.get('WF_DB_USER'),
+                    password: configService.get('WF_DB_PASSWORD'),
+                    database: configService.get('WF_DB_NAME'),
+                    synchronize: false,
+                    autoLoadEntities: false,
+                    ssl: { rejectUnauthorized: false }
+                }),
+            }),
             storage_module_1.StorageModule,
             auth_module_1.AuthModule,
             reports_module_1.ReportsModule,
             tasks_module_1.TasksModule,
             images_module_1.ImagesModule,
             users_module_1.UsersModule,
+            robots_module_1.RobotsModule,
         ],
     })
 ], AppModule);

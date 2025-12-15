@@ -6,11 +6,20 @@ export declare class ReportsService {
     private storageService;
     private dataSource;
     private miocDataSource;
-    constructor(reportsRepository: Repository<Report>, storageService: StorageService, dataSource: DataSource, miocDataSource: DataSource);
+    private robotDataSource;
+    private wfDataSource;
+    constructor(reportsRepository: Repository<Report>, storageService: StorageService, dataSource: DataSource, miocDataSource: DataSource, robotDataSource: DataSource, wfDataSource: DataSource);
     findAll(domain: string): Promise<Report[]>;
     findOne(id: string): Promise<Report>;
     getFileUrl(fileUrl: string): Promise<string>;
     downloadFile(id: string): Promise<Buffer>;
     getCamOwners(): Promise<string[]>;
+    getWorkforceDepartments(search: string, empCode: string): Promise<any[]>;
+    fetchRobotCleaningReport(site: string, month: string, year: string, format: string): Promise<{
+        buffer: Buffer;
+        filename: string;
+        mimeType: string;
+    }>;
+    getRobotSites(): Promise<string[]>;
     fetchJasperReport(reportName: string, params: Record<string, any>): Promise<Buffer>;
 }
