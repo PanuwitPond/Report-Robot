@@ -225,11 +225,16 @@ export const RobotListPage = () => {
                                     </td>
                                     <td className="text-center">
                                         <div className="action-buttons">
-                                            {hasChanges(r) && (
-                                                <Button size="small" className="bg-green-100 text-green-700 hover:bg-green-200" onClick={() => handleSave(r)}>
-                                                    Save
-                                                </Button>
-                                            )}
+                                            {/* ปรับปรุงปุ่ม Save */}
+                                            <Button 
+                                                size="small" 
+                                                className="btn-save" // เรียกใช้ Class ที่เพิ่งสร้าง
+                                                onClick={() => handleSave(r)}
+                                                disabled={!hasChanges(r)} // ถ้าไม่มีการแก้ไข ให้ Disable
+                                            >
+                                                Save
+                                            </Button>
+
                                             <Button size="small" variant="danger" onClick={() => handleDelete(r.vin)}>
                                                 Delete
                                             </Button>

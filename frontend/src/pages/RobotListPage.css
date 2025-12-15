@@ -120,6 +120,29 @@
     justify-content: center;
 }
 
+.btn-save {
+    background-color: #dcfce7; /* สีเขียวอ่อน */
+    color: #15803d; /* สีเขียวเข้ม */
+    border: 1px solid #bbf7d0;
+    transition: all 0.2s;
+}
+
+.btn-save:hover:not(:disabled) {
+    background-color: #bbf7d0;
+    transform: translateY(-1px);
+}
+
+/* สไตล์ตอน Disabled (เป็นสีเทา) */
+.btn-save:disabled {
+    background-color: #f3f4f6; /* สีเทาอ่อน */
+    color: #9ca3af; /* สีเทาเข้ม */
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+    opacity: 0.8;
+    box-shadow: none;
+    transform: none;
+} 
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
