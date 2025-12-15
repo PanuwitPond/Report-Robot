@@ -55,15 +55,15 @@ export const Sidebar = () => {
                     </div>
                 </button>
 
-                {/* ปุ่ม MPOI (4) - เปลี่ยนจาก MROI เป็น MPOI */}
+                {/* ปุ่ม MROI (4) */}
                 <button
                     className={`sidebar-tab-btn ${activeTab === 'mroi' ? 'active' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'mroi' ? null : 'mroi')}
-                    title="MPOI"
+                    title="MROI"
                 >
                     <div className="sidebar-tab-content">
                         <span className="sidebar-tab-icon-emoji">🎥</span>
-                        <span className="sidebar-tab-label">MPOI</span>
+                        <span className="sidebar-tab-label">MROI</span>
                     </div>
                 </button>
             </div>
@@ -123,14 +123,14 @@ export const Sidebar = () => {
                     </>
                 )}
 
-                {/* เมนูของ MROI - เปลี่ยนชื่อเป็น MPOI (Menu ที่ 4) */}
+                {/* เมนูของ MROI (Menu ที่ 4) */}
                 {activeTab === 'mroi' && (
                     <>
                         <button
                             className="sidebar-menu-link"
                             onClick={() => handleMenuClick('/mroi')}
                         >
-                            🎥 MPOI Dashboard
+                            🎥 MROI Dashboard
                         </button>
                         <button
                             className="sidebar-menu-link"

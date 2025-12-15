@@ -9,6 +9,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { ImagesModule } from './modules/images/images.module';
 import { UsersModule } from './modules/users/users.module';
 import { RobotsModule } from './modules/robots/robots.module';
+import { MroiModule } from './modules/mroi/mroi.module';
 
 @Module({
     imports: [
@@ -77,6 +78,7 @@ import { RobotsModule } from './modules/robots/robots.module';
         ImagesModule,
         UsersModule,
         RobotsModule,
+        MroiModule,
     ],
 })
 export class AppModule { }
