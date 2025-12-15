@@ -15,7 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { DevicesService } from '../services/devices.service';
 import { CreateDeviceDto, UpdateDeviceDto, DeviceResponseDto } from '../dtos';
 
-@Controller('api/mroi/devices')
+@Controller('mroi/devices')
 @UseGuards(AuthGuard('jwt'))
 export class DevicesController {
     constructor(private readonly devicesService: DevicesService) {}

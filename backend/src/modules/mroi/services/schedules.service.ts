@@ -150,6 +150,7 @@ export class SchedulesService {
             isActive: schedule.isActive,
             description: schedule.description,
             actions: schedule.actions,
+            createdBy: schedule.createdBy,
             createdAt: schedule.createdAt,
             updatedAt: schedule.updatedAt,
             domain: schedule.domain,

@@ -16,7 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { SchedulesService } from '../services/schedules.service';
 import { CreateScheduleDto, UpdateScheduleDto, ScheduleResponseDto } from '../dtos';
 
-@Controller('api/mroi/schedules')
+@Controller('mroi/schedules')
 @UseGuards(AuthGuard('jwt'))
 export class SchedulesController {
     constructor(private readonly schedulesService: SchedulesService) {}

@@ -124,6 +124,7 @@ export class RoisService {
             isActive: roi.isActive,
             settings: roi.settings,
             description: roi.description,
+            createdBy: roi.createdBy,
             createdAt: roi.createdAt,
             updatedAt: roi.updatedAt,
             domain: roi.domain,

@@ -62,6 +62,7 @@ export class DeviceResponseDto {
     status: string;
     location?: string;
     cameraSettings?: any;
+    createdBy: string;
     createdAt: Date;
     updatedAt: Date;
     domain: string;

@@ -73,6 +73,7 @@ export class ScheduleResponseDto {
     isActive: boolean;
     description?: string;
     actions?: any;
+    createdBy: string;
     createdAt: Date;
     updatedAt: Date;
     domain: string;

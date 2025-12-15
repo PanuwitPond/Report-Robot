@@ -16,7 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RoisService } from '../services/rois.service';
 import { CreateRoiDto, UpdateRoiDto, RoiResponseDto } from '../dtos';
 
-@Controller('api/mroi/rois')
+@Controller('mroi/rois')
 @UseGuards(AuthGuard('jwt'))
 export class RoisController {
     constructor(private readonly roisService: RoisService) {}

@@ -64,6 +64,7 @@ export class RoiResponseDto {
     isActive: boolean;
     settings?: any;
     description?: string;
+    createdBy: string;
     createdAt: Date;
     updatedAt: Date;
     domain: string;

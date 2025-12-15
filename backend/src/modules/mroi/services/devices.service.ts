@@ -129,6 +129,7 @@ export class DevicesService {
             status: device.status,
             location: device.location,
             cameraSettings: device.cameraSettings,
+            createdBy: device.createdBy,
             createdAt: device.createdAt,
             updatedAt: device.updatedAt,
             domain: device.domain,
