@@ -9,11 +9,47 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 export class ReportsController {
     constructor(private readonly reportsService: ReportsService) { }
 
-    // --- API ใหม่สำหรับ Migration ---
+    // =========================================================
+    // 1. Specific Routes (วางไว้บนสุดเสมอ)
+    // =========================================================
+
+    // --- API สำหรับ Migration & Robot ---
 
     @Get('cam-owners')
     async getCamOwners() {
         return this.reportsService.getCamOwners();
+    }
+
+    @Get('robot-sites') // ย้ายมาไว้ตรงนี้ (ก่อน :id)
+    async getRobotSites() {
+        const sites = await this.reportsService.getRobotSites();
+        return { sites };
+    }
+
+    @Get('workforce/departments') // ย้ายมาไว้ตรงนี้ (ก่อน :id)
+    async getDepartments(@Query('search') search: string, @Query('empCode') empCode: string) {
+        const departments = await this.reportsService.getWorkforceDepartments(search, empCode);
+        return { departments };
+    }
+
+    // --- Jasper Reports ---
+
+    @Get('jasper/robot-cleaning') // ย้ายมาไว้ตรงนี้
+    async getRobotCleaningReport(
+        @Query('site') site: string,
+        @Query('month') month: string,
+        @Query('year') year: string,
+        @Query('format') format: string,
+        @Res() res: Response
+    ) {
+        const { buffer, filename, mimeType } = await this.reportsService.fetchRobotCleaningReport(site, month, year, format);
+        
+        res.set({
+            'Content-Type': mimeType,
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Length': buffer.length,
+        });
+        res.send(buffer);
     }
 
     @Get('jasper/gbbut')
@@ -34,24 +70,16 @@ export class ReportsController {
         this.sendPdf(res, `report_face_rec_${site}_${month}_${year}.pdf`, file);
     }
 
-    // Helper function สำหรับส่งไฟล์ PDF
-    private sendPdf(res: Response, filename: string, buffer: Buffer) {
-        res.set({
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="${filename}"`,
-            'Content-Length': buffer.length,
-        });
-        res.send(buffer);
-    }
-
-    // --- API เดิม ---
+    // =========================================================
+    // 2. Generic / Parameterized Routes (วางไว้ล่างสุด)
+    // =========================================================
 
     @Get()
     async findAll(@Query('domain') domain: string) {
         return this.reportsService.findAll(domain);
     }
 
-    @Get(':id')
+    @Get(':id') // ตัวนี้จะรับค่าทุกอย่างที่ไม่ตรงกับด้านบนว่าเป็น ID
     async findOne(@Param('id') id: string) {
         return this.reportsService.findOne(id);
     }
@@ -67,5 +95,15 @@ export class ReportsController {
         });
 
         res.send(file);
+    }
+
+    // Helper function
+    private sendPdf(res: Response, filename: string, buffer: Buffer) {
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Length': buffer.length,
+        });
+        res.send(buffer);
     }
 }

@@ -24,6 +24,23 @@ let ReportsController = class ReportsController {
     async getCamOwners() {
         return this.reportsService.getCamOwners();
     }
+    async getRobotSites() {
+        const sites = await this.reportsService.getRobotSites();
+        return { sites };
+    }
+    async getDepartments(search, empCode) {
+        const departments = await this.reportsService.getWorkforceDepartments(search, empCode);
+        return { departments };
+    }
+    async getRobotCleaningReport(site, month, year, format, res) {
+        const { buffer, filename, mimeType } = await this.reportsService.fetchRobotCleaningReport(site, month, year, format);
+        res.set({
+            'Content-Type': mimeType,
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Length': buffer.length,
+        });
+        res.send(buffer);
+    }
     async getGbbUtReport(site, month, year, res) {
         const file = await this.reportsService.fetchJasperReport('mioc_external_report_gbb_ut', { cameraOwner: site, startMonth: month, startYear: year });
         this.sendPdf(res, `report_gbb-ut_${site}_${month}_${year}.pdf`, file);
@@ -35,14 +52,6 @@ let ReportsController = class ReportsController {
     async getFaceRecReport(site, month, year, res) {
         const file = await this.reportsService.fetchJasperReport('face_rec_nobl', { cameraOwner: site, startMonth: month, startYear: year });
         this.sendPdf(res, `report_face_rec_${site}_${month}_${year}.pdf`, file);
-    }
-    sendPdf(res, filename, buffer) {
-        res.set({
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="${filename}"`,
-            'Content-Length': buffer.length,
-        });
-        res.send(buffer);
     }
     async findAll(domain) {
         return this.reportsService.findAll(domain);
@@ -59,6 +68,14 @@ let ReportsController = class ReportsController {
         });
         res.send(file);
     }
+    sendPdf(res, filename, buffer) {
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Length': buffer.length,
+        });
+        res.send(buffer);
+    }
 };
 exports.ReportsController = ReportsController;
 __decorate([
@@ -67,6 +84,31 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ReportsController.prototype, "getCamOwners", null);
+__decorate([
+    (0, common_1.Get)('robot-sites'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getRobotSites", null);
+__decorate([
+    (0, common_1.Get)('workforce/departments'),
+    __param(0, (0, common_1.Query)('search')),
+    __param(1, (0, common_1.Query)('empCode')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getDepartments", null);
+__decorate([
+    (0, common_1.Get)('jasper/robot-cleaning'),
+    __param(0, (0, common_1.Query)('site')),
+    __param(1, (0, common_1.Query)('month')),
+    __param(2, (0, common_1.Query)('year')),
+    __param(3, (0, common_1.Query)('format')),
+    __param(4, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, Object]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getRobotCleaningReport", null);
 __decorate([
     (0, common_1.Get)('jasper/gbbut'),
     __param(0, (0, common_1.Query)('site')),

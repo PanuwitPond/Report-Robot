@@ -27,4 +27,24 @@ export const reportService = {
         });
         return data.url;
     },
+    async getWorkforceDepartments(search: string, empCode: string) {
+        const params = { search, empCode };
+        const { data } = await apiClient.get('/reports/workforce/departments', { params });
+        return data.departments;
+    },
+
+    // 2. Get Sites
+    async getRobotSites() {
+        const { data } = await apiClient.get('/reports/robot-sites');
+        return data.sites;
+    },
+
+    // 3. Download Robot Report (Excel/PDF)
+    async downloadRobotCleaningReport(site: string, month: string, year: string, format: string) {
+        const response = await apiClient.get('/reports/jasper/robot-cleaning', {
+            params: { site, month, year, format },
+            responseType: 'blob' // สำคัญมาก เพื่อให้รับไฟล์ได้ถูกต้อง
+        });
+        return response.data; // คืนค่าเป็น Blob
+    }
 };

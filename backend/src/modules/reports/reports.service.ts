@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm'; // 1. เพิ่ม DataSource
+import { Repository, DataSource } from 'typeorm';
 import { Report } from './entities/report.entity';
 import { StorageService } from '@/storage/storage.service';
+
+
 // 2. ถ้า Node.js รุ่นเก่าอาจต้องใช้ axios แต่ถ้าใหม่ใช้ fetch ได้เลย (สมมติใช้ fetch)
 
 @Injectable()
@@ -11,9 +13,13 @@ export class ReportsService {
         @InjectRepository(Report)
         private reportsRepository: Repository<Report>,
         private storageService: StorageService,
-        private dataSource: DataSource, // 3. Inject DataSource เพื่อทำ Raw Query
+        private dataSource: DataSource, // ใช้สำหรับ Query หลัก (metthier.*, wfm_*)
         @InjectDataSource('mioc_conn') 
-        private miocDataSource: DataSource, 
+        private miocDataSource: DataSource,
+        @InjectDataSource('robot_conn') // Inject Robot DB
+        private robotDataSource: DataSource,
+        @InjectDataSource('wf_conn')    // Inject Workforce DB
+        private wfDataSource: DataSource, 
     ) { }
 
     async findAll(domain: string): Promise<Report[]> {
@@ -51,6 +57,155 @@ export class ReportsService {
              ORDER BY camera_owner`
         );
         return result.map((row: any) => row.camera_owner);
+    }
+
+    async getWorkforceDepartments(search: string, empCode: string): Promise<any[]> {
+        let sql: string;
+        let params: any[];
+
+        if (empCode && empCode.trim() !== '') {
+            sql = `
+             WITH fix_emp AS (
+             SELECT ws.id, concat(ws.employee_code,': ' ,concat(ws.firstname, ' ',ws.lastname )) AS label, ws.depart_id
+             FROM wfm_staffs ws 
+             WHERE ws.employee_code = $1
+             )
+            SELECT 
+                wdm.id AS depart_id,
+                wdm.th_name AS depart_name, 
+                wdm.code AS depart_code, 
+                wdm.job_no, 
+                wd.th_name AS division_name, 
+                ws.th_name AS section_name,
+                fe.label,
+                COALESCE(s_count.cnt, 0) + COALESCE(ss_count.cnt, 0) AS emp_amount
+            FROM wfm_departments wdm
+            LEFT JOIN wfm_divisions wd ON wdm.division = wd.id
+            LEFT JOIN wfm_sections ws ON wdm."section" = ws.id
+            LEFT JOIN (
+                SELECT depart_id, COUNT(id) AS cnt
+                FROM wfm_staffs
+                WHERE workspace = 'samco' 
+                GROUP BY depart_id
+            ) s_count ON wdm.id = s_count.depart_id
+            LEFT JOIN (
+                SELECT depart_id, COUNT(DISTINCT staff_id) AS cnt
+                FROM wfm_staff_spares
+                GROUP BY depart_id
+            ) ss_count ON wdm.id = ss_count.depart_id
+            INNER JOIN fix_emp fe ON fe.depart_id = wdm.id
+            WHERE wdm.th_name LIKE '%รปภ.%'
+            `;
+            params = [empCode];
+        } else {
+            const userInput = search || '';
+            sql = `
+            SELECT 
+                wdm.id AS depart_id,
+                wdm.th_name AS depart_name, 
+                wdm.code AS depart_code, 
+                wdm.job_no, 
+                wd.th_name AS division_name, 
+                ws.th_name AS section_name, 
+                COALESCE(s_count.cnt, 0) + COALESCE(ss_count.cnt, 0) AS emp_amount
+            FROM wfm_departments wdm
+            LEFT JOIN wfm_divisions wd ON wdm.division = wd.id
+            LEFT JOIN wfm_sections ws ON wdm."section" = ws.id
+            LEFT JOIN (
+                SELECT depart_id, COUNT(id) AS cnt
+                FROM wfm_staffs
+                WHERE workspace = 'samco' 
+                GROUP BY depart_id
+            ) s_count ON wdm.id = s_count.depart_id
+            LEFT JOIN (
+                SELECT depart_id, COUNT(DISTINCT staff_id) AS cnt
+                FROM wfm_staff_spares
+                GROUP BY depart_id
+            ) ss_count ON wdm.id = ss_count.depart_id
+            WHERE 
+                wdm.th_name ILIKE '%' || $1 || '%'
+                AND wdm.th_name LIKE '%รปภ.%'
+            `;
+            params = [userInput];
+        }
+
+        // ใช้ dataSource หลักในการ Query
+        const result = await this.wfDataSource.query(sql, params);
+        return result;
+    }
+
+    async fetchRobotCleaningReport(site: string, month: string, year: string, format: string): Promise<{ buffer: Buffer, filename: string, mimeType: string }> {
+        const jasperBaseUrl = 'http://192.168.100.135:8080/jasperserver/rest_v2/reports/robot_report';
+        const username = process.env.JASPER_USERNAME || 'jasperadmin';
+        const password = process.env.JASPER_PASSWORD || 'jasperadmin';
+
+        // คำนวณวันที่ Start/End
+        const m = parseInt(month);
+        const y = parseInt(year);
+        const startDateObj = new Date(y, m - 1, 1);
+        const endDateObj = new Date(y, m, 0);
+
+        const formatDate = (date: Date) => {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        };
+
+        let url: string;
+        let params: Record<string, string>;
+        let extension: string;
+        let mimeType: string;
+
+        if (format === 'PDF') {
+            url = `${jasperBaseUrl}/robot_external_report_pdf.pdf`;
+            params = {
+                startMonth: month,
+                startYear: year,
+                client_site: site
+            };
+            extension = 'pdf';
+            mimeType = 'application/pdf';
+        } else {
+            // Default to Excel
+            const reportUnit = 'robot_cleaning_report_excel';
+            extension = format === 'PDF' ? 'pdf' : 'xlsx'; // จริงๆ logic บนดัก PDF ไปแล้ว แต่เผื่อไว้
+            url = `${jasperBaseUrl}/${reportUnit}.${extension}`;
+            params = {
+                startDate: formatDate(startDateObj),
+                endDate: formatDate(endDateObj),
+                siteName: site
+            };
+            mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        }
+
+        const queryString = new URLSearchParams(params).toString();
+        const fullUrl = `${url}?${queryString}`;
+
+        const auth = Buffer.from(`${username}:${password}`).toString('base64');
+        const response = await fetch(fullUrl, {
+            method: 'GET',
+            headers: { Authorization: `Basic ${auth}` }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Jasper Error: ${response.statusText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        return {
+            buffer: Buffer.from(arrayBuffer),
+            filename: `report_${site}_${year}_${month}.${extension}`,
+            mimeType
+        };
+    }
+    
+    // 3. Get Sites for Robot (ย้ายมาจาก /api/sites)
+    async getRobotSites(): Promise<string[]> {
+        const result = await this.robotDataSource.query(
+            'SELECT distinct site FROM metthier.ml_robots WHERE active IS TRUE ORDER BY site'
+        );
+        return result.map((r: any) => r.site).filter(Boolean);
     }
 
     
