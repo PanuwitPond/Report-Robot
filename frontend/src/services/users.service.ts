@@ -21,6 +21,18 @@ export const usersService = {
         return data;
     },
 
+    async addUser(username: string, email: string, firstName?: string, lastName?: string, password?: string, emailVerified?: boolean): Promise<any> {
+        const { data } = await apiClient.post('/users', {
+            username,
+            email,
+            firstName: firstName || '',
+            lastName: lastName || '',
+            password: password || null,
+            emailVerified: emailVerified || false,
+        });
+        return data;
+    },
+
     async assignRole(userId: string, roleName: string): Promise<void> {
         await apiClient.post(`/users/${userId}/roles`, { roleName });
     },

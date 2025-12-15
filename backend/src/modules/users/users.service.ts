@@ -261,4 +261,94 @@ export class UsersService {
             throw new InternalServerErrorException('Failed to fetch available roles from Keycloak');
         }
     }
+
+    /**
+     * Create a new user in Keycloak
+     */
+    async createUser(username: string, email: string, firstName?: string, lastName?: string, password?: string, emailVerified?: boolean): Promise<any> {
+        try {
+            // Validate input
+            if (!username || !email) {
+                throw new BadRequestException('Username and email are required');
+            }
+
+            const token = await this.getAdminToken();
+            const keycloakUrl = this.configService.get('KEYCLOAK_URL');
+            const realm = this.configService.get('KEYCLOAK_REALM');
+
+            const usersUrl = `${keycloakUrl}/admin/realms/${realm}/users`;
+
+            // Create new user object
+            const newUser = {
+                username,
+                email,
+                firstName: firstName || '',
+                lastName: lastName || '',
+                enabled: true,
+                emailVerified: emailVerified || false,
+            };
+
+            const response = await firstValueFrom(
+                this.httpService.post(usersUrl, newUser, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+            );
+
+            // Keycloak returns location header with user ID
+            const userId = response.headers.location?.split('/').pop();
+
+            // Set password for the user if provided
+            if (userId) {
+                const passwordUrl = `${keycloakUrl}/admin/realms/${realm}/users/${userId}/reset-password`;
+                
+                // If custom password provided, set it as permanent
+                // Otherwise, set temporary password
+                const passwordData = password 
+                    ? {
+                        type: 'PASSWORD',
+                        value: password,
+                        temporary: false,
+                      }
+                    : {
+                        type: 'PASSWORD',
+                        value: 'TempPassword123!',
+                        temporary: true,
+                      };
+
+                await firstValueFrom(
+                    this.httpService.put(
+                        passwordUrl,
+                        passwordData,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                        },
+                    ),
+                );
+            }
+
+            return {
+                id: userId,
+                username,
+                email,
+                firstName: firstName || '',
+                lastName: lastName || '',
+                emailVerified: emailVerified || false,
+                message: password 
+                    ? 'User created successfully with permanent password'
+                    : 'User created successfully with temporary password: TempPassword123!',
+            };
+        } catch (error) {
+            console.error('Failed to create user:', error.response?.data || error.message);
+            if (error.response?.status === 409) {
+                throw new BadRequestException('Username or email already exists');
+            }
+            throw new BadRequestException('Failed to create user: ' + (error.response?.data?.errorMessage || error.message));
+        }
+    }
 }

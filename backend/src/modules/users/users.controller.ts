@@ -20,6 +20,18 @@ export class UsersController {
         return this.usersService.getAvailableRoles();
     }
 
+    @Post()
+    async createUser(
+        @Body('username') username: string,
+        @Body('email') email: string,
+        @Body('firstName') firstName?: string,
+        @Body('lastName') lastName?: string,
+        @Body('password') password?: string,
+        @Body('emailVerified') emailVerified?: boolean,
+    ) {
+        return this.usersService.createUser(username, email, firstName, lastName, password, emailVerified);
+    }
+
     @Post(':id/roles')
     async assignRole(
         @Param('id') userId: string,

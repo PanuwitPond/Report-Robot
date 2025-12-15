@@ -9,6 +9,17 @@ export const ManageRolesPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
+    const [showAddUserModal, setShowAddUserModal] = useState(false);
+    const [addUserStep, setAddUserStep] = useState(1); // 1: basic info, 2: password
+    const [emailVerified, setEmailVerified] = useState(false);
+    const [newUserFormData, setNewUserFormData] = useState({
+        username: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        password: '',
+        confirmPassword: '',
+    });
 
     const loadUsers = async () => {
         try {
@@ -79,6 +90,63 @@ export const ManageRolesPage = () => {
         setShowRoleModal(true);
     };
 
+    const handleAddUser = async () => {
+        try {
+            if (addUserStep === 1) {
+                // Step 1: Validate basic info
+                if (!newUserFormData.username || !newUserFormData.email) {
+                    alert('Username and email are required');
+                    return;
+                }
+                if (!emailVerified) {
+                    alert('Please verify email before proceeding');
+                    return;
+                }
+                // Move to step 2
+                setAddUserStep(2);
+            } else if (addUserStep === 2) {
+                // Step 2: Validate and create user with password
+                if (!newUserFormData.password || !newUserFormData.confirmPassword) {
+                    alert('Password fields are required');
+                    return;
+                }
+                if (newUserFormData.password !== newUserFormData.confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+                if (newUserFormData.password.length < 8) {
+                    alert('Password must be at least 8 characters');
+                    return;
+                }
+
+                // Create user with custom password
+                await usersService.addUser(
+                    newUserFormData.username,
+                    newUserFormData.email,
+                    newUserFormData.firstName,
+                    newUserFormData.lastName,
+                    newUserFormData.password,
+                    emailVerified
+                );
+                alert('User created successfully!');
+                setNewUserFormData({ 
+                    username: '', 
+                    email: '', 
+                    firstName: '', 
+                    lastName: '',
+                    password: '',
+                    confirmPassword: '',
+                });
+                setEmailVerified(false);
+                setAddUserStep(1);
+                setShowAddUserModal(false);
+                await loadUsers();
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to create user');
+        }
+    };
+
     if (isLoading) {
         return <div className="manage-roles-loading">Loading...</div>;
     }
@@ -95,8 +163,18 @@ export const ManageRolesPage = () => {
     return (
         <div className="manage-roles-page">
             <div className="manage-roles-header">
-                <h1>Manage User Roles</h1>
-                <p>Manage roles and permissions for all users</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h1>Manage User Roles</h1>
+                        <p>Manage roles and permissions for all users</p>
+                    </div>
+                    <button 
+                        className="btn-add-user"
+                        onClick={() => setShowAddUserModal(true)}
+                    >
+                        + Add User
+                    </button>
+                </div>
             </div>
 
             <div className="users-table-container">
@@ -165,6 +243,144 @@ export const ManageRolesPage = () => {
                         <button className="btn-cancel" onClick={() => setShowRoleModal(false)}>
                             Cancel
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {showAddUserModal && (
+                <div className="modal-overlay" onClick={() => setShowAddUserModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        {addUserStep === 1 ? (
+                            <>
+                                <h2>Add New User - Step 1: Basic Info</h2>
+                                <div className="form-group">
+                                    <label htmlFor="username">Username *</label>
+                                    <input
+                                        id="username"
+                                        type="text"
+                                        placeholder="Enter username"
+                                        value={newUserFormData.username}
+                                        onChange={(e) => setNewUserFormData({ ...newUserFormData, username: e.target.value })}
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="email">Email *</label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            id="email"
+                                            type="email"
+                                            placeholder="Enter email"
+                                            value={newUserFormData.email}
+                                            onChange={(e) => setNewUserFormData({ ...newUserFormData, email: e.target.value })}
+                                            className="form-input"
+                                            style={{ flex: 1 }}
+                                        />
+                                        <button
+                                            className={`btn-verify ${emailVerified ? 'btn-verify-checked' : ''}`}
+                                            onClick={() => setEmailVerified(!emailVerified)}
+                                            title={emailVerified ? 'Email verified' : 'Click to verify email'}
+                                        >
+                                            {emailVerified ? '✓ Verified' : 'Verify'}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="firstName">First Name</label>
+                                    <input
+                                        id="firstName"
+                                        type="text"
+                                        placeholder="Enter first name"
+                                        value={newUserFormData.firstName}
+                                        onChange={(e) => setNewUserFormData({ ...newUserFormData, firstName: e.target.value })}
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="lastName">Last Name</label>
+                                    <input
+                                        id="lastName"
+                                        type="text"
+                                        placeholder="Enter last name"
+                                        value={newUserFormData.lastName}
+                                        onChange={(e) => setNewUserFormData({ ...newUserFormData, lastName: e.target.value })}
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="modal-buttons">
+                                    <button 
+                                        className="btn-primary" 
+                                        onClick={handleAddUser}
+                                        disabled={!newUserFormData.username || !newUserFormData.email || !emailVerified}
+                                    >
+                                        Next: Set Password
+                                    </button>
+                                    <button className="btn-cancel" onClick={() => {
+                                        setShowAddUserModal(false);
+                                        setAddUserStep(1);
+                                        setEmailVerified(false);
+                                    }}>
+                                        Cancel
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h2>Add New User - Step 2: Set Password</h2>
+                                <div className="form-group">
+                                    <label>User Info</label>
+                                    <div className="user-info-display">
+                                        <p><strong>Username:</strong> {newUserFormData.username}</p>
+                                        <p><strong>Email:</strong> {newUserFormData.email}</p>
+                                        {newUserFormData.firstName && <p><strong>First Name:</strong> {newUserFormData.firstName}</p>}
+                                        {newUserFormData.lastName && <p><strong>Last Name:</strong> {newUserFormData.lastName}</p>}
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="password">Password *</label>
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        placeholder="Enter password (min 8 characters)"
+                                        value={newUserFormData.password}
+                                        onChange={(e) => setNewUserFormData({ ...newUserFormData, password: e.target.value })}
+                                        className="form-input"
+                                    />
+                                    <small style={{ color: '#666', marginTop: '0.25rem', display: 'block' }}>
+                                        Password must be at least 8 characters long
+                                    </small>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="confirmPassword">Confirm Password *</label>
+                                    <input
+                                        id="confirmPassword"
+                                        type="password"
+                                        placeholder="Confirm password"
+                                        value={newUserFormData.confirmPassword}
+                                        onChange={(e) => setNewUserFormData({ ...newUserFormData, confirmPassword: e.target.value })}
+                                        className="form-input"
+                                    />
+                                    {newUserFormData.password && newUserFormData.confirmPassword && 
+                                     newUserFormData.password !== newUserFormData.confirmPassword && (
+                                        <small style={{ color: '#c00', marginTop: '0.25rem', display: 'block' }}>
+                                            Passwords do not match
+                                        </small>
+                                    )}
+                                </div>
+                                <div className="modal-buttons">
+                                    <button 
+                                        className="btn-primary" 
+                                        onClick={handleAddUser}
+                                        disabled={!newUserFormData.password || !newUserFormData.confirmPassword || newUserFormData.password !== newUserFormData.confirmPassword || newUserFormData.password.length < 8}
+                                    >
+                                        Create User
+                                    </button>
+                                    <button className="btn-cancel" onClick={() => setAddUserStep(1)}>
+                                        Back
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
