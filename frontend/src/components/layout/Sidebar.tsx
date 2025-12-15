@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Monitor } from 'lucide-react';
 import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
 import miocImage from '../../image/Logo.svg'; 
 import './Sidebar.css';
 
 export const Sidebar = () => {
-    // เพิ่ม 'mioc' เข้าไปใน type ของ state
-    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mioc' | null>(null);
+    // เพิ่ม 'mioc' และ 'mroi' เข้าไปใน type ของ state
+    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mioc' | 'mroi' | null>(null);
     const navigate = useNavigate();
 
     const handleMenuClick = (path: string) => {
@@ -18,31 +19,52 @@ export const Sidebar = () => {
     return (
         <aside className={`sidebar ${activeTab ? 'expanded' : ''}`}>
             <div className="sidebar-tabs">
-                {/* ปุ่ม Pole */}
+                {/* ปุ่ม METTPOLE (1) */}
                 <button
                     className={`sidebar-tab-btn ${activeTab === 'pole' ? 'active' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'pole' ? null : 'pole')}
-                    title="Pole"
+                    title="METTPOLE"
                 >
-                    <img src={poleImage} alt="Pole" className="sidebar-tab-icon" />
+                    <div className="sidebar-tab-content">
+                        <img src={poleImage} alt="METTPOLE" className="sidebar-tab-icon" />
+                        <span className="sidebar-tab-label">METTPOLE</span>
+                    </div>
                 </button>
 
-                {/* ปุ่ม Bot */}
+                {/* ปุ่ม METTBOT (2) */}
                 <button
                     className={`sidebar-tab-btn ${activeTab === 'bot' ? 'active' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'bot' ? null : 'bot')}
-                    title="Bot"
+                    title="METTBOT"
                 >
-                    <img src={botImage} alt="Bot" className="sidebar-tab-icon" />
+                    <div className="sidebar-tab-content">
+                        <img src={botImage} alt="METTBOT" className="sidebar-tab-icon" />
+                        <span className="sidebar-tab-label">METTBOT</span>
+                    </div>
                 </button>
 
-                {/* --- ส่วนที่เพิ่มใหม่: ปุ่ม MIOC --- */}
+                {/* ปุ่ม MIOC (3) */}
                 <button
                     className={`sidebar-tab-btn ${activeTab === 'mioc' ? 'active' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'mioc' ? null : 'mioc')}
                     title="MIOC"
                 >
-                    <img src={miocImage} alt="MIOC" className="sidebar-tab-icon" />
+                    <div className="sidebar-tab-content">
+                        <Monitor className="sidebar-tab-icon" size={24} />
+                        <span className="sidebar-tab-label">MIOC</span>
+                    </div>
+                </button>
+
+                {/* ปุ่ม MPOI (4) - เปลี่ยนจาก MROI เป็น MPOI */}
+                <button
+                    className={`sidebar-tab-btn ${activeTab === 'mroi' ? 'active' : ''}`}
+                    onClick={() => setActiveTab(activeTab === 'mroi' ? null : 'mroi')}
+                    title="MPOI"
+                >
+                    <div className="sidebar-tab-content">
+                        <span className="sidebar-tab-icon-emoji">🎥</span>
+                        <span className="sidebar-tab-label">MPOI</span>
+                    </div>
                 </button>
             </div>
 
@@ -89,7 +111,7 @@ export const Sidebar = () => {
                     </>
                 )}
 
-                {/* --- ส่วนที่เพิ่มใหม่: เมนูของ MIOC --- */}
+                {/* เมนูของ MIOC */}
                 {activeTab === 'mioc' && (
                     <>
                         <button
@@ -98,7 +120,24 @@ export const Sidebar = () => {
                         >
                             MIOC Dashboard
                         </button>
-                        {/* คุณสามารถเพิ่มปุ่มเมนูอื่นๆ ของ MIOC ต่อท้ายตรงนี้ได้ */}
+                    </>
+                )}
+
+                {/* เมนูของ MROI - เปลี่ยนชื่อเป็น MPOI (Menu ที่ 4) */}
+                {activeTab === 'mroi' && (
+                    <>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi')}
+                        >
+                            🎥 MPOI Dashboard
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi/devices')}
+                        >
+                            📹 Manage Devices
+                        </button>
                     </>
                 )}
             </nav>
