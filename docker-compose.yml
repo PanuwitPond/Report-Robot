@@ -1,0 +1,237 @@
+# ====================================================================
+# Docker Compose Configuration - Report-Robot + MROI
+#
+# IMPORTANT ARCHITECTURE:
+# 
+# This docker-compose file orchestrates 6 services:
+# 1. Frontend (React 18 - Report-Robot)
+# 2. Backend (NestJS - Report-Robot)
+# 3. MROI Frontend (React 19 - Ant Design)
+# 4. MROI Backend (Express.js)
+# 5. PostgreSQL (Only mroi_db locally, external DBs accessed from containers)
+# 6. Nginx (Reverse proxy)
+#
+# CRITICAL NOTES:
+# - External databases are NOT managed by Docker:
+#   * know_db on 192.168.100.125 (Report-Robot main DB)
+#   * metlink_app_db on 35.186.159.153 (MIOC DB)
+# - Only mroi_db is created locally in Docker PostgreSQL
+# - All services communicate via internal Docker network: app-network
+# - No modifications to existing Report-Robot code or databases
+# ====================================================================
+
+version: '3.9'
+
+services:
+  # ====================================================================
+  # PostgreSQL Database - Contains only MROI database
+  # External databases (know_db, metlink_app_db) accessed from containers
+  # ====================================================================
+  postgres:
+    image: postgres:14-alpine
+    container_name: report-robot-postgres
+    environment:
+      POSTGRES_USER: robotuser
+      POSTGRES_PASSWORD: robotpass
+      POSTGRES_INITDB_ARGS: "-c shared_buffers=256MB -c max_connections=100"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U robotuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+    restart: unless-stopped
+    labels:
+      - "com.example.description=PostgreSQL for MROI database"
+
+  # ====================================================================
+  # Report-Robot Frontend (React 18 + Bootstrap)
+  # IMPORTANT: Existing production frontend - NO CODE CHANGES
+  # ====================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: report-robot-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_ENDPOINT=http://localhost/api
+      - VITE_MROI_API=http://localhost/mroi-api
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+    labels:
+      - "com.example.description=Report-Robot Frontend - React 18"
+
+  # ====================================================================
+  # Report-Robot Backend (NestJS)
+  # IMPORTANT: Connects to EXTERNAL databases
+  # - know_db on 192.168.100.125 (main DB)
+  # - metlink_app_db on 35.186.159.153 (MIOC DB)
+  # ====================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: report-robot-backend
+    ports:
+      - "3001:3001"
+    environment:
+      # Report-Robot Main Database (EXTERNAL)
+      DATABASE_HOST: 192.168.100.125
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: kdadmin
+      DATABASE_PASSWORD: P@ssw0rdData
+      DATABASE_NAME: know_db
+      
+      # MIOC Database (EXTERNAL)
+      MIOC_DB_HOST: 35.186.159.153
+      MIOC_DB_PORT: 5432
+      MIOC_DB_USERNAME: supisara
+      MIOC_DB_PASSWORD: 3X67mOIaDwW0CgWyJP
+      MIOC_DB_NAME: metlink_app_db
+      
+      # JWT & Security
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRATION: 3h
+      
+      # Application
+      PORT: 3001
+      NODE_ENV: production
+      
+      # MinIO Configuration
+      MINIO_ENDPOINT: storage.metthier.com
+      MINIO_PORT: 443
+      MINIO_USE_SSL: true
+      MINIO_ACCESS_KEY: adminworkflow
+      MINIO_SECRET_KEY: P@ssw0rd@work
+      MINIO_BUCKET: report
+      
+      # Keycloak
+      KEYCLOAK_URL: http://localhost:8080
+      KEYCLOAK_REALM: METTHIER_Report
+      KEYCLOAK_CLIENT_ID: metthier-report-backend
+      KEYCLOAK_CLIENT_SECRET: uV09v18nX1STW5xqpbWni0JCVIdTp56f
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+    restart: unless-stopped
+    labels:
+      - "com.example.description=Report-Robot Backend - NestJS"
+
+  # ====================================================================
+  # MROI Frontend (React 19 + Ant Design + Material UI)
+  # IMPORTANT: Completely isolated from Report-Robot frontend
+  # Different React version, different UI libraries, different port
+  # ====================================================================
+  mroi-frontend:
+    build:
+      context: ./mroi-app-main/mroi_front
+      dockerfile: Dockerfile
+    container_name: report-robot-mroi-frontend
+    ports:
+      - "3002:3002"
+    environment:
+      - VITE_API_ENDPOINT=http://localhost/mroi-api
+    depends_on:
+      - mroi-backend
+    networks:
+      - app-network
+    restart: unless-stopped
+    labels:
+      - "com.example.description=MROI Frontend - React 19"
+
+  # ====================================================================
+  # MROI Backend (Express.js)
+  # IMPORTANT: Connects to LOCAL mroi_db in Docker PostgreSQL
+  # Completely isolated from Report-Robot backend
+  # Includes FFmpeg for snapshot generation
+  # ====================================================================
+  mroi-backend:
+    build:
+      context: ./mroi-app-main/mroi_server
+      dockerfile: Dockerfile
+    container_name: report-robot-mroi-backend
+    ports:
+      - "5050:5050"
+    environment:
+      # MROI Database (LOCAL - in Docker PostgreSQL)
+      PORT: 5050
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: robotuser
+      DB_PASSWORD: robotpass
+      DB_NAME: mroi_db
+      
+      # FFmpeg & System
+      FFMPEG_PATH: /usr/bin/ffmpeg
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    labels:
+      - "com.example.description=MROI Backend - Express.js"
+
+  # ====================================================================
+  # Nginx Reverse Proxy
+  # Routes all traffic to appropriate services
+  # IMPORTANT: Separates Report-Robot and MROI routes
+  # - / → Report-Robot Frontend
+  # - /api/* → Report-Robot Backend
+  # - /mroi → MROI Frontend
+  # - /mroi-api/* → MROI Backend
+  # ====================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: report-robot-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+      - mroi-frontend
+      - mroi-backend
+    networks:
+      - app-network
+    restart: unless-stopped
+    labels:
+      - "com.example.description=Reverse Proxy - Routes all traffic"
+
+# ====================================================================
+# Docker Network - Internal communication between services
+# Services communicate via service names:
+# - frontend:3000
+# - backend:3001
+# - mroi-frontend:3002
+# - mroi-backend:5050
+# - postgres:5432
+# ====================================================================
+networks:
+  app-network:
+    driver: bridge
+    name: report-robot-network
+
+# ====================================================================
+# Docker Volumes - Persistent data storage
+# postgres_data: Stores PostgreSQL data (mroi_db only)
+# ====================================================================
+volumes:
+  postgres_data:
+    driver: local
+    name: report-robot-postgres-data

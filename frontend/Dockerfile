@@ -1,58 +1,54 @@
 # ====================================================================
-# MROI Frontend Dockerfile (React 19 + Vite)
-#
+# Frontend Dockerfile - Report-Robot (React 18 + TypeScript + Vite)
+# 
 # IMPORTANT:
-# - Multi-stage build
-# - Stage 1: Build (node:19-alpine for React 19 support)
-# - Stage 2: Production (nginx:alpine)
-# - Completely isolated from Report-Robot frontend
-# - Uses Ant Design + Material UI libraries
+# - Multi-stage build to reduce image size
+# - Stage 1: Build (uses node:18-alpine)
+# - Stage 2: Production (uses nginx:alpine)
+# - No changes to source code, only containerization
 # ====================================================================
 
 # Stage 1: Build stage
-FROM node:19-alpine AS builder
+FROM node:18-alpine AS builder
 
 LABEL maintainer="Report-Robot Team"
-LABEL description="MROI Frontend build stage"
+LABEL description="Frontend build stage for Report-Robot"
 
 WORKDIR /app
 
-# Copy package files from mroi_front directory
+# Copy package files
 COPY package*.json ./
 
 # Install dependencies
 RUN npm ci
 
-# Copy source code
+# Copy source code (NOT modified from original)
 COPY . .
 
-# Build the application
+# Build the application using Vite
 RUN npm run build
 
 # ====================================================================
 # Stage 2: Production stage
-# Serves built application with Nginx
+# Serves static files with Nginx
 # ====================================================================
 FROM nginx:alpine
 
 LABEL maintainer="Report-Robot Team"
-LABEL description="MROI Frontend production stage"
+LABEL description="Frontend production stage for Report-Robot"
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration for MROI frontend
+# Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 3002 (matched with docker-compose.yml)
-EXPOSE 3002
+# Expose port 3000 (matched with docker-compose.yml)
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:3002/ || exit 1
+    CMD wget --quiet --tries=1 --spider http://localhost:3000/ || exit 1
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
-
-# Start the Vite preview server
-CMD ["npm", "run", "preview"]
