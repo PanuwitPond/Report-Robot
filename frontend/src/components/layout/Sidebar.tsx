@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Monitor } from 'lucide-react';
 import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
-import miocImage from '../../image/Logo.svg';
 import './Sidebar.css';
 
 export const Sidebar = () => {
@@ -42,7 +42,7 @@ export const Sidebar = () => {
                     onClick={() => setActiveTab(activeTab === 'mioc' ? null : 'mioc')}
                     title="MIOC"
                 >
-                    <img src={miocImage} alt="MIOC" className="sidebar-tab-icon" />
+                    <Monitor className="sidebar-tab-icon" size={24} />
                 </button>
 
                 {/* ปุ่ม MROI - เพิ่มใหม่ (Menu ที่ 4) */}
