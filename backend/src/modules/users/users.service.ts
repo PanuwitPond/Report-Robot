@@ -81,7 +81,7 @@ export class UsersService {
             const keycloakUrl = this.configService.get('KEYCLOAK_URL');
             const realm = this.configService.get('KEYCLOAK_REALM');
 
-            const usersUrl = `${keycloakUrl}/admin/realms/${realm}/users`;
+            const usersUrl = `${keycloakUrl}/admin/realms/${realm}/users?enabled=true`;
 
             const { data: users } = await firstValueFrom(
                 this.httpService.get<KeycloakUser[]>(usersUrl, {
@@ -91,9 +91,12 @@ export class UsersService {
                 }),
             );
 
+            // Filter out service accounts (exclude users whose username starts with 'service-account-')
+            const regularUsers = users.filter(u => !u.username.startsWith('service-account-'));
+
             // Get roles for each user
             const usersWithRoles = await Promise.all(
-                users.map(async (user) => {
+                regularUsers.map(async (user) => {
                     const roles = await this.getUserRoles(user.id);
                     return {
                         id: user.id,
@@ -259,6 +262,157 @@ export class UsersService {
         } catch (error) {
             console.error('Failed to get available roles:', error.response?.data || error.message);
             throw new InternalServerErrorException('Failed to fetch available roles from Keycloak');
+        }
+    }
+
+    /**
+     * Create a new user in Keycloak realm and return created user id
+     */
+    async createUser(payload: Partial<KeycloakUser & { emailVerified?: boolean }>): Promise<string> {
+        try {
+            const token = await this.getAdminToken();
+            const keycloakUrl = this.configService.get('KEYCLOAK_URL');
+            const realm = this.configService.get('KEYCLOAK_REALM');
+
+            const usersUrl = `${keycloakUrl}/admin/realms/${realm}/users`;
+
+            const body = {
+                username: payload.username,
+                email: payload.email,
+                firstName: payload.firstName,
+                lastName: payload.lastName,
+                emailVerified: payload.emailVerified || false,
+                enabled: true,
+            };
+
+            const response = await firstValueFrom(
+                this.httpService.post(usersUrl, body, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    validateStatus: () => true,
+                }),
+            );
+
+            const status = (response as any).status;
+            const headers = (response as any).headers || {};
+
+            if (status === 201) {
+                const location = headers['location'] || headers['Location'];
+                const id = location ? location.split('/').pop() : null;
+                if (!id) throw new InternalServerErrorException('Unable to determine created user id');
+                return id;
+            }
+
+            console.error('Failed to create user:', (response as any).data || response);
+            throw new BadRequestException(((response as any).data as any)?.error || 'Failed to create user in Keycloak');
+        } catch (error) {
+            console.error('Error creating user:', error.response?.data || error.message || error);
+            if (error instanceof BadRequestException) throw error;
+            throw new InternalServerErrorException('Failed to create user');
+        }
+    }
+
+    /**
+     * Set or reset user password
+     */
+    async setUserPassword(userId: string, password: string, temporary = true): Promise<void> {
+        try {
+            const token = await this.getAdminToken();
+            const keycloakUrl = this.configService.get('KEYCLOAK_URL');
+            const realm = this.configService.get('KEYCLOAK_REALM');
+
+            const resetUrl = `${keycloakUrl}/admin/realms/${realm}/users/${userId}/reset-password`;
+
+            const body = {
+                type: 'password',
+                value: password,
+                temporary,
+            };
+
+            await firstValueFrom(
+                this.httpService.put(resetUrl, body, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+            );
+        } catch (error) {
+            console.error('Failed to set user password:', error.response?.data || error.message);
+            if (error.response?.status === 400) {
+                throw new BadRequestException(error.response.data || 'Password does not meet policy');
+            }
+            throw new InternalServerErrorException('Failed to set user password');
+        }
+    }
+
+    /**
+     * Verify given username/password by requesting token from Keycloak
+     */
+    async verifyUserPassword(username: string, password: string): Promise<boolean> {
+        try {
+            const keycloakUrl = this.configService.get('KEYCLOAK_URL');
+            const realm = this.configService.get('KEYCLOAK_REALM');
+            const clientId = this.configService.get('KEYCLOAK_CLIENT_ID');
+            const clientSecret = this.configService.get('KEYCLOAK_CLIENT_SECRET');
+
+            const tokenUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`;
+
+            const params = new URLSearchParams();
+            params.append('grant_type', 'password');
+            params.append('client_id', clientId || '');
+            if (clientSecret) params.append('client_secret', clientSecret);
+            params.append('username', username);
+            params.append('password', password);
+
+            const { data } = await firstValueFrom(
+                this.httpService.post(tokenUrl, params.toString(), {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    validateStatus: () => true,
+                }),
+            );
+
+            return !!data?.access_token;
+        } catch (error) {
+            console.error('Failed to verify user password:', error.response?.data || error.message);
+            return false;
+        }
+    }
+
+    /**
+     * Soft-disable a user (set enabled=false). Performs safety checks (admin count) when applicable.
+     */
+    async disableUser(userId: string): Promise<void> {
+        try {
+            const token = await this.getAdminToken();
+            const keycloakUrl = this.configService.get('KEYCLOAK_URL');
+            const realm = this.configService.get('KEYCLOAK_REALM');
+
+            // Check if user has admin role and prevent deleting last admin
+            const roles = await this.getUserRoles(userId);
+            if (roles.map(r => r.name).includes('admin')) {
+                const adminCount = await this.countAdmins();
+                if (adminCount <= 1) {
+                    throw new BadRequestException('Cannot delete the last admin user');
+                }
+            }
+
+            const userUrl = `${keycloakUrl}/admin/realms/${realm}/users/${userId}`;
+            // Soft-disable by updating enabled flag
+            await firstValueFrom(
+                this.httpService.put(userUrl, { enabled: false }, {
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                }),
+            );
+
+            // Log action (could be replaced with persistent audit log)
+            console.log(`User ${userId} disabled by admin action`);
+        } catch (error) {
+            console.error('Failed to disable user:', error.response?.data || error.message);
+            if (error instanceof BadRequestException) throw error;
+            throw new InternalServerErrorException('Failed to disable user');
         }
     }
 }

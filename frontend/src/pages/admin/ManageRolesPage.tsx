@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usersService, type UserWithRoles } from '@/services';
+import { useAuth } from '@/contexts';
 import './ManageRolesPage.css';
 
 export const ManageRolesPage = () => {
@@ -9,6 +10,12 @@ export const ManageRolesPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [createdUserId, setCreatedUserId] = useState<string | null>(null);
+    const [createForm, setCreateForm] = useState({ username: '', email: '', firstName: '', lastName: '', emailVerified: false });
+    const [passwordForm, setPasswordForm] = useState({ password: '', confirm: '', temporary: true });
+    const [notification, setNotification] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
 
     const loadUsers = async () => {
         try {
@@ -79,6 +86,87 @@ export const ManageRolesPage = () => {
         setShowRoleModal(true);
     };
 
+    const { user: authUser } = useAuth();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; username: string } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState('');
+    const [deleteAdminPassword, setDeleteAdminPassword] = useState('');
+
+    const openDeleteModal = (user: UserWithRoles) => {
+        setDeleteTarget({ id: user.id, username: user.username });
+        setDeleteConfirm('');
+        setDeleteAdminPassword('');
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!deleteTarget) return;
+        const expectedAdmin = (authUser?.username || authUser?.preferred_username || '').trim().toLowerCase();
+        if (deleteConfirm.trim().toLowerCase() !== expectedAdmin) {
+            setNotification({ message: 'Confirmation admin username does not match your account', type: 'error' });
+            return;
+        }
+        if (!deleteAdminPassword) {
+            setNotification({ message: 'Please enter your admin password', type: 'error' });
+            return;
+        }
+        try {
+            await usersService.deleteUser(deleteTarget.id, { confirmUsername: deleteConfirm, adminPassword: deleteAdminPassword });
+            setShowDeleteModal(false);
+            setDeleteTarget(null);
+            setDeleteConfirm('');
+            setDeleteAdminPassword('');
+            await loadUsers();
+            setNotification({ message: 'User disabled successfully', type: 'success' });
+        } catch (err: any) {
+            setNotification({ message: err.response?.data?.message || err.response?.data || 'Failed to delete user', type: 'error' });
+        }
+    };
+
+    const openCreateUser = () => {
+        setCreateForm({ username: '', email: '', firstName: '', lastName: '', emailVerified: false });
+        setShowCreateModal(true);
+    };
+
+    const handleCreateUser = async () => {
+        if (!createForm.username || createForm.username.trim() === '') {
+            setNotification({ message: 'Username is required', type: 'error' });
+            return;
+        }
+        try {
+            const res = await usersService.createUser(createForm);
+            setCreatedUserId(res.id || res.id);
+            setShowCreateModal(false);
+            setShowPasswordModal(true);
+        } catch (err: any) {
+            setNotification({ message: err.response?.data?.message || err.response?.data || 'Failed to create user', type: 'error' });
+        }
+    };
+
+    const handleSetPassword = async () => {
+        if (!passwordForm.password) {
+            setNotification({ message: 'Password is required', type: 'error' });
+            return;
+        }
+        if (passwordForm.password !== passwordForm.confirm) {
+            setNotification({ message: 'Password and confirmation do not match', type: 'error' });
+            return;
+        }
+        if (!createdUserId) return;
+        try {
+            await usersService.setPassword(createdUserId, { password: passwordForm.password, temporary: passwordForm.temporary });
+            setShowPasswordModal(false);
+            setCreatedUserId(null);
+            setPasswordForm({ password: '', confirm: '', temporary: true });
+            await loadUsers();
+            setNotification({ message: 'User created and password set successfully', type: 'success' });
+        } catch (err: any) {
+            setNotification({ message: err.response?.data?.message || err.response?.data || 'Failed to set password', type: 'error' });
+        }
+    };
+
+    const closeNotification = () => setNotification(null);
+
     if (isLoading) {
         return <div className="manage-roles-loading">Loading...</div>;
     }
@@ -95,8 +183,13 @@ export const ManageRolesPage = () => {
     return (
         <div className="manage-roles-page">
             <div className="manage-roles-header">
-                <h1>Manage User Roles</h1>
-                <p>Manage roles and permissions for all users</p>
+                <div>
+                    <h1>Manage User Roles</h1>
+                    <p>Manage roles and permissions for all users</p>
+                </div>
+                <div className="manage-roles-actions">
+                    <button className="btn-primary" onClick={openCreateUser}>Add user</button>
+                </div>
             </div>
 
             <div className="users-table-container">
@@ -107,6 +200,7 @@ export const ManageRolesPage = () => {
                             <th>Email</th>
                             <th>Roles</th>
                             <th>Actions</th>
+                            <th style={{ width: 50, textAlign: 'center' }}>Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -138,6 +232,9 @@ export const ManageRolesPage = () => {
                                         Add Role
                                     </button>
                                 </td>
+                                <td style={{ textAlign: 'center' }}>
+                                    <button className="btn-delete-icon" onClick={() => openDeleteModal(u)} title="Delete user">🗑</button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -168,6 +265,98 @@ export const ManageRolesPage = () => {
                     </div>
                 </div>
             )}
+
+            {showCreateModal && (
+                <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="modal-close" onClick={() => setShowCreateModal(false)}>×</button>
+                            <h2>Create user</h2>
+                            <div>
+                                <label>Username *</label>
+                                <input type="text" value={createForm.username} onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })} />
+                            </div>
+                            <div>
+                                <label>Email</label>
+                                <input type="email" value={createForm.email} onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} />
+                            </div>
+                            <div>
+                                <label>First name</label>
+                                <input type="text" value={createForm.firstName} onChange={(e) => setCreateForm({ ...createForm, firstName: e.target.value })} />
+                            </div>
+                            <div>
+                                <label>Last name</label>
+                                <input type="text" value={createForm.lastName} onChange={(e) => setCreateForm({ ...createForm, lastName: e.target.value })} />
+                            </div>
+                            <div>
+                                <label>
+                                    <input type="checkbox" checked={createForm.emailVerified} onChange={(e) => setCreateForm({ ...createForm, emailVerified: e.target.checked })} /> Email verified
+                                </label>
+                            </div>
+                            <div className="modal-actions">
+                                <button className="btn-primary" onClick={handleCreateUser}>Create</button>
+                                <button className="btn-cancel" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                            </div>
+                        </div>
+                </div>
+            )}
+
+            {showDeleteModal && deleteTarget && (
+                <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close" onClick={() => setShowDeleteModal(false)}>×</button>
+                        <h2>Delete user</h2>
+                        <p>To confirm deletion of <strong>{deleteTarget.username}</strong>, type your admin username below and enter your admin password.</p>
+                        <div>
+                            <label>Confirm username</label>
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <input autoFocus placeholder={authUser?.username || authUser?.preferred_username || ''} type="text" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} />
+                                <button type="button" className="btn-copy" onClick={() => { const txt = authUser?.username || authUser?.preferred_username || ''; navigator.clipboard?.writeText(txt); setNotification({ message: 'Admin username copied to clipboard', type: 'success' }); }}>Copy</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Admin password</label>
+                            <input type="password" value={deleteAdminPassword} onChange={(e) => setDeleteAdminPassword(e.target.value)} />
+                        </div>
+                        <div className="modal-actions">
+                            <button className="btn-primary" onClick={handleDeleteUser}>Delete</button>
+                            <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showPasswordModal && (
+                <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="modal-close" onClick={() => setShowPasswordModal(false)}>×</button>
+                            <h2>Set password</h2>
+                            <div>
+                                <label>Password *</label>
+                                <input type="password" value={passwordForm.password} onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })} />
+                            </div>
+                            <div>
+                                <label>Password confirmation *</label>
+                                <input type="password" value={passwordForm.confirm} onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })} />
+                            </div>
+                            <div>
+                                <label>
+                                    <input type="checkbox" checked={passwordForm.temporary} onChange={(e) => setPasswordForm({ ...passwordForm, temporary: e.target.checked })} /> Temporary
+                                </label>
+                            </div>
+                            <div className="modal-actions">
+                                <button className="btn-primary" onClick={handleSetPassword}>Save</button>
+                                <button className="btn-cancel" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+                            </div>
+                        </div>
+                </div>
+            )}
+
+                {notification && (
+                    <div className={`toast ${notification.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+                        <div className="toast-body">{notification.message}</div>
+                        <button className="toast-close" onClick={closeNotification}>×</button>
+                    </div>
+                )}
         </div>
     );
 };
