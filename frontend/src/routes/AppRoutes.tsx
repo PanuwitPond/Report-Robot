@@ -11,6 +11,9 @@ import {
     ManageRolesPage,
     DownloadReportPage,
 } from '@/pages';
+import { RobotListPage } from '@/pages/RobotListPage';
+import { WorkforcePage } from '@/pages/WorkforcePage';
+import { RobotReportPage } from '@/pages/RobotReportPage';
 
 // นำเข้าหน้า MIOC
 import MiocDashboardPage from '../pages/MiocDashboardPage';
@@ -152,9 +155,42 @@ export const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
+                
+                <Route
+                    path="/robots"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <RobotListPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
 
-                <Route path="/" element={<Navigate to="/export-report" replace />} />
-            </Routes>
-        </BrowserRouter>
-    );
-};
+                <Route
+                    path="/workforce"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <WorkforcePage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/robot-cleaning-report"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <RobotReportPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                                <Route path="/" element={<Navigate to="/export-report" replace />} />
+                            </Routes>
+                        </BrowserRouter>
+                    );
+                };

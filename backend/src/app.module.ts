@@ -8,7 +8,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { ImagesModule } from './modules/images/images.module';
 import { UsersModule } from './modules/users/users.module';
-import { MroiModule } from './modules/mroi/mroi.module';
+import { RobotsModule } from './modules/robots/robots.module';
 
 @Module({
     imports: [
@@ -35,6 +35,40 @@ import { MroiModule } from './modules/mroi/mroi.module';
                 autoLoadEntities: false, // เราใช้ Raw Query ไม่ต้องโหลด Entity
             }),
         }),
+        TypeOrmModule.forRootAsync({
+            name: 'robot_conn',
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get('ROBOT_DB_HOST'),
+                port: configService.get('ROBOT_DB_PORT'),
+                username: configService.get('ROBOT_DB_USER'),
+                password: configService.get('ROBOT_DB_PASSWORD'),
+                database: configService.get('ROBOT_DB_NAME'),
+                synchronize: false,
+                autoLoadEntities: false,
+                ssl: { rejectUnauthorized: false } // สำคัญ! ต้องใส่เพราะ DB เก่าใช้ SSL
+            }),
+        }),
+
+        // 3. [เพิ่มใหม่] Workforce Connection
+        TypeOrmModule.forRootAsync({
+            name: 'wf_conn',
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get('WF_DB_HOST'),
+                port: configService.get('WF_DB_PORT'),
+                username: configService.get('WF_DB_USER'),
+                password: configService.get('WF_DB_PASSWORD'),
+                database: configService.get('WF_DB_NAME'),
+                synchronize: false,
+                autoLoadEntities: false,
+                ssl: { rejectUnauthorized: false }
+            }),
+        }),
 
         StorageModule,
         AuthModule,
@@ -42,7 +76,7 @@ import { MroiModule } from './modules/mroi/mroi.module';
         TasksModule,
         ImagesModule,
         UsersModule,
-        MroiModule, // เพิ่ม MROI Module
+        RobotsModule,
     ],
 })
 export class AppModule { }

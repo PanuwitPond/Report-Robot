@@ -1,0 +1,139 @@
+/* src/pages/mioc/PageReport.css */
+
+.page-report-container {
+    min-height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background-color: #f3f4f6; /* พื้นหลังสีเทาอ่อน */
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+.report-card {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 450px; /* จำกัดความกว้างให้พอดีตา */
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+}
+
+.report-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.report-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.report-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.report-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* ปุ่มหลัก (GBB-UT) */
+.btn-primary {
+    background-color: #2563eb; /* สีน้ำเงินเข้ม */
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+}
+
+/* ปุ่มรอง (General) */
+.btn-secondary {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    color: #111827;
+}
+
+/* ปุ่ม Face Rec */
+.btn-accent {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.btn-accent:hover {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* Loading Spinner */
+.loading-overlay {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-size: 0.9rem;
+    gap: 0.5rem;
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

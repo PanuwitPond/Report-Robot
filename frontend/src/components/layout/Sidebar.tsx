@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Monitor } from 'lucide-react';
 import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
+import miocImage from '../../image/Logo.svg'; 
 import './Sidebar.css';
 
 export const Sidebar = () => {
@@ -83,24 +84,30 @@ export const Sidebar = () => {
                 {/* เมนูของ Bot */}
                 {activeTab === 'bot' && (
                     <>
+
                         <button
                             className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/export-report')}
+                            onClick={() => handleMenuClick('/robot-cleaning-report')}
                         >
-                            Export Report
+                            🧹 Robot Cleaning Report
                         </button>
+
                         <button
                             className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/report-task-config')}
+                            onClick={() => handleMenuClick('/robots')}
                         >
-                            Report Task Config
+                            🤖 Robot Management
                         </button>
+
                         <button
                             className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/report-image-config')}
+                            onClick={() => handleMenuClick('/workforce')}
                         >
-                            Report Image Config
+                            👥 Workforce Departments
                         </button>
+
+                        <div className="sidebar-section-divider"></div>
+
                     </>
                 )}
 
