@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts';
 import { Button, Input } from '@/components/ui';
 import { getDefaultRouteByRole } from '@/utils/roleBasedRedirect';
 import './SignInPage.css';
+import Logo from '@/image/Logo.svg';
 
 interface SignInForm {
     username: string;
@@ -36,6 +37,13 @@ export const SignInPage = () => {
 
     return (
         <div className="signin-page">
+            <div className="brand-panel">
+                <div className="brand-header">
+                    <img src={Logo} alt="Metthier" className="brand-logo" />
+                    <div className="brand-name">METTHIER</div>
+                </div>
+                <div className="brand-slogan">RISE ABOVE ORDINARY</div>
+            </div>
             <div className="signin-container">
                 <div className="signin-card">
                     <h1 className="signin-title">AI Report System</h1>
