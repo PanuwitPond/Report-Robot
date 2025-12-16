@@ -7,7 +7,7 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (username: string, password: string) => Promise<void>;
+    login: (username: string, password: string) => Promise<User>;
     logout: () => Promise<void>;
 }
 
@@ -27,10 +27,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             try {
                 const token = authService.getAccessToken();
                 if (token) {
-                    // Restore user from localStorage
-                    const savedUser = localStorage.getItem('user');
-                    if (savedUser) {
-                        setUser(JSON.parse(savedUser));
+                    // Try to fetch fresh user info (roles + permissions)
+                    try {
+                        const me = await authService.me();
+                        const fetchedUser = me?.user || null;
+                        if (fetchedUser) {
+                            // attach permissions array
+                            fetchedUser.permissions = me?.permissions || [];
+                            setUser(fetchedUser);
+                            localStorage.setItem('user', JSON.stringify(fetchedUser));
+                        } else {
+                            // Fallback to saved user if API call fails
+                            const savedUser = localStorage.getItem('user');
+                            if (savedUser) setUser(JSON.parse(savedUser));
+                        }
+                    } catch (err) {
+                        const savedUser = localStorage.getItem('user');
+                        if (savedUser) setUser(JSON.parse(savedUser));
                     }
                 }
                 setIsLoading(false);
@@ -43,7 +56,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         initAuth();
     }, []);
 
-    const login = async (username: string, password: string) => {
+    const login = async (username: string, password: string): Promise<User> => {
         try {
             const response = await authService.login(username, password);
 
@@ -55,9 +68,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 roles: decodedToken.realm_access?.roles || [],
             };
 
-            setUser(userWithRoles);
-            // Save user to localStorage
-            localStorage.setItem('user', JSON.stringify(userWithRoles));
+            // Fetch permissions from server and attach
+            let finalUser = userWithRoles;
+            try {
+                const me = await authService.me();
+                const fetchedUser = me?.user || userWithRoles;
+                fetchedUser.permissions = me?.permissions || [];
+                finalUser = fetchedUser;
+                setUser(fetchedUser);
+                localStorage.setItem('user', JSON.stringify(fetchedUser));
+            } catch (err) {
+                setUser(userWithRoles);
+                localStorage.setItem('user', JSON.stringify(userWithRoles));
+            }
+
+            // Return user for downstream use (e.g., SignInPage role-based redirect)
+            return finalUser;
         } catch (error) {
             console.error('Login error:', error);
             throw error;

@@ -1,5 +1,7 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { rolePermissions } from '../../config/permissions';
 
 @Controller('auth')
 export class AuthController {
@@ -20,5 +22,27 @@ export class AuthController {
     async refresh(@Body() body: { refreshToken: string }) {
         // TODO: Implement token refresh
         return { accessToken: 'new_token' };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('me')
+    async me(@Request() req: any) {
+        const user = req.user || {};
+        const roles: string[] = user.roles || [];
+
+        // Collect permissions from rolePermissions mapping
+        const permSet = new Set<string>();
+        for (const role of roles) {
+            const perms = rolePermissions[role] || [];
+            perms.forEach((p) => permSet.add(p));
+        }
+
+        return {
+            user: {
+                ...user,
+                roles,
+            },
+            permissions: Array.from(permSet),
+        };
     }
 }

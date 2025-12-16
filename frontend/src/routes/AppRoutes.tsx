@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar, UserMenu, Sidebar } from '@/components/layout';
 import { ProtectedRoute } from './ProtectedRoute';
+import { getDefaultRouteByRole } from '@/utils/roleBasedRedirect';
 import {
     SignInPage,
     ExportReportPage,
@@ -37,6 +38,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
     );
 };
+
+// Helper component to get default route based on user roles
+const DefaultRoute = () => {
+    const { user } = useAuth();
+    const defaultPath = getDefaultRouteByRole(user?.roles);
+    return <Navigate to={defaultPath} replace />;
+};
+
+import { useAuth } from '@/contexts';
 
 export const AppRoutes = () => {
     return (
@@ -189,7 +199,7 @@ export const AppRoutes = () => {
                     }
                 />
 
-                                <Route path="/" element={<Navigate to="/export-report" replace />} />
+                <Route path="/" element={<DefaultRoute />} />
                             </Routes>
                         </BrowserRouter>
                     );
