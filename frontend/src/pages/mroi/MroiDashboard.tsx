@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchDevices, fetchRois, fetchSchedules } from '@/services/mroi.service';
+import { fetchIvCameras, fetchRois, fetchSchedules } from '@/services/mroi.service';
 import './MroiDashboard.css';
 
 export const MroiDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'overview' | 'devices' | 'rois' | 'schedules'>('overview');
 
     // ดึงข้อมูล
-    const { data: devices = [], isLoading: devicesLoading } = useQuery({
-        queryKey: ['mroi-devices'],
-        queryFn: fetchDevices,
-        staleTime: 5 * 60 * 1000,
-    });
+    // แก้ไขการดึงข้อมูล devices (บรรทัดที่ 10)
+const { data: devices = [], isLoading: devicesLoading } = useQuery({
+    queryKey: ['mroi-devices'],
+    queryFn: () => fetchIvCameras('metthier'), // เปลี่ยนมาใช้ข้อมูลจาก iv_cameras
+    staleTime: 5 * 60 * 1000,
+});
 
     const { data: rois = [], isLoading: roisLoading } = useQuery({
         queryKey: ['mroi-rois'],
