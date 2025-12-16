@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchDevices, createDevice, updateDevice, deleteDevice } from '@/services/mroi.service';
+import { fetchIvCameras, createDevice, updateDevice, deleteDevice } from '@/services/mroi.service';
 import { DeviceResponseDto, CreateDeviceDto, UpdateDeviceDto } from '@/types';
 import './DevicesPage.css';
 
@@ -17,10 +17,10 @@ export const DevicesPage: React.FC = () => {
 
     // ดึงข้อมูล devices
     const { data: devices = [], isLoading, error } = useQuery({
-        queryKey: ['mroi-devices'],
-        queryFn: fetchDevices,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-    });
+    queryKey: ['mroi-devices'],
+    queryFn: () => fetchIvCameras('metthier'), // ระบุ schema เป็น metthier
+    staleTime: 5 * 60 * 1000,
+});
 
     // Create/Update mutation
     const mutation = useMutation({
