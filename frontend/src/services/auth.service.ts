@@ -46,4 +46,8 @@ export const authService = {
     isAuthenticated(): boolean {
         return !!this.getAccessToken();
     },
+    async me(): Promise<any> {
+        const { data } = await (await import('./api.client')).apiClient.get('/auth/me');
+        return data;
+    }
 };

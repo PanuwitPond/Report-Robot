@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts';
 import { Button, Input } from '@/components/ui';
+import { getDefaultRouteByRole } from '@/utils/roleBasedRedirect';
 import './SignInPage.css';
 
 interface SignInForm {
@@ -11,6 +13,7 @@ interface SignInForm {
 
 export const SignInPage = () => {
     const { login } = useAuth();
+    const navigate = useNavigate();
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -20,8 +23,10 @@ export const SignInPage = () => {
         try {
             setError('');
             setIsLoading(true);
-            await login(data.username, data.password);
-            window.location.href = '/export-report';
+            const user = await login(data.username, data.password);
+            // Use role-based redirect instead of hardcoded route
+            const redirectPath = getDefaultRouteByRole(user.roles);
+            navigate(redirectPath);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Login failed. Please try again.');
         } finally {
