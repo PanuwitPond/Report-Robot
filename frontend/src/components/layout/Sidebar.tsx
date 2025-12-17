@@ -37,138 +37,100 @@ export const Sidebar = () => {
     };
 
     return (
-        <aside className={`sidebar ${activeTab ? 'expanded' : ''}`}>
+        <aside className="sidebar">
             <div className="sidebar-tabs">
-                {/* ปุ่ม METTPOLE (1) */}
+                
+                {/* --- กลุ่ม METTPOLE --- */}
                 {showPole && (
-                    <button
-                        className={`sidebar-tab-btn ${activeTab === 'pole' ? 'active' : ''}`}
-                        onClick={() => setActiveTab(activeTab === 'pole' ? null : 'pole')}
-                        title="METTPOLE"
-                    >
-                        <div className="sidebar-tab-content">
-                            <img src={poleImage} alt="METTPOLE" className="sidebar-tab-icon" />
-                            <span className="sidebar-tab-label">METTPOLE</span>
+                    <div className="sidebar-group">
+                        <button
+                            className={`sidebar-tab-btn ${activeTab === 'pole' ? 'active' : ''}`}
+                            onClick={() => setActiveTab(activeTab === 'pole' ? null : 'pole')}
+                        >
+                            <div className="sidebar-tab-content">
+                                <img src={poleImage} alt="METTPOLE" className="sidebar-tab-icon" />
+                                <span className="sidebar-tab-label">METTPOLE</span>
+                            </div>
+                        </button>
+                        {/* เมนูย่อยของ Pole */}
+                        <div className={`sidebar-submenu ${activeTab === 'pole' ? 'open' : ''}`}>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/download-report')}>
+                                📂 Download Reports
+                            </button>
                         </div>
-                    </button>
+                    </div>
                 )}
 
-                {/* ปุ่ม METTBOT (2) */}
+                {/* --- กลุ่ม METTBOT --- */}
                 {showBot && (
-                    <button
-                        className={`sidebar-tab-btn ${activeTab === 'bot' ? 'active' : ''}`}
-                        onClick={() => setActiveTab(activeTab === 'bot' ? null : 'bot')}
-                        title="METTBOT"
-                    >
-                        <div className="sidebar-tab-content">
-                            <img src={botImage} alt="METTBOT" className="sidebar-tab-icon" />
-                            <span className="sidebar-tab-label">METTBOT</span>
+                    <div className="sidebar-group">
+                        <button
+                            className={`sidebar-tab-btn ${activeTab === 'bot' ? 'active' : ''}`}
+                            onClick={() => setActiveTab(activeTab === 'bot' ? null : 'bot')}
+                        >
+                            <div className="sidebar-tab-content">
+                                <img src={botImage} alt="METTBOT" className="sidebar-tab-icon" />
+                                <span className="sidebar-tab-label">METTBOT</span>
+                            </div>
+                        </button>
+                        {/* เมนูย่อยของ Bot */}
+                        <div className={`sidebar-submenu ${activeTab === 'bot' ? 'open' : ''}`}>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/robot-cleaning-report')}>
+                                🧹 Cleaning Report
+                            </button>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/robots')}>
+                                🤖 Robot Management
+                            </button>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/workforce')}>
+                                👥 Workforce
+                            </button>
                         </div>
-                    </button>
+                    </div>
                 )}
 
-                {/* ปุ่ม MIOC (3) */}
+                {/* --- ทำแบบเดียวกันกับ MIOC และ MROI --- */}
                 {showMioc && (
-                    <button
-                        className={`sidebar-tab-btn ${activeTab === 'mioc' ? 'active' : ''}`}
-                        onClick={() => setActiveTab(activeTab === 'mioc' ? null : 'mioc')}
-                        title="MIOC"
-                    >
-                        <div className="sidebar-tab-content">
-                            <Monitor className="sidebar-tab-icon" size={24} />
-                            <span className="sidebar-tab-label">MIOC</span>
+                    <div className="sidebar-group">
+                        <button
+                            className={`sidebar-tab-btn ${activeTab === 'mioc' ? 'active' : ''}`}
+                            onClick={() => setActiveTab(activeTab === 'mioc' ? null : 'mioc')}
+                        >
+                            <div className="sidebar-tab-content">
+                                <Monitor className="sidebar-tab-icon" size={24} />
+                                <span className="sidebar-tab-label">MIOC</span>
+                            </div>
+                        </button>
+                        <div className={`sidebar-submenu ${activeTab === 'mioc' ? 'open' : ''}`}>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mioc-dashboard')}>
+                                📊 MIOC Generator
+                            </button>
                         </div>
-                    </button>
+                    </div>
                 )}
 
-                {/* ปุ่ม MROI (4) */}
                 {showMroi && (
-                    <button
-                        className={`sidebar-tab-btn ${activeTab === 'mroi' ? 'active' : ''}`}
-                        onClick={() => setActiveTab(activeTab === 'mroi' ? null : 'mroi')}
-                        title="MROI"
-                    >
-                        <div className="sidebar-tab-content">
-                            <span className="sidebar-tab-icon-emoji">🎥</span>
-                            <span className="sidebar-tab-label">MROI</span>
+                    <div className="sidebar-group">
+                        <button
+                            className={`sidebar-tab-btn ${activeTab === 'mroi' ? 'active' : ''}`}
+                            onClick={() => setActiveTab(activeTab === 'mroi' ? null : 'mroi')}
+                        >
+                            <div className="sidebar-tab-content">
+                                <span className="sidebar-tab-icon-emoji">🎥</span>
+                                <span className="sidebar-tab-label">MROI</span>
+                            </div>
+                        </button>
+                        <div className={`sidebar-submenu ${activeTab === 'mroi' ? 'open' : ''}`}>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mroi')}>
+                                🎥 MROI Dashboard
+                            </button>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mroi/devices')}>
+                                📹 Manage Devices
+                            </button>
                         </div>
-                    </button>
+                    </div>
                 )}
+
             </div>
-
-            <nav className={`sidebar-menu ${activeTab ? 'visible' : ''}`}>
-                {/* เมนูของ Pole */}
-                {activeTab === 'pole' && (
-                    <>
-                        <button
-                            className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/download-report')}
-                        >
-                            📂 Download Reports (Storage)
-                        </button>
-                    </>
-                )}
-
-                {/* เมนูของ Bot */}
-                {activeTab === 'bot' && (
-                    <>
-
-                        <button
-                            className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/robot-cleaning-report')}
-                        >
-                            🧹 Robot Cleaning Report
-                        </button>
-
-                        <button
-                            className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/robots')}
-                        >
-                            🤖 Robot Management
-                        </button>
-
-                        <button
-                            className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/workforce')}
-                        >
-                            👥 Workforce Departments
-                        </button>
-
-                        <div className="sidebar-section-divider"></div>
-
-                    </>
-                )}
-
-                {/* เมนูของ MIOC */}
-                {activeTab === 'mioc' && (
-                    <>
-                        <button
-                            className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/mioc-dashboard')}
-                        >
-                            MIOC Report Generator
-                        </button>
-                    </>
-                )}
-
-                {/* เมนูของ MROI (Menu ที่ 4) */}
-                {activeTab === 'mroi' && (
-                    <>
-                        <button
-                            className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/mroi')}
-                        >
-                            🎥 MROI Dashboard
-                        </button>
-                        <button
-                            className="sidebar-menu-link"
-                            onClick={() => handleMenuClick('/mroi/devices')}
-                        >
-                            📹 Manage Devices
-                        </button>
-                    </>
-                )}
-            </nav>
         </aside>
     );
 };
