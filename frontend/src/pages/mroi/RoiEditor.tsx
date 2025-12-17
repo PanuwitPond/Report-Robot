@@ -89,6 +89,7 @@ export const RoiEditor: React.FC = () => {
             console.log('✅ Snapshot image loaded:', img.width, 'x', img.height);
             canvas.width = img.width;
             canvas.height = img.height;
+            
             const ctx = canvas.getContext('2d');
             if (ctx) {
                 // ✅ Draw the image first
@@ -130,8 +131,15 @@ export const RoiEditor: React.FC = () => {
         if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        // ✅ Calculate scale between display size and actual canvas size
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        // ✅ Scale click coordinates from display pixels to canvas coordinates
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        
+        console.log(`📍 Click: display(${Math.round(e.clientX - rect.left)}, ${Math.round(e.clientY - rect.top)}) → canvas(${Math.round(x)}, ${Math.round(y)}) scale(${scaleX.toFixed(2)}, ${scaleY.toFixed(2)})`);
 
         setCanvasState((prev) => ({
             ...prev,

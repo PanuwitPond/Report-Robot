@@ -369,31 +369,39 @@
 
 .canvas-wrapper {
     position: relative;
-    display: inline-block;
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    background: #f0f0f0;
 }
 
 .snapshot-image {
-    display: block;
+    display: none;
     width: 100%;
     height: auto;
     background: #f0f0f0;
 }
 
 .drawing-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
+    display: block;
+    width: 100%;
+    /* ✅ Maintain 16:9 aspect ratio automatically - no fixed height */
+    aspect-ratio: 16 / 9;
     cursor: crosshair;
 }
 
 .canvas-hint {
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     background: #e3f2fd;
     color: #1565c0;
     font-size: 0.95rem;
     font-weight: 500;
     border-top: 1px solid #ddd;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.5;
+    flex-shrink: 0;
+    /* ✅ Hint always visible, not constrained by aspect ratio */
 }
 
 .canvas-loading {
