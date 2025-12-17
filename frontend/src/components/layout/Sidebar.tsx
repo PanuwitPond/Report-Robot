@@ -166,6 +166,24 @@ export const Sidebar = () => {
                         >
                             📹 Manage Devices
                         </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi/rois')}
+                        >
+                            🎯 Manage ROIs
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi/schedules')}
+                        >
+                            ⏱️ Manage Schedules
+                        </button>
+                        <button
+                            className="sidebar-menu-link"
+                            onClick={() => handleMenuClick('/mroi/editor')}
+                        >
+                            ✏️ ROI Editor
+                        </button>
                     </>
                 )}
             </nav>

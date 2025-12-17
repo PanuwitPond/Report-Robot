@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchIvCameras, createDevice, updateDevice, deleteDevice } from '@/services/mroi.service';
 import { DeviceResponseDto, CreateDeviceDto, UpdateDeviceDto } from '@/types';
@@ -6,6 +7,7 @@ import './DevicesPage.css';
 
 export const DevicesPage: React.FC = () => {
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<CreateDeviceDto>({
@@ -217,6 +219,13 @@ export const DevicesPage: React.FC = () => {
                             <div className="device-actions">
                                 <button className="btn-edit" onClick={() => handleEdit(device)}>
                                     ✏️ Edit
+                                </button>
+                                <button
+                                    className="btn-draw"
+                                    onClick={() => navigate(`/mroi/editor/${device.id}`)}
+                                    title="Draw ROI zones on this camera"
+                                >
+                                    🎨 Draw ROI
                                 </button>
                                 <button
                                     className="btn-delete"

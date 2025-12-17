@@ -20,7 +20,7 @@ import { RobotReportPage } from '@/pages/RobotReportPage';
 import MiocDashboardPage from '../pages/MiocDashboardPage';
 
 // นำเข้าหน้า MROI
-import { MroiDashboard, DevicesPage } from '../pages/mroi';
+import { MroiDashboard, DevicesPage, RoisPage, SchedulesPage, RoiEditor } from '../pages/mroi';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
@@ -150,6 +150,50 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <DevicesPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/rois"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <RoisPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/schedules"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <SchedulesPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/editor"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <RoiEditor />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mroi/editor/:deviceId"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <RoiEditor />
                             </Layout>
                         </ProtectedRoute>
                     }
