@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { fetchDeviceById, fetchDevices, updateIvRegionConfig } from '@/services/mroi.service';
+import { fetchDeviceById, fetchDevices, updateIvRegionConfig, fetchIvRoiData } from '@/services/mroi.service';
 import './RoiEditor.css';
 
 interface CanvasState {
@@ -23,6 +23,8 @@ export const RoiEditor: React.FC = () => {
     const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
     const [snapshotError, setSnapshotError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingRoi, setIsLoadingRoi] = useState(false);
+    const [roiLoadError, setRoiLoadError] = useState<string | null>(null);
     const customer = 'metthier';
 
     // ดึง devices ทั้งหมด เพื่อให้ user เลือก
@@ -78,6 +80,50 @@ export const RoiEditor: React.FC = () => {
             generateSnapshot();
         }
     }, [device?.rtspUrl]);
+
+    // ✅ Load saved ROI data when device is selected
+    useEffect(() => {
+        if (selectedDeviceId) {
+            const loadSavedRoi = async () => {
+                setIsLoadingRoi(true);
+                setRoiLoadError(null);
+                try {
+                    console.log(`📥 Loading saved ROI for device: ${selectedDeviceId}`);
+                    const data = await fetchIvRoiData(customer, selectedDeviceId);
+                    
+                    if (data?.rule && data.rule.length > 0 && data.rule[0].points) {
+                        // Transform points from [[x,y], ...] to [{x,y}, ...]
+                        const loadedPoints = data.rule[0].points.map((p: any[]) => ({
+                            x: p[0],
+                            y: p[1],
+                        }));
+                        
+                        console.log(`✅ Loaded ${loadedPoints.length} ROI points`);
+                        setCanvasState(prev => ({
+                            ...prev,
+                            points: loadedPoints,
+                            roiType: data.rule[0].roi_type || prev.roiType,
+                        }));
+                    } else {
+                        console.log('ℹ️ No saved ROI data found');
+                        setCanvasState(prev => ({
+                            ...prev,
+                            points: [],
+                        }));
+                    }
+                } catch (error: any) {
+                    console.error('❌ Failed to load ROI:', error);
+                    const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+                    setRoiLoadError(`Failed to load ROI: ${errorMsg}`);
+                    // Don't clear points on error - user might have just created them
+                } finally {
+                    setIsLoadingRoi(false);
+                }
+            };
+            
+            loadSavedRoi();
+        }
+    }, [selectedDeviceId, customer]);
 
     // Redraw canvas เมื่อ points หรือ snapshot เปลี่ยน
     useEffect(() => {
@@ -174,24 +220,53 @@ export const RoiEditor: React.FC = () => {
 
         setIsSaving(true);
         try {
+            // ✅ Transform points format from {x, y} to [x, y] to match mroi-app-main format
+            const transformedPoints = canvasState.points.map(p => [p.x, p.y]);
+            
             const config = {
                 rule: [
                     {
                         name: `${canvasState.roiType.toUpperCase()} Zone`,
                         type: canvasState.roiType,
-                        points: canvasState.points,
+                        points: transformedPoints,  // ✅ Use transformed format [[x, y], ...]
                         timestamp: new Date().toISOString(),
                     },
                 ],
             };
 
+            console.log('💾 Saving ROI config:', config);
             await updateIvRegionConfig(customer, selectedDeviceId, config.rule);
-            alert('✅ ROI configuration saved successfully!');
-            navigate('/mroi');
+            
+            // ✅ Verify: Fetch data to confirm save was successful
+            console.log('🔍 Verifying saved data...');
+            const verifyData = await fetchIvRoiData(customer, selectedDeviceId);
+            
+            if (verifyData?.rule && verifyData.rule.length > 0) {
+                const savedPoints = verifyData.rule[0].points || [];
+                const expectedCount = canvasState.points.length;
+                
+                console.log(`📊 Expected ${expectedCount} points, saved data has ${savedPoints.length} points`);
+                
+                if (savedPoints.length === expectedCount) {
+                    // ✅ Save verified successfully!
+                    console.log('✅ ROI data verified and saved successfully');
+                    alert('✅ ROI configuration saved and verified successfully!');
+                    navigate('/mroi');
+                } else {
+                    // ⚠️ Save mismatch - data might be corrupted
+                    console.warn(`⚠️ Data verification failed: expected ${expectedCount} points, got ${savedPoints.length}`);
+                    alert(`⚠️ Warning: Data saved but verification failed.\nExpected ${expectedCount} points, got ${savedPoints.length}.\nPlease check the configuration.`);
+                    // Don't navigate - let user verify manually
+                }
+            } else {
+                // ❌ No data found after save - critical issue
+                console.error('❌ No saved ROI data found after save operation');
+                alert('❌ Error: Could not verify saved configuration. Please check if data was saved correctly.');
+            }
         } catch (error: any) {
             const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
-            alert(`❌ Error saving configuration: ${errorMsg}`);
-            console.error('Error saving configuration:', error);
+            console.error('❌ Error saving configuration:', error);
+            alert(`❌ Error saving configuration: ${errorMsg}\n\nPlease try again or contact support if the issue persists.`);
         } finally {
             setIsSaving(false);
         }
