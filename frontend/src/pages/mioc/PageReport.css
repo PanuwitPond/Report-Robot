@@ -1,12 +1,11 @@
 /* src/pages/mioc/PageReport.css */
 
 .page-report-container {
-    min-height: 90vh;
+
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 2rem;
-    background-color: #f3f4f6; /* พื้นหลังสีเทาอ่อน */
     animation: fadeIn 0.4s ease-in-out;
 }
 
@@ -73,7 +72,7 @@
 
 /* ปุ่มหลัก (GBB-UT) */
 .btn-primary {
-    background-color: #2563eb; /* สีน้ำเงินเข้ม */
+    background-color: rgb(79, 70, 229); /* สีน้ำเงินเข้ม */
     color: #ffffff;
     box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }

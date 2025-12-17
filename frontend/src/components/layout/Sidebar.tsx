@@ -146,7 +146,7 @@ export const Sidebar = () => {
                             className="sidebar-menu-link"
                             onClick={() => handleMenuClick('/mioc-dashboard')}
                         >
-                            MIOC Dashboard
+                            MIOC Report Generator
                         </button>
                     </>
                 )}
