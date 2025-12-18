@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { Rule, SetupEditorProps, ROI_TYPE_COLORS, MROI_CONSTANTS } from '../types/mroi';
 import { ScheduleControls } from './ScheduleControls';
+import { useAuth } from '@/contexts';
 import './SetupEditor.css';
 
 /**
@@ -18,9 +19,9 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
     onSaveRule,
     onDeleteRule,
 }) => {
+    const { user } = useAuth();
     const [editingRule, setEditingRule] = useState<Rule | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState<'edit' | 'schedule' | 'audit'>('edit');
 
     // Sync with selectedRule
@@ -114,16 +115,6 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
 
         onSaveRule(savedRule);
         setHasChanges(false);
-    };
-
-    const handleDelete = () => {
-        if (!deleteConfirm) {
-            setDeleteConfirm(true);
-            return;
-        }
-
-        onDeleteRule(editingRule.roi_id);
-        setDeleteConfirm(false);
     };
 
     return (
@@ -229,7 +220,9 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
 
                         <div className="info-group">
                             <label>Created By</label>
-                            <div className="info-value">{editingRule.created_by}</div>
+                            <div className="info-value">
+                                {editingRule.created_by || user?.username || 'System'}
+                            </div>
                         </div>
 
                         {editingRule.updated_at && (
@@ -255,35 +248,6 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
                             </div>
                         )}
                     </div>
-                )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="action-buttons">
-                <button
-                    className={`save-btn ${hasChanges ? 'active' : 'disabled'}`}
-                    onClick={handleSave}
-                    disabled={!hasChanges}
-                    title={hasChanges ? 'Save changes' : 'No changes to save'}
-                >
-                    💾 Save
-                </button>
-
-                <button
-                    className={`delete-btn ${deleteConfirm ? 'confirm' : ''}`}
-                    onClick={handleDelete}
-                    title="Delete this rule"
-                >
-                    {deleteConfirm ? '⚠️ Confirm Delete?' : '🗑️ Delete'}
-                </button>
-
-                {deleteConfirm && (
-                    <button
-                        className="cancel-delete-btn"
-                        onClick={() => setDeleteConfirm(false)}
-                    >
-                        ✕ Cancel
-                    </button>
                 )}
             </div>
 

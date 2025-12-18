@@ -187,6 +187,7 @@
 
 .create-menu-container {
     position: relative;
+    z-index: 100;
 }
 
 .create-rule-btn {
@@ -213,15 +214,17 @@
 
 .type-menu {
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 0;
     right: 0;
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
-    z-index: 10;
-    margin-top: 0.5rem;
+    z-index: 101;
+    margin-bottom: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 250px;
+    overflow-y: auto;
 }
 
 .type-option {
