@@ -41,9 +41,10 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
     const handleNameChange = (value: string) => {
         const updated = { ...editingRule, name: value };
         setEditingRule(updated);
-        setHasChanges(true);        
-        // ✅ Fix #2b: Auto-save to sync regionAIConfig immediately
-        onSaveRule(updated);    };
+        setHasChanges(true);
+        // ✅ Fix #2b: Don't auto-save - wait for Apply Changes button
+        // Changes will be saved when parent calls handleApplyChanges
+    };
 
     const handleRuleTypeChange = (newType: Rule['roi_type']) => {
         const updated: Rule = {
@@ -78,9 +79,8 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
 
         setEditingRule(updated);
         setHasChanges(true);
-        
-        // ✅ Fix #2a: Auto-save to sync regionAIConfig immediately
-        onSaveRule(updated);
+        // ✅ Fix #2a: Don't auto-save - wait for Apply Changes button
+        // Changes will be saved when parent calls handleApplyChanges
     };
 
     const handleScheduleChange = (schedule: any) => {
@@ -91,6 +91,7 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
             };
             setEditingRule(updated);
             setHasChanges(true);
+            // ✅ Note: Don't call onSaveRule - wait for Apply Changes button
         }
     };
 
@@ -113,6 +114,7 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
             updated_at: now,
         };
 
+        // ✅ Sync changes with parent state
         onSaveRule(savedRule);
         setHasChanges(false);
     };
@@ -250,9 +252,6 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
                     </div>
                 )}
             </div>
-
-            {/* Change Indicator */}
-            {hasChanges && <div className="change-indicator">✏️ Unsaved changes</div>}
         </div>
     );
 };

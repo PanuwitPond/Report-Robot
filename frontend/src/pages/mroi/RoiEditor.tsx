@@ -306,7 +306,7 @@ export const RoiEditor: React.FC = () => {
             if (verified?.rule?.length === regionAIConfig.rule.length) {
                 console.log('✅ All rules verified and saved successfully');
                 alert(`✅ All ${regionAIConfig.rule.length} rule(s) saved and verified successfully!`);
-                navigate('/mroi');
+                navigate('/mroi/devices');
             } else {
                 const savedCount = verified?.rule?.length ?? 0;
                 console.warn(`⚠️ Data verification failed: expected ${regionAIConfig.rule.length} rules, got ${savedCount}`);

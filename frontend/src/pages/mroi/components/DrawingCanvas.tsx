@@ -112,6 +112,23 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         onCanvasClick(point);
     };
 
+    // ✅ NEW: Handle right-click to finish drawing and save points
+    const handleCanvasContextMenu = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        e.preventDefault(); // Prevent default context menu
+        
+        if (!enableDrawMode || !currentRule) {
+            console.warn('Drawing not enabled or no rule selected');
+            return;
+        }
+
+        if (currentPoints.length < 2) {
+            console.warn(`⚠️ Need at least 2 points. Current: ${currentPoints.length}`);
+            return;
+        }
+
+        onFinishDrawing();
+    };
+
     return (
         <div className="drawing-canvas-container">
             <div className="canvas-wrapper">
@@ -122,8 +139,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
                             width={canvasSize.width}
                             height={canvasSize.height}
                             onClick={handleCanvasClick}
+                            onContextMenu={handleCanvasContextMenu}
                             className={`canvas-element ${enableDrawMode ? 'drawing-mode' : ''}`}
-                            title={enableDrawMode ? 'Click to add points' : 'Enable draw mode to add points'}
+                            title={enableDrawMode ? 'Left-click to add points, Right-click to finish' : 'Enable draw mode to add points'}
                         />
 
                         {/* Mode Indicator */}
@@ -131,7 +149,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
                             {enableDrawMode ? '🎨 Drawing Mode' : '👁️ View Mode'}
                         </div>
 
-                        {/* Current Points Counter */}
+                        {/* Current Points Counter & Right-Click Warning */}
                         {enableDrawMode && (
                             <div className="points-counter">
                                 <span>Points: {currentPoints.length}</span>
@@ -140,15 +158,11 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
                                         <button onClick={onClearPoints} className="clear-btn">
                                             ✕ Clear
                                         </button>
-                                        {/* ✅ NEW: Finish Drawing Button */}
-                                        <button 
-                                            onClick={onFinishDrawing} 
-                                            className="finish-btn"
-                                            disabled={currentPoints.length < 2}
-                                            title={currentPoints.length < 2 ? 'Need at least 2 points' : 'Save points and exit drawing mode'}
-                                        >
-                                            ✓ Finish ({currentPoints.length})
-                                        </button>
+                                {/* ✅ Right-Click to Finish Warning */}
+                                        <span className="right-click-hint">
+                                            <span className="hint-icon">👉</span>
+                                            Right-click to save
+                                        </span>
                                     </>
                                 )}
                             </div>
