@@ -151,12 +151,12 @@ export const RobotListPage = () => {
                         placeholder="Search VIN, Name, Site..." 
                         value={filterText}
                         onChange={(e) => setFilterText(e.target.value)}
-                        style={{ width: '300px' }}
+                        style={{ width: '400px' }}
                     />
                     <Select 
                         value={filterActive} 
                         onChange={(e) => setFilterActive(e.target.value)}
-                        className="w-40"
+                        className="status-badge"
                     >
                         <option value="all">All Status</option>
                         <option value="active">Active Only</option>

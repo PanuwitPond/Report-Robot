@@ -47,8 +47,15 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     overflow: hidden;
     border: 1px solid #e5e7eb;
+    
 }
 
+.status-badge {
+    width: 10vw;
+    margin-left: 350px;
+    gap: 10px;
+    
+}
 .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -60,7 +67,7 @@
     border-bottom: 1px solid #e5e7eb;
 }
 
-.data-table th {
+/* .data-table th {
     text-align: left;
     padding: 1rem;
     font-weight: 600;
@@ -68,7 +75,7 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
-}
+} */
 
 .data-table td {
     padding: 0.75rem 1rem;
@@ -81,9 +88,9 @@
     border-bottom: none;
 }
 
-.data-table tr:hover {
+/* .data-table tr:hover {
     background-color: #f9fafb;
-}
+} */
 
 .row-editing {
     background-color: #eff6ff !important; /* Highlight editing row */

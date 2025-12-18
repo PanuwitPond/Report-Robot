@@ -1,6 +1,7 @@
 // นำเข้า Component ที่ย้ายมา (สมมติชื่อ PageReport)
 import React from 'react';
 import PageReport from '../pages/mioc/PageReport'; 
+import './MiocDashboardPage.css'; // นำเข้าคลาส CSS
 
 const MiocDashboardPage = () => {
     return (
