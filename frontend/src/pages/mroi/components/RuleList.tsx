@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Rule, RuleListProps, ROI_TYPE_COLORS, MROI_CONSTANTS } from '../types/mroi';
+import { Rule, RuleListProps, ROI_TYPE_COLORS } from '../types/mroi';
 import './RuleList.css';
 
 /**
@@ -19,7 +19,6 @@ export const RuleList: React.FC<RuleListProps> = ({
     onDeleteRule,
     onToggleStatus,
     maxRules,
-    zoomCount,
 }) => {
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [createMenu, setCreateMenu] = useState(false);

@@ -15,7 +15,6 @@ import './SetupEditor.css';
  */
 export const SetupEditor: React.FC<SetupEditorProps> = ({
     selectedRule,
-    onUpdateRule,
     onSaveRule,
     onDeleteRule,
 }) => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Schedule, ScheduleControlsProps } from '../types/mroi';
+import { ScheduleControlsProps } from '../types/mroi';
 import './ScheduleControls.css';
 
 /**
@@ -14,7 +14,6 @@ import './ScheduleControls.css';
 export const ScheduleControls: React.FC<ScheduleControlsProps> = ({
     schedule,
     onChangeSchedule,
-    disabledTimeRanges,
 }) => {
     if (!schedule) {
         return <div className="schedule-controls empty">No schedule available</div>;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
@@ -36,11 +36,7 @@ export const RoiEditor: React.FC = () => {
     
     // ✅ UI state
     const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
-    const [snapshotError, setSnapshotError] = useState<string | null>(null);
-    const [snapshotLoading, setSnapshotLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [isLoadingRoi, setIsLoadingRoi] = useState(false);
-    const [roiLoadError, setRoiLoadError] = useState<string | null>(null);
     
     const customer = 'metthier';
 
@@ -63,8 +59,6 @@ export const RoiEditor: React.FC = () => {
         if (!device?.rtspUrl) return;
         
         try {
-            setSnapshotError(null);
-            setSnapshotLoading(true);
             const response = await fetch(`/api/mroi/iv-cameras/snapshot?rtsp=${encodeURIComponent(device.rtspUrl)}`);
             if (response.ok) {
                 const blob = await response.blob();
@@ -85,14 +79,10 @@ export const RoiEditor: React.FC = () => {
                     userMessage = 'Camera connection timeout';
                 }
                 
-                setSnapshotError(userMessage);
-                console.error('Snapshot error details:', errorData);
+                console.error('Snapshot error details:', errorData, userMessage);
             }
         } catch (err: any) {
-            setSnapshotError('Network error while connecting to camera');
             console.error('Snapshot error:', err);
-        } finally {
-            setSnapshotLoading(false);
         }
     };
 
@@ -106,8 +96,6 @@ export const RoiEditor: React.FC = () => {
     useEffect(() => {
         if (selectedDeviceId) {
             const loadSavedRoi = async () => {
-                setIsLoadingRoi(true);
-                setRoiLoadError(null);
                 try {
                     console.log(`📥 Loading saved ROI for device: ${selectedDeviceId}`);
                     const data = await fetchIvRoiData(customer, selectedDeviceId);
@@ -128,9 +116,7 @@ export const RoiEditor: React.FC = () => {
                 } catch (error: any) {
                     console.error('❌ Failed to load ROI:', error);
                     const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
-                    setRoiLoadError(`Failed to load ROI: ${errorMsg}`);
-                } finally {
-                    setIsLoadingRoi(false);
+                    console.error(`Failed to load ROI: ${errorMsg}`);
                 }
             };
             
@@ -139,7 +125,8 @@ export const RoiEditor: React.FC = () => {
     }, [selectedDeviceId, customer]);
 
     // ✅ NEW: Handler - Create new rule
-    const handleCreateRule = (roi_type: Rule['roi_type']) => {
+    const handleCreateRule = (roi_type: string) => {
+        const roiType = roi_type as Rule['roi_type'];
         if (regionAIConfig.rule.length >= MROI_CONSTANTS.MAX_RULES) {
             alert(`⚠️ Maximum ${MROI_CONSTANTS.MAX_RULES} rules allowed`);
             return;
@@ -147,13 +134,13 @@ export const RoiEditor: React.FC = () => {
 
         const newRule: Rule = {
             roi_id: uuidv4(),
-            name: `${roi_type.toUpperCase()} Rule ${regionAIConfig.rule.length + 1}`,
-            roi_type,
+            name: `${roiType.toUpperCase()} Rule ${regionAIConfig.rule.length + 1}`,
+            roi_type: roiType,
             points: [],
             roi_status: 'OFF',
             created_date: dayjs().format('DD/MM/YYYY'),
             created_by: 'METTHIER',
-            schedule: roi_type !== 'zoom' ? [DEFAULT_RULE.schedule![0]] : undefined,
+            schedule: roiType !== 'zoom' ? [DEFAULT_RULE.schedule![0]] : undefined,
         };
 
         setRegionAIConfig(prev => ({
@@ -171,11 +158,6 @@ export const RoiEditor: React.FC = () => {
         setSelectedRuleId(roi_id);
         setSelectedRule(rule || null);
         setCanvasState({ enableDrawMode: false, currentPoints: [] });
-    };
-
-    // ✅ NEW: Handler - Update rule (in-memory)
-    const handleUpdateRule = (updatedRule: Rule) => {
-        setSelectedRule(updatedRule);
     };
 
     // ✅ NEW: Handler - Save rule (to state)
@@ -385,7 +367,6 @@ export const RoiEditor: React.FC = () => {
                         onDeleteRule={handleDeleteRule}
                         onToggleStatus={handleToggleStatus}
                         maxRules={MROI_CONSTANTS.MAX_RULES}
-                        zoomCount={regionAIConfig.rule.filter(r => r.roi_type === 'zoom').length}
                     />
                 </div>
 
@@ -413,7 +394,6 @@ export const RoiEditor: React.FC = () => {
                     {selectedRule ? (
                         <SetupEditor
                             selectedRule={selectedRule}
-                            onUpdateRule={handleUpdateRule}
                             onSaveRule={handleSaveRule}
                             onDeleteRule={handleDeleteRule}
                         />

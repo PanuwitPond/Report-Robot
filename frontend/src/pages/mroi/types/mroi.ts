@@ -92,7 +92,6 @@ export interface RuleListProps {
     onDeleteRule: (roi_id: string) => void;
     onToggleStatus: (roi_id: string, status: 'ON' | 'OFF') => void;
     maxRules: number;                      // Usually 6
-    zoomCount: number;                     // Count of zoom rules
 }
 
 /**
@@ -101,7 +100,6 @@ export interface RuleListProps {
  */
 export interface SetupEditorProps {
     selectedRule: Rule | null;
-    onUpdateRule: (rule: Rule) => void;    // Update in-memory
     onSaveRule: (rule: Rule) => void;      // Save to state
     onDeleteRule: (roi_id: string) => void;
 }
@@ -113,12 +111,6 @@ export interface SetupEditorProps {
 export interface ScheduleControlsProps {
     schedule: Schedule | null;
     onChangeSchedule: (schedule: Schedule) => void;
-    disabledTimeRanges?: TimeRange[];
-}
-
-export interface TimeRange {
-    start: string;                         // "HH:mm:ss"
-    end: string;                           // "HH:mm:ss"
 }
 
 /**
