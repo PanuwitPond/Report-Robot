@@ -22,10 +22,19 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
     const imageRef = useRef<HTMLImageElement | null>(null);
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    // ✅ Fix #2B: Reset imageRef when snapshotUrl changes to prevent race condition
+    useEffect(() => {
+        imageRef.current = null;
+    }, [snapshotUrl]);
 
     // Load and measure snapshot image
     useEffect(() => {
-        if (!snapshotUrl) return;
+        if (!snapshotUrl) {
+            setImageLoaded(false);
+            return;
+        }
 
         const img = new Image();
         img.onload = () => {
@@ -41,9 +50,12 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
                     height: Math.max(newHeight, 600),
                 });
             }
+            // ✅ Fix #1: Trigger redraw when image loads
+            setImageLoaded(true);
         };
         img.onerror = () => {
             console.error('Failed to load snapshot image');
+            setImageLoaded(false);
         };
         img.src = snapshotUrl;
     }, [snapshotUrl]);
@@ -69,7 +81,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         if (enableDrawMode && currentRule && currentPoints.length > 0) {
             drawCurrentPoints(ctx, currentPoints);
         }
-    }, [snapshotUrl, rules, currentRule, currentPoints, enableDrawMode]);
+    }, [snapshotUrl, rules, currentRule, currentPoints, enableDrawMode, imageLoaded]);
 
     const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (!enableDrawMode || !currentRule) {

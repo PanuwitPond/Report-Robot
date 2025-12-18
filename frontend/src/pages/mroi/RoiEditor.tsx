@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
@@ -37,6 +37,7 @@ export const RoiEditor: React.FC = () => {
     // ✅ UI state
     const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const previousUrlRef = useRef<string | null>(null);
     
     const customer = 'metthier';
 
@@ -58,6 +59,15 @@ export const RoiEditor: React.FC = () => {
     const generateSnapshot = async () => {
         if (!device?.rtspUrl) return;
         
+        // ✅ Fix #3: Cleanup previous blob URL
+        if (previousUrlRef.current) {
+            URL.revokeObjectURL(previousUrlRef.current);
+            previousUrlRef.current = null;
+        }
+        
+        // ✅ Fix #2A: Clear current snapshot before fetching new one
+        setSnapshotUrl(null);
+        
         try {
             const response = await fetch(`/api/mroi/iv-cameras/snapshot?rtsp=${encodeURIComponent(device.rtspUrl)}`);
             if (response.ok) {
@@ -66,6 +76,8 @@ export const RoiEditor: React.FC = () => {
                 const blobUrl = URL.createObjectURL(blob);
                 console.log('✅ Blob URL created:', blobUrl);
                 setSnapshotUrl(blobUrl);
+                // ✅ Fix #3: Store for next cleanup
+                previousUrlRef.current = blobUrl;
             } else {
                 // ใช้ error message ที่ user-friendly แทน technical details
                 const errorData = await response.json().catch(() => ({}));
@@ -95,6 +107,9 @@ export const RoiEditor: React.FC = () => {
     // ✅ Load saved ROI data when device is selected
     useEffect(() => {
         if (selectedDeviceId) {
+            // ✅ Fix #2: Reset canvas state when switching devices
+            setCanvasState({ enableDrawMode: false, currentPoints: [] });
+            
             const loadSavedRoi = async () => {
                 try {
                     console.log(`📥 Loading saved ROI for device: ${selectedDeviceId}`);
