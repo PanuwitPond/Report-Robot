@@ -18,6 +18,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     enableDrawMode,
     onCanvasClick,
     onClearPoints,
+    onFinishDrawing,  // ✅ NEW
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
@@ -135,9 +136,20 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
                             <div className="points-counter">
                                 <span>Points: {currentPoints.length}</span>
                                 {currentPoints.length > 0 && (
-                                    <button onClick={onClearPoints} className="clear-btn">
-                                        ✕ Clear
-                                    </button>
+                                    <>
+                                        <button onClick={onClearPoints} className="clear-btn">
+                                            ✕ Clear
+                                        </button>
+                                        {/* ✅ NEW: Finish Drawing Button */}
+                                        <button 
+                                            onClick={onFinishDrawing} 
+                                            className="finish-btn"
+                                            disabled={currentPoints.length < 2}
+                                            title={currentPoints.length < 2 ? 'Need at least 2 points' : 'Save points and exit drawing mode'}
+                                        >
+                                            ✓ Finish ({currentPoints.length})
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         )}

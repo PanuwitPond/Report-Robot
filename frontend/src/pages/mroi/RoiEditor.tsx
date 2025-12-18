@@ -233,6 +233,42 @@ export const RoiEditor: React.FC = () => {
         }));
     };
 
+    // ✅ NEW: Handler - Finish drawing and save points to rule
+    const handleFinishDrawing = () => {
+        if (!selectedRule || !canvasState.currentPoints.length) {
+            console.warn('⚠️ No points to finish or rule not selected');
+            return;
+        }
+
+        const minPoints = MIN_POINTS_FOR_TYPE[selectedRule.roi_type];
+        if (canvasState.currentPoints.length < minPoints) {
+            alert(`⚠️ Need at least ${minPoints} points. Current: ${canvasState.currentPoints.length}`);
+            return;
+        }
+
+        // Convert Point[] {x,y} → PointArray[] [x,y]
+        const pointArray: Array<[number, number]> = canvasState.currentPoints.map(p => [p.x, p.y]);
+
+        // Update selected rule with points
+        const updatedRule: Rule = {
+            ...selectedRule,
+            points: pointArray,
+        };
+
+        // Save to regionAIConfig
+        setRegionAIConfig(prev => ({
+            rule: prev.rule.map(r => r.roi_id === updatedRule.roi_id ? updatedRule : r),
+        }));
+
+        // Update selectedRule reference
+        setSelectedRule(updatedRule);
+
+        // Clear drawing state
+        setCanvasState({ enableDrawMode: false, currentPoints: [] });
+
+        console.log(`✅ Finished drawing: ${pointArray.length} points saved to rule`);
+    };
+
     // ✅ NEW: Handler - Apply all changes to database
     const handleApplyChanges = async () => {
         if (regionAIConfig.rule.length === 0) {
@@ -398,6 +434,7 @@ export const RoiEditor: React.FC = () => {
                         enableDrawMode={canvasState.enableDrawMode}
                         onCanvasClick={handleCanvasClick}
                         onClearPoints={handleClearCanvasPoints}
+                        onFinishDrawing={handleFinishDrawing}
                     />
                 </div>
 

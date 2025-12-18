@@ -125,6 +125,7 @@ export interface DrawingCanvasProps {
     enableDrawMode: boolean;
     onCanvasClick: (point: Point) => void;
     onClearPoints: () => void;
+    onFinishDrawing: () => void;  // ✅ NEW: Save currentPoints to rule
 }
 
 /**
