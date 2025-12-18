@@ -39,8 +39,9 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
     const handleNameChange = (value: string) => {
         const updated = { ...editingRule, name: value };
         setEditingRule(updated);
-        setHasChanges(true);
-    };
+        setHasChanges(true);        
+        // ✅ Fix #2b: Auto-save to sync regionAIConfig immediately
+        onSaveRule(updated);    };
 
     const handleRuleTypeChange = (newType: Rule['roi_type']) => {
         const updated: Rule = {
@@ -75,6 +76,9 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
 
         setEditingRule(updated);
         setHasChanges(true);
+        
+        // ✅ Fix #2a: Auto-save to sync regionAIConfig immediately
+        onSaveRule(updated);
     };
 
     const handleScheduleChange = (schedule: any) => {

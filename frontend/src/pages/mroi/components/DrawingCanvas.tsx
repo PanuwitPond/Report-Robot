@@ -230,6 +230,44 @@ function drawRulePolygon(ctx: CanvasRenderingContext2D, rule: Rule, highlight: b
         ctx.fillText(String(rule.points.indexOf([x, y]) + 1), x, y);
         ctx.fillStyle = color;
     });
+
+    // ✅ Fix #3: Draw rule name label at centroid
+    if (rule.name && rule.name.trim().length > 0 && rule.points.length >= 3) {
+        // Calculate centroid
+        const centerX = rule.points.reduce((sum, p) => sum + p[0], 0) / rule.points.length;
+        const centerY = rule.points.reduce((sum, p) => sum + p[1], 0) / rule.points.length;
+
+        // Prepare display name (truncate if too long)
+        const maxLen = 20;
+        const displayName = rule.name.length > maxLen 
+            ? rule.name.substring(0, maxLen - 1) + '...'
+            : rule.name;
+
+        // Draw semi-transparent background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const metrics = ctx.measureText(displayName);
+        const padding = 6;
+        const boxWidth = metrics.width + padding * 2;
+        const boxHeight = 20;
+        
+        ctx.fillRect(
+            centerX - boxWidth / 2,
+            centerY - boxHeight / 2,
+            boxWidth,
+            boxHeight
+        );
+
+        // Draw text
+        ctx.fillStyle = color;
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(displayName, centerX, centerY);
+    }
 }
 
 /**
