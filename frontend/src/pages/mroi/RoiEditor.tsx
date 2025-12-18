@@ -345,8 +345,8 @@ export const RoiEditor: React.FC = () => {
             <div className="roi-editor-container">
                 <div className="editor-header">
                     <h1>✏️ ROI Drawing Editor</h1>
-                    <button className="btn-back" onClick={() => navigate('/mroi')}>
-                        ← Back to Dashboard
+                    <button className="btn-back" onClick={() => navigate('/mroi/devices')}>
+                        ← Back
                     </button>
                 </div>
 
@@ -389,8 +389,8 @@ export const RoiEditor: React.FC = () => {
         <div className="roi-editor-container">
             <div className="editor-header">
                 <h1>✏️ ROI Drawing Editor</h1>
-                <button className="btn-back" onClick={() => navigate('/mroi')}>
-                    ← Back to Dashboard
+                <button className="btn-back" onClick={() => navigate('/mroi/devices')}>
+                    ← Back
                 </button>
             </div>
 
