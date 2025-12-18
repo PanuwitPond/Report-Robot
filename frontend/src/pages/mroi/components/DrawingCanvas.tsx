@@ -92,10 +92,20 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        // ✅ Fix #1: Protect against canvas not ready or zero dimensions
+        if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) {
+            console.warn('Canvas dimensions not ready for drawing');
+            return;
+        }
+
+        // ✅ Fix #1: Calculate scale factors to handle canvas CSS size vs resolution
+        const scaleX = canvas.width / canvas.offsetWidth;
+        const scaleY = canvas.height / canvas.offsetHeight;
+
         const rect = canvas.getBoundingClientRect();
         const point: Point = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY,
         };
 
         onCanvasClick(point);
@@ -228,6 +238,8 @@ function drawCurrentPoints(ctx: CanvasRenderingContext2D, points: Point[]) {
         for (let i = 1; i < points.length; i++) {
             ctx.lineTo(points[i].x, points[i].y);
         }
+        // ✅ Fix #2: Add closing line to complete polygon
+        ctx.lineTo(points[0].x, points[0].y);
         ctx.stroke();
         ctx.setLineDash([]); // Reset dash pattern
     }
