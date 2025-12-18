@@ -1,31 +1,47 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
 import { fetchDeviceById, fetchDevices, updateIvRegionConfig, fetchIvRoiData } from '@/services/mroi.service';
+import { 
+    Rule, 
+    RegionAIConfig, 
+    CanvasState as MroiCanvasState, 
+    Point,
+    MROI_CONSTANTS,
+    DEFAULT_RULE,
+    MIN_POINTS_FOR_TYPE,
+} from './types/mroi';
+import { RuleList } from './components/RuleList';
+import { SetupEditor } from './components/SetupEditor';
+import { DrawingCanvas } from './components/DrawingCanvas';
 import './RoiEditor.css';
-
-interface CanvasState {
-    isDrawing: boolean;
-    points: Array<{ x: number; y: number }>;
-    roiType: 'intrusion' | 'tripwire' | 'density' | 'zoom';
-}
 
 export const RoiEditor: React.FC = () => {
     const { deviceId: routeDeviceId } = useParams();
     const navigate = useNavigate();
-    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(routeDeviceId || null);
-    const [canvasState, setCanvasState] = useState<CanvasState>({
-        isDrawing: false,
-        points: [],
-        roiType: 'intrusion',
+    
+    // ✅ NEW: Multiple rules support
+    const [regionAIConfig, setRegionAIConfig] = useState<RegionAIConfig>({ rule: [] });
+    const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
+    const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
+    
+    // ✅ Canvas state for drawing
+    const [canvasState, setCanvasState] = useState<MroiCanvasState>({
+        enableDrawMode: false,
+        currentPoints: [],
     });
+    
+    // ✅ UI state
     const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
     const [snapshotError, setSnapshotError] = useState<string | null>(null);
     const [snapshotLoading, setSnapshotLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingRoi, setIsLoadingRoi] = useState(false);
     const [roiLoadError, setRoiLoadError] = useState<string | null>(null);
+    
     const customer = 'metthier';
 
     // ดึง devices ทั้งหมด เพื่อให้ user เลือก
@@ -96,31 +112,23 @@ export const RoiEditor: React.FC = () => {
                     console.log(`📥 Loading saved ROI for device: ${selectedDeviceId}`);
                     const data = await fetchIvRoiData(customer, selectedDeviceId);
                     
-                    if (data?.rule && data.rule.length > 0 && data.rule[0].points) {
-                        // Transform points from [[x,y], ...] to [{x,y}, ...]
-                        const loadedPoints = data.rule[0].points.map((p: any[]) => ({
-                            x: p[0],
-                            y: p[1],
-                        }));
+                    if (data?.rule && Array.isArray(data.rule)) {
+                        console.log(`✅ Loaded ${data.rule.length} rules`);
+                        setRegionAIConfig({ rule: data.rule });
                         
-                        console.log(`✅ Loaded ${loadedPoints.length} ROI points`);
-                        setCanvasState(prev => ({
-                            ...prev,
-                            points: loadedPoints,
-                            roiType: data.rule[0].roi_type || prev.roiType,
-                        }));
+                        // Auto-select first rule
+                        if (data.rule.length > 0) {
+                            setSelectedRuleId(data.rule[0].roi_id);
+                            setSelectedRule(data.rule[0]);
+                        }
                     } else {
                         console.log('ℹ️ No saved ROI data found');
-                        setCanvasState(prev => ({
-                            ...prev,
-                            points: [],
-                        }));
+                        setRegionAIConfig({ rule: [] });
                     }
                 } catch (error: any) {
                     console.error('❌ Failed to load ROI:', error);
                     const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
                     setRoiLoadError(`Failed to load ROI: ${errorMsg}`);
-                    // Don't clear points on error - user might have just created them
                 } finally {
                     setIsLoadingRoi(false);
                 }
@@ -130,91 +138,108 @@ export const RoiEditor: React.FC = () => {
         }
     }, [selectedDeviceId, customer]);
 
-    // Redraw canvas เมื่อ points หรือ snapshot เปลี่ยน
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas || !snapshotUrl) return;
+    // ✅ NEW: Handler - Create new rule
+    const handleCreateRule = (roi_type: Rule['roi_type']) => {
+        if (regionAIConfig.rule.length >= MROI_CONSTANTS.MAX_RULES) {
+            alert(`⚠️ Maximum ${MROI_CONSTANTS.MAX_RULES} rules allowed`);
+            return;
+        }
 
-        const img = new Image();
-        img.onload = () => {
-            console.log('✅ Snapshot image loaded:', img.width, 'x', img.height);
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                // ✅ Draw the image first
-                ctx.drawImage(img, 0, 0);
-                
-                // Draw points
-                canvasState.points.forEach((point) => {
-                    ctx.fillStyle = '#ff4444';
-                    ctx.beginPath();
-                    ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-                    ctx.fill();
-                });
-
-                // Draw lines between points
-                if (canvasState.points.length > 1) {
-                    ctx.strokeStyle = '#ff4444';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(canvasState.points[0].x, canvasState.points[0].y);
-                    for (let i = 1; i < canvasState.points.length; i++) {
-                        ctx.lineTo(canvasState.points[i].x, canvasState.points[i].y);
-                    }
-                    ctx.stroke();
-                }
-            }
-        };
-        img.onerror = (error) => {
-            console.error('❌ Failed to load snapshot image:', error);
-            setSnapshotError('Failed to load snapshot image');
-        };
-        console.log('Loading snapshot from:', snapshotUrl);
-        img.src = snapshotUrl;
-    }, [snapshotUrl, canvasState.points]);
-
-    const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!snapshotUrl) return;
-
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const rect = canvas.getBoundingClientRect();
-        // ✅ Calculate scale between display size and actual canvas size
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        // ✅ Scale click coordinates from display pixels to canvas coordinates
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-        
-        console.log(`📍 Click: display(${Math.round(e.clientX - rect.left)}, ${Math.round(e.clientY - rect.top)}) → canvas(${Math.round(x)}, ${Math.round(y)}) scale(${scaleX.toFixed(2)}, ${scaleY.toFixed(2)})`);
-
-        setCanvasState((prev) => ({
-            ...prev,
-            points: [...prev.points, { x, y }],
-        }));
-    };
-
-    const handleCanvasClear = () => {
-        setCanvasState((prev) => ({
-            ...prev,
+        const newRule: Rule = {
+            roi_id: uuidv4(),
+            name: `${roi_type.toUpperCase()} Rule ${regionAIConfig.rule.length + 1}`,
+            roi_type,
             points: [],
+            roi_status: 'OFF',
+            created_date: dayjs().format('DD/MM/YYYY'),
+            created_by: 'METTHIER',
+            schedule: roi_type !== 'zoom' ? [DEFAULT_RULE.schedule![0]] : undefined,
+        };
+
+        setRegionAIConfig(prev => ({
+            rule: [...prev.rule, newRule],
         }));
+        
+        setSelectedRuleId(newRule.roi_id);
+        setSelectedRule(newRule);
+        setCanvasState({ enableDrawMode: true, currentPoints: [] });
     };
 
-    const handleUndo = () => {
-        setCanvasState((prev) => ({
+    // ✅ NEW: Handler - Select rule
+    const handleSelectRule = (roi_id: string) => {
+        const rule = regionAIConfig.rule.find(r => r.roi_id === roi_id);
+        setSelectedRuleId(roi_id);
+        setSelectedRule(rule || null);
+        setCanvasState({ enableDrawMode: false, currentPoints: [] });
+    };
+
+    // ✅ NEW: Handler - Update rule (in-memory)
+    const handleUpdateRule = (updatedRule: Rule) => {
+        setSelectedRule(updatedRule);
+    };
+
+    // ✅ NEW: Handler - Save rule (to state)
+    const handleSaveRule = (rule: Rule) => {
+        const now = dayjs().format('DD/MM/YYYY HH:mm:ss');
+        setRegionAIConfig(prev => ({
+            rule: prev.rule.map(r => 
+                r.roi_id === rule.roi_id 
+                    ? { ...rule, updated_at: now }
+                    : r
+            ),
+        }));
+        setSelectedRule({ ...rule, updated_at: now });
+    };
+
+    // ✅ NEW: Handler - Delete rule
+    const handleDeleteRule = (roi_id: string) => {
+        setRegionAIConfig(prev => ({
+            rule: prev.rule.filter(r => r.roi_id !== roi_id),
+        }));
+        
+        if (selectedRuleId === roi_id) {
+            setSelectedRuleId(null);
+            setSelectedRule(null);
+        }
+    };
+
+    // ✅ NEW: Handler - Toggle rule status
+    const handleToggleStatus = (roi_id: string, status: 'ON' | 'OFF') => {
+        setRegionAIConfig(prev => ({
+            rule: prev.rule.map(r => 
+                r.roi_id === roi_id 
+                    ? { ...r, roi_status: status }
+                    : r
+            ),
+        }));
+        
+        if (selectedRule?.roi_id === roi_id) {
+            setSelectedRule({ ...selectedRule, roi_status: status });
+        }
+    };
+
+    // ✅ NEW: Handler - Canvas click to add point
+    const handleCanvasClick = (point: Point) => {
+        if (!selectedRule) return;
+
+        setCanvasState(prev => ({
             ...prev,
-            points: prev.points.slice(0, -1),
+            currentPoints: [...prev.currentPoints, point],
         }));
     };
 
-    const handleSave = async () => {
-        if (canvasState.points.length === 0) {
-            alert('⚠️ Please draw at least one region');
+    // ✅ NEW: Handler - Clear canvas points
+    const handleClearCanvasPoints = () => {
+        setCanvasState(prev => ({
+            ...prev,
+            currentPoints: [],
+        }));
+    };
+
+    // ✅ NEW: Handler - Apply all changes to database
+    const handleApplyChanges = async () => {
+        if (regionAIConfig.rule.length === 0) {
+            alert('⚠️ Please create at least one rule');
             return;
         }
 
@@ -225,53 +250,39 @@ export const RoiEditor: React.FC = () => {
 
         setIsSaving(true);
         try {
-            // ✅ Transform points format from {x, y} to [x, y] to match mroi-app-main format
-            const transformedPoints = canvasState.points.map(p => [p.x, p.y]);
-            
-            const config = {
-                rule: [
-                    {
-                        name: `${canvasState.roiType.toUpperCase()} Zone`,
-                        type: canvasState.roiType,
-                        points: transformedPoints,  // ✅ Use transformed format [[x, y], ...]
-                        timestamp: new Date().toISOString(),
-                    },
-                ],
-            };
+            // Validate all rules
+            const invalidRules = regionAIConfig.rule.filter(rule => {
+                const minPoints = MIN_POINTS_FOR_TYPE[rule.roi_type];
+                return rule.points.length < minPoints;
+            });
 
-            console.log('💾 Saving ROI config:', config);
-            await updateIvRegionConfig(customer, selectedDeviceId, config.rule);
+            if (invalidRules.length > 0) {
+                alert(`⚠️ ${invalidRules.length} rule(s) have insufficient points:\n${
+                    invalidRules.map(r => `- ${r.name}: ${r.points.length} points (min: ${MIN_POINTS_FOR_TYPE[r.roi_type]})`).join('\n')
+                }`);
+                return;
+            }
+
+            console.log('💾 Saving all rules:', regionAIConfig.rule.length);
+            await updateIvRegionConfig(customer, selectedDeviceId, regionAIConfig.rule);
             
             // ✅ Verify: Fetch data to confirm save was successful
             console.log('🔍 Verifying saved data...');
-            const verifyData = await fetchIvRoiData(customer, selectedDeviceId);
+            const verified = await fetchIvRoiData(customer, selectedDeviceId);
             
-            if (verifyData?.rule && verifyData.rule.length > 0) {
-                const savedPoints = verifyData.rule[0].points || [];
-                const expectedCount = canvasState.points.length;
-                
-                console.log(`📊 Expected ${expectedCount} points, saved data has ${savedPoints.length} points`);
-                
-                if (savedPoints.length === expectedCount) {
-                    // ✅ Save verified successfully!
-                    console.log('✅ ROI data verified and saved successfully');
-                    alert('✅ ROI configuration saved and verified successfully!');
-                    navigate('/mroi');
-                } else {
-                    // ⚠️ Save mismatch - data might be corrupted
-                    console.warn(`⚠️ Data verification failed: expected ${expectedCount} points, got ${savedPoints.length}`);
-                    alert(`⚠️ Warning: Data saved but verification failed.\nExpected ${expectedCount} points, got ${savedPoints.length}.\nPlease check the configuration.`);
-                    // Don't navigate - let user verify manually
-                }
+            if (verified?.rule?.length === regionAIConfig.rule.length) {
+                console.log('✅ All rules verified and saved successfully');
+                alert(`✅ All ${regionAIConfig.rule.length} rule(s) saved and verified successfully!`);
+                navigate('/mroi');
             } else {
-                // ❌ No data found after save - critical issue
-                console.error('❌ No saved ROI data found after save operation');
-                alert('❌ Error: Could not verify saved configuration. Please check if data was saved correctly.');
+                const savedCount = verified?.rule?.length ?? 0;
+                console.warn(`⚠️ Data verification failed: expected ${regionAIConfig.rule.length} rules, got ${savedCount}`);
+                alert(`⚠️ Warning: Data saved but verification failed.\nExpected ${regionAIConfig.rule.length} rules, got ${savedCount}.\nPlease check the configuration.`);
             }
         } catch (error: any) {
             const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
             console.error('❌ Error saving configuration:', error);
-            alert(`❌ Error saving configuration: ${errorMsg}\n\nPlease try again or contact support if the issue persists.`);
+            alert(`❌ Error saving configuration: ${errorMsg}`);
         } finally {
             setIsSaving(false);
         }
@@ -350,130 +361,82 @@ export const RoiEditor: React.FC = () => {
                 </button>
             </div>
 
-            <div className="editor-content">
-                <div className="editor-sidebar">
-                    <div className="info-panel">
-                        <h3>📹 Camera Information</h3>
-                        <div className="info-item">
-                            <label>Camera Name:</label>
-                            <p>{device.name}</p>
-                        </div>
-                        <div className="info-item">
-                            <label>Location:</label>
-                            <p>{device.location || 'N/A'}</p>
-                        </div>
-                        <div className="info-item">
-                            <label>Status:</label>
-                            <p className={`status ${device.status}`}>{device.status}</p>
+            <div className="editor-content three-panel-layout">
+                {/* ① Left Panel - Rule List */}
+                <div className="panel panel-rules">
+                    <div className="panel-header">
+                        <div className="device-info">
+                            <h3>📹 {device.name}</h3>
+                            <small>{device.location || 'N/A'}</small>
                         </div>
                         <button
                             className="btn-change-device"
+                            title="Change device"
                             onClick={() => setSelectedDeviceId(null)}
                         >
-                            🔄 Change Device
+                            🔄
                         </button>
                     </div>
-
-                    <div className="control-panel">
-                        <h3>⚙️ ROI Settings</h3>
-
-                        <div className="control-group">
-                            <label>ROI Type</label>
-                            <select
-                                value={canvasState.roiType}
-                                onChange={(e) =>
-                                    setCanvasState((prev) => ({
-                                        ...prev,
-                                        roiType: e.target.value as any,
-                                    }))
-                                }
-                            >
-                                <option value="intrusion">🚨 Intrusion Detection</option>
-                                <option value="tripwire">📏 Tripwire Line</option>
-                                <option value="density">🔥 Density Monitoring</option>
-                                <option value="zoom">🔍 Zoom Region</option>
-                            </select>
-                        </div>
-
-                        <div className="control-group">
-                            <label>Drawing Tools</label>
-                            <div className="tool-buttons">
-                                <button className="tool-btn undo-btn" onClick={handleUndo}>
-                                    ↶ Undo
-                                </button>
-                                <button className="tool-btn clear-btn" onClick={handleCanvasClear}>
-                                    🗑️ Clear
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="control-group">
-                            <label>Points: {canvasState.points.length}</label>
-                            {canvasState.points.length > 0 && (
-                                <div className="points-list">
-                                    {canvasState.points.map((point, idx) => (
-                                        <div key={idx} className="point-item">
-                                            P{idx + 1}: ({Math.round(point.x)}, {Math.round(point.y)})
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="action-panel">
-                        <button className="btn-save" onClick={handleSave} disabled={isSaving}>
-                            {isSaving ? '💾 Saving...' : '✅ Save Configuration'}
-                        </button>
-                        <button className="btn-cancel" onClick={() => navigate('/mroi')}>
-                            ✕ Cancel
-                        </button>
-                    </div>
+                    <RuleList
+                        rules={regionAIConfig.rule}
+                        selectedRuleId={selectedRuleId}
+                        onSelectRule={handleSelectRule}
+                        onCreateRule={handleCreateRule}
+                        onDeleteRule={handleDeleteRule}
+                        onToggleStatus={handleToggleStatus}
+                        maxRules={MROI_CONSTANTS.MAX_RULES}
+                        zoomCount={regionAIConfig.rule.filter(r => r.roi_type === 'zoom').length}
+                    />
                 </div>
 
-                <div className="canvas-container">
-                    {snapshotUrl ? (
-                        <div className="canvas-wrapper">
-                            <img
-                                src={snapshotUrl}
-                                alt="Camera Snapshot"
-                                className="snapshot-image"
-                                style={{ display: 'none' }}
-                            />
-                            <canvas
-                                ref={canvasRef}
-                                className="drawing-canvas"
-                                onClick={handleCanvasClick}
-                            />
-                            <div className="canvas-hint">
-                                📌 Click on the image to add points. Draw the region you want to monitor.
-                            </div>
-                        </div>
-                    ) : snapshotError ? (
-                        <div className="snapshot-error-state">
-                            <div className="error-icon">📷</div>
-                            <h3>Camera Snapshot Unavailable</h3>
-                            <p className="error-message">{snapshotError}</p>
-                            <div className="error-help">
-                                <p>You can still draw ROI zones on this camera.</p>
-                                <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>The snapshot will help you visualize the camera view.</p>
-                            </div>
-                            <button 
-                                className="btn-retry" 
-                                onClick={generateSnapshot}
-                                disabled={snapshotLoading}
-                            >
-                                {snapshotLoading ? '⏳ Retrying...' : '🔄 Try Again'}
-                            </button>
-                        </div>
+                {/* ② Center Panel - Drawing Canvas */}
+                <div className="panel panel-canvas">
+                    <div className="panel-header">
+                        <h3>🎨 Drawing Canvas</h3>
+                    </div>
+                    <DrawingCanvas
+                        snapshotUrl={snapshotUrl}
+                        rules={regionAIConfig.rule}
+                        currentRule={selectedRule}
+                        currentPoints={canvasState.currentPoints}
+                        enableDrawMode={canvasState.enableDrawMode}
+                        onCanvasClick={handleCanvasClick}
+                        onClearPoints={handleClearCanvasPoints}
+                    />
+                </div>
+
+                {/* ③ Right Panel - Details & Editor */}
+                <div className="panel panel-editor">
+                    <div className="panel-header">
+                        <h3>📝 Details</h3>
+                    </div>
+                    {selectedRule ? (
+                        <SetupEditor
+                            selectedRule={selectedRule}
+                            onUpdateRule={handleUpdateRule}
+                            onSaveRule={handleSaveRule}
+                            onDeleteRule={handleDeleteRule}
+                        />
                     ) : (
-                        <div className="canvas-loading">
-                            <div className="loading-spinner"></div>
-                            <p>📸 Loading camera snapshot...</p>
-                            <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>This may take a few moments</p>
+                        <div className="empty-editor">
+                            <p>👈 Select or create a rule to edit</p>
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Bottom Action Bar */}
+            <div className="action-bar">
+                <button
+                    className="btn-apply"
+                    onClick={handleApplyChanges}
+                    disabled={isSaving || regionAIConfig.rule.length === 0}
+                >
+                    {isSaving ? '💾 Saving...' : '✅ Apply Changes'}
+                </button>
+                <button className="btn-cancel" onClick={() => navigate('/mroi')}>
+                    ✕ Cancel
+                </button>
             </div>
         </div>
     );

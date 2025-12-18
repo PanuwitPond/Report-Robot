@@ -503,18 +503,157 @@
     cursor: not-allowed;
 }
 
+/* ✅ NEW: 3-Panel Layout for Multiple Rules */
+.three-panel-layout {
+    display: grid !important;
+    grid-template-columns: 250px 1fr 350px !important;
+    gap: 1rem !important;
+    height: calc(100vh - 280px) !important;
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.panel-header {
+    padding: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.device-info {
+    flex: 1;
+}
+
+.device-info h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.device-info small {
+    display: block;
+    color: #999;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+}
+
+.btn-change-device {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-change-device:hover {
+    background: #e0e0e0;
+}
+
+.panel-rules {
+    overflow-y: auto;
+}
+
+.panel-canvas {
+    flex: 1;
+    overflow: hidden;
+}
+
+.panel-editor {
+    overflow-y: auto;
+}
+
+.empty-editor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    text-align: center;
+    padding: 2rem;
+}
+
+.action-bar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: white;
+    border-top: 2px solid #f0f0f0;
+    justify-content: flex-end;
+}
+
+.btn-apply,
+.btn-cancel {
+    padding: 0.6rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-apply {
+    background: #4caf50;
+    color: white;
+}
+
+.btn-apply:hover:not(:disabled) {
+    background: #45a049;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-apply:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-cancel {
+    background: #f44336;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #da190b;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
 /* Responsive */
-@media (max-width: 1024px) {
-    .editor-content {
+@media (max-width: 1440px) {
+    .three-panel-layout {
+        grid-template-columns: 220px 1fr 320px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .three-panel-layout {
         grid-template-columns: 1fr;
+        height: auto;
     }
 
-    .editor-sidebar {
-        order: 2;
+    .panel {
+        min-height: 300px;
     }
 
-    .canvas-container {
-        order: 1;
+    .panel-canvas {
+        min-height: 500px;
     }
 }
 
@@ -532,19 +671,12 @@
         width: 100%;
     }
 
-    .editor-sidebar {
-        flex-direction: row;
-        flex-wrap: wrap;
+    .action-bar {
+        flex-direction: column;
     }
 
-    .info-panel,
-    .control-panel,
-    .action-panel {
-        flex: 1;
-        min-width: 250px;
-    }
-
-    .action-panel {
-        flex: 1 100%;
+    .btn-apply,
+    .btn-cancel {
+        width: 100%;
     }
 }
