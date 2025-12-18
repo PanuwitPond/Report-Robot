@@ -27,14 +27,14 @@
     justify-content: space-between;
     padding: 1rem;
     border-bottom: 2px solid #f0f0f0;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     flex-shrink: 0;
 }
 
 .editor-header h3 {
     margin: 0;
     font-size: 1rem;
-    color: #333;
+    color: white;
 }
 
 .type-badge {
@@ -44,6 +44,7 @@
     font-size: 0.8rem;
     font-weight: 500;
     text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Tab Navigation */
@@ -75,8 +76,8 @@
 }
 
 .tab-button.active {
-    color: #2196f3;
-    border-bottom-color: #2196f3;
+    color: #667eea;
+    border-bottom-color: #667eea;
 }
 
 /* Tab Content */
@@ -137,8 +138,8 @@
 
 .text-input:focus {
     outline: none;
-    border-color: #2196f3;
-    box-shadow: 0 0 4px rgba(33, 150, 243, 0.2);
+    border-color: #667eea;
+    box-shadow: 0 0 4px rgba(102, 126, 234, 0.2);
 }
 
 .select-input {
@@ -154,8 +155,8 @@
 
 .select-input:focus {
     outline: none;
-    border-color: #2196f3;
-    box-shadow: 0 0 4px rgba(33, 150, 243, 0.2);
+    border-color: #667eea;
+    box-shadow: 0 0 4px rgba(102, 126, 234, 0.2);
 }
 
 .info-group {
@@ -220,13 +221,13 @@
 
 .save-btn {
     flex: 1;
-    background: #4caf50;
+    background: #10b981;
     color: white;
 }
 
 .save-btn:hover:not(:disabled) {
-    background: #45a049;
-    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    background: #059669;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .save-btn.disabled {
@@ -236,21 +237,21 @@
 }
 
 .delete-btn {
-    background: #ff9800;
+    background: #ef4444;
     color: white;
 }
 
 .delete-btn:hover {
-    background: #e68900;
-    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    background: #dc2626;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .delete-btn.confirm {
-    background: #d32f2f;
+    background: #dc2626;
 }
 
 .delete-btn.confirm:hover {
-    background: #b71c1c;
+    background: #b91c1c;
 }
 
 .cancel-delete-btn {
