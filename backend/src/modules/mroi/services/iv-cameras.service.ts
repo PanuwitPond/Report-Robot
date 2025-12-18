@@ -7,6 +7,19 @@ import { NodeSSH } from 'node-ssh';
 import * as mqtt from 'mqtt';
 import { Response } from 'express';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
+
+const execAsync = promisify(exec);
+
+// Set FFmpeg path for Windows - uses WinGet installation path
+const ffmpegPath = 'C:\\Users\\panuwit.rak\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe';
+const ffprobePath = 'C:\\Users\\panuwit.rak\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffprobe.exe';
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 @Injectable()
 export class IvCamerasService {
@@ -15,7 +28,37 @@ export class IvCamerasService {
   constructor(
     @InjectDataSource('mroi_db_conn') 
     private dataSource: DataSource // จะเชื่อมต่อกับ ivs_service อัตโนมัติ
-  ) {}
+  ) {
+    this.checkFFmpegInstallation();
+  }
+
+  // ตรวจสอบว่า FFmpeg ติดตั้งแล้วหรือไม่
+  private async checkFFmpegInstallation() {
+    try {
+      await execAsync('ffmpeg -version');
+      this.logger.log('✅ FFmpeg is installed');
+    } catch (error) {
+      this.logger.warn('⚠️ FFmpeg is NOT installed. Snapshot capture will fail.');
+      this.logger.warn('Please install FFmpeg: apt-get install ffmpeg (Linux) or brew install ffmpeg (Mac)');
+    }
+  }
+
+  // Endpoint สำหรับ Frontend เพื่อเช็ค status
+  async getFFmpegStatus(): Promise<{ installed: boolean; version?: string; error?: string }> {
+    try {
+      const { stdout } = await execAsync('ffmpeg -version');
+      const versionLine = stdout.split('\n')[0];
+      return { 
+        installed: true, 
+        version: versionLine 
+      };
+    } catch (error: any) {
+      return { 
+        installed: false, 
+        error: 'FFmpeg is not installed on this server'
+      };
+    }
+  }
 
 //   constructor(private dataSource: DataSource) {}
 
@@ -183,8 +226,25 @@ export class IvCamerasService {
 
   captureSnapshot(rtsp: string, res: Response) {
     try {
-      const stream = new PassThrough();
-      res.type('image/jpeg');
+      // ตรวจสอบ RTSP URL ว่าถูกต้องหรือไม่
+      if (!rtsp || rtsp.trim() === '') {
+        this.logger.error('Empty RTSP URL provided');
+        if (!res.headersSent) {
+          res.status(400).json({ error: 'Invalid RTSP URL' });
+        }
+        return;
+      }
+
+      this.logger.log(`Attempting to capture snapshot from: ${rtsp}`);
+
+      // Generate temporary file path in Windows temp directory
+      const tempDir = os.tmpdir();
+      const tempFileName = `snapshot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+      const tempFilePath = path.join(tempDir, tempFileName);
+
+      // Set response headers for image
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
       // Default resolution 1080p
       const resolution = [1920, 1080];
@@ -194,7 +254,7 @@ export class IvCamerasService {
         `scale=${resolution[0]}:${resolution[1]}`,
       ];
 
-      ffmpeg(rtsp)
+      const ffmpegCommand = ffmpeg(rtsp)
         .inputOptions([
           '-rtsp_transport tcp',
           '-timeout 5000000',
@@ -207,18 +267,136 @@ export class IvCamerasService {
           '-q:v 2',
           '-f image2',
         ])
-        .on('error', (err) => {
-          this.logger.error(`FFmpeg error: ${err.message}`);
-          if (!res.headersSent) {
-            res.status(500).json({ error: 'Snapshot failed', details: err.message });
-          }
-        })
-        .pipe(stream, { end: true });
+        .output(tempFilePath);  // Output to temp file instead of pipe
 
-      stream.pipe(res);
+      // Timeout handler
+      let timeoutHandle: NodeJS.Timeout;
+      ffmpegCommand.on('start', () => {
+        timeoutHandle = setTimeout(() => {
+          ffmpegCommand.kill('SIGTERM');
+          this.logger.warn('FFmpeg snapshot timeout');
+          
+          // Cleanup temp file
+          fs.unlink(tempFilePath, (err) => {
+            if (err) this.logger.warn(`Failed to delete temp file: ${err.message}`);
+          });
+          
+          if (!res.headersSent) {
+            res.status(504).json({ error: 'Snapshot capture timeout' });
+          }
+        }, 15000); // 15 second timeout
+      });
+
+      // Error handler สำหรับ FFmpeg
+      ffmpegCommand.on('error', (err) => {
+        clearTimeout(timeoutHandle);
+        this.logger.error(`FFmpeg error: ${err.message}`, err.stack);
+        
+        // Cleanup temp file on error
+        fs.unlink(tempFilePath, (unlinkErr) => {
+          if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+            this.logger.warn(`Failed to delete temp file on error: ${unlinkErr.message}`);
+          }
+        });
+        
+        if (!res.headersSent) {
+          res.status(500).json({ 
+            error: 'Failed to capture snapshot',
+            details: err.message,
+            suggestion: 'Ensure FFmpeg is installed and RTSP URL is valid'
+          });
+        } else {
+          res.end();
+        }
+      });
+
+      // Success handler - verify file then read and send
+      ffmpegCommand.on('end', () => {
+        clearTimeout(timeoutHandle);
+        this.logger.log('Snapshot captured successfully');
+        
+        // ✅ Step 1: Verify temp file exists and has content (fix race condition)
+        fs.stat(tempFilePath, (statErr, stats) => {
+          if (statErr) {
+            // File not found or stat failed
+            fs.unlink(tempFilePath, (unlinkErr) => {
+              if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+                this.logger.warn(`Failed to delete temp file on stat error: ${unlinkErr.message}`);
+              }
+            });
+            
+            this.logger.error(`Failed to stat temp file: ${statErr.message}`);
+            if (!res.headersSent) {
+              res.status(500).json({ error: 'Temp file not found' });
+            }
+            return;
+          }
+
+          // ✅ Step 2: Check if file is empty (race condition indicator)
+          if (stats.size === 0) {
+            fs.unlink(tempFilePath, (unlinkErr) => {
+              if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+                this.logger.warn(`Failed to delete empty temp file: ${unlinkErr.message}`);
+              }
+            });
+            
+            this.logger.error('⚠️ Temp file is empty - FFmpeg did not capture image (race condition?)');
+            if (!res.headersSent) {
+              res.status(500).json({ error: 'Failed to capture snapshot - empty result' });
+            }
+            return;
+          }
+
+          this.logger.debug(`✅ Temp file verified: ${stats.size} bytes`);
+
+          // ✅ Step 3: File is valid, now safe to read
+          fs.readFile(tempFilePath, (err, data) => {
+            // Cleanup temp file regardless of read success/failure
+            fs.unlink(tempFilePath, (unlinkErr) => {
+              if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+                this.logger.warn(`Failed to delete temp file: ${unlinkErr.message}`);
+              }
+            });
+
+            if (err) {
+              this.logger.error(`Failed to read temp snapshot file: ${err.message}`, err.stack);
+              if (!res.headersSent) {
+                res.status(500).json({ 
+                  error: 'Failed to read snapshot file',
+                  details: err.message
+                });
+              }
+              return;
+            }
+
+            // ✅ Step 4: Verify data is not empty
+            if (!data || data.length === 0) {
+              this.logger.error('⚠️ Read data is empty - buffer allocation issue');
+              if (!res.headersSent) {
+                res.status(500).json({ error: 'Failed to read snapshot - empty data' });
+              }
+              return;
+            }
+
+            this.logger.log(`✅ Sending snapshot: ${data.length} bytes`);
+            if (!res.headersSent) {
+              res.send(data);
+            }
+          });
+        });
+      });
+
+      // Start FFmpeg process
+      ffmpegCommand.run();
+
     } catch (err) {
       this.logger.error('Snapshot unexpected error', err);
-      if (!res.headersSent) res.status(500).send('Internal Error');
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Internal error during snapshot capture',
+          details: err instanceof Error ? err.message : String(err)
+        });
+      }
     }
   }
 }
