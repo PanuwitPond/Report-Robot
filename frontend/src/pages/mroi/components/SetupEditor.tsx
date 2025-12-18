@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { Rule, SetupEditorProps, ROI_TYPE_COLORS, MROI_CONSTANTS } from '../types/mroi';
 import { ScheduleControls } from './ScheduleControls';
+import { useAuth } from '@/contexts';
 import './SetupEditor.css';
 
 /**
@@ -18,9 +19,10 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
     onSaveRule,
     onDeleteRule,
 }) => {
+    const { user } = useAuth();
     const [editingRule, setEditingRule] = useState<Rule | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState(false);
+    const [activeTab, setActiveTab] = useState<'edit' | 'schedule' | 'audit'>('edit');
 
     // Sync with selectedRule
     useEffect(() => {
@@ -115,16 +117,6 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
         setHasChanges(false);
     };
 
-    const handleDelete = () => {
-        if (!deleteConfirm) {
-            setDeleteConfirm(true);
-            return;
-        }
-
-        onDeleteRule(editingRule.roi_id);
-        setDeleteConfirm(false);
-    };
-
     return (
         <div className="setup-editor">
             {/* Header */}
@@ -138,107 +130,124 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
                 </span>
             </div>
 
-            {/* Edit Fields */}
-            <div className="edit-section">
-                <h4>ℹ️ Basic Information</h4>
-
-                {/* Rule Name */}
-                <div className="form-group">
-                    <label htmlFor="rule-name">Rule Name</label>
-                    <input
-                        id="rule-name"
-                        type="text"
-                        value={editingRule.name}
-                        onChange={(e) => handleNameChange(e.target.value)}
-                        maxLength={50}
-                        placeholder="Enter rule name"
-                        className="text-input"
-                    />
-                    <small>{editingRule.name.length}/50</small>
-                </div>
-
-                {/* Rule Type */}
-                <div className="form-group">
-                    <label htmlFor="rule-type">Rule Type</label>
-                    <select
-                        id="rule-type"
-                        value={editingRule.roi_type}
-                        onChange={(e) => handleRuleTypeChange(e.target.value as Rule['roi_type'])}
-                        className="select-input"
+            {/* Tab Navigation */}
+            <div className="editor-tabs">
+                <button
+                    className={`tab-button ${activeTab === 'edit' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('edit')}
+                >
+                    ✏️ Edit
+                </button>
+                {editingRule.roi_type !== 'zoom' && (
+                    <button
+                        className={`tab-button ${activeTab === 'schedule' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('schedule')}
                     >
-                        <option value="intrusion">🚨 Intrusion</option>
-                        <option value="tripwire">📏 Tripwire</option>
-                        <option value="density">👥 Density</option>
-                        <option value="zoom">🔍 Zoom</option>
-                        <option value="health">❤️ Health</option>
-                    </select>
-                </div>
+                        ⏱️ Schedule
+                    </button>
+                )}
+                <button
+                    className={`tab-button ${activeTab === 'audit' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('audit')}
+                >
+                    📅 Audit
+                </button>
             </div>
 
-            {/* Schedule Controls (non-zoom only) */}
-            {editingRule.roi_type !== 'zoom' && editingRule.schedule && (
-                <div className="schedule-section">
-                    <h4>⏱️ Schedule Configuration</h4>
-                    <ScheduleControls
-                        schedule={editingRule.schedule[0]}
-                        onChangeSchedule={handleScheduleChange}
-                    />
-                </div>
-            )}
+            {/* Tab Content */}
+            <div className="editor-content">
+                {/* Edit Tab */}
+                {activeTab === 'edit' && (
+                    <>
+                        <div className="edit-section">
+                            <h4>ℹ️ Basic Information</h4>
 
-            {/* Audit Info (Read-only) */}
-            <div className="audit-section">
-                <h4>📅 Audit Information</h4>
+                            {/* Rule Name */}
+                            <div className="form-group">
+                                <label htmlFor="rule-name">Rule Name</label>
+                                <input
+                                    id="rule-name"
+                                    type="text"
+                                    value={editingRule.name}
+                                    onChange={(e) => handleNameChange(e.target.value)}
+                                    maxLength={50}
+                                    placeholder="Enter rule name"
+                                    className="text-input"
+                                />
+                                <small>{editingRule.name.length}/50</small>
+                            </div>
 
-                <div className="info-group">
-                    <label>Created Date</label>
-                    <div className="info-value">{editingRule.created_date}</div>
-                </div>
+                            {/* Rule Type */}
+                            <div className="form-group">
+                                <label htmlFor="rule-type">Rule Type</label>
+                                <select
+                                    id="rule-type"
+                                    value={editingRule.roi_type}
+                                    onChange={(e) => handleRuleTypeChange(e.target.value as Rule['roi_type'])}
+                                    className="select-input"
+                                >
+                                    <option value="intrusion">🚨 Intrusion</option>
+                                    <option value="tripwire">📏 Tripwire</option>
+                                    <option value="density">👥 Density</option>
+                                    <option value="zoom">🔍 Zoom</option>
+                                    <option value="health">❤️ Health</option>
+                                </select>
+                            </div>
+                        </div>
+                    </>
+                )}
 
-                <div className="info-group">
-                    <label>Created By</label>
-                    <div className="info-value">{editingRule.created_by}</div>
-                </div>
-
-                {editingRule.updated_at && (
-                    <div className="info-group">
-                        <label>Last Modified</label>
-                        <div className="info-value">{editingRule.updated_at}</div>
+                {/* Schedule Tab */}
+                {activeTab === 'schedule' && editingRule.roi_type !== 'zoom' && editingRule.schedule && (
+                    <div className="schedule-section">
+                        <h4>⏱️ Schedule Configuration</h4>
+                        <ScheduleControls
+                            schedule={editingRule.schedule[0]}
+                            onChangeSchedule={handleScheduleChange}
+                        />
                     </div>
                 )}
 
-                <div className="info-group">
-                    <label>Points</label>
-                    <div className="info-value">{editingRule.points.length} point(s)</div>
-                </div>
-            </div>
+                {/* Audit Tab */}
+                {activeTab === 'audit' && (
+                    <div className="audit-section">
+                        <h4>📅 Audit Information</h4>
 
-            {/* Action Buttons */}
-            <div className="action-buttons">
-                <button
-                    className={`save-btn ${hasChanges ? 'active' : 'disabled'}`}
-                    onClick={handleSave}
-                    disabled={!hasChanges}
-                    title={hasChanges ? 'Save changes' : 'No changes to save'}
-                >
-                    💾 Save
-                </button>
+                        <div className="info-group">
+                            <label>Created Date</label>
+                            <div className="info-value">{editingRule.created_date}</div>
+                        </div>
 
-                <button
-                    className={`delete-btn ${deleteConfirm ? 'confirm' : ''}`}
-                    onClick={handleDelete}
-                    title="Delete this rule"
-                >
-                    {deleteConfirm ? '⚠️ Confirm Delete?' : '🗑️ Delete'}
-                </button>
+                        <div className="info-group">
+                            <label>Created By</label>
+                            <div className="info-value">
+                                {editingRule.created_by || user?.username || 'System'}
+                            </div>
+                        </div>
 
-                {deleteConfirm && (
-                    <button
-                        className="cancel-delete-btn"
-                        onClick={() => setDeleteConfirm(false)}
-                    >
-                        ✕ Cancel
-                    </button>
+                        {editingRule.updated_at && (
+                            <div className="info-group">
+                                <label>Last Modified</label>
+                                <div className="info-value">{editingRule.updated_at}</div>
+                            </div>
+                        )}
+
+                        <div className="info-group">
+                            <label>Total Points</label>
+                            <div className="info-value">{editingRule.points.length} point(s)</div>
+                        </div>
+
+                        {editingRule.roi_status && (
+                            <div className="info-group">
+                                <label>Status</label>
+                                <div className="info-value">
+                                    <span className={`status-badge ${editingRule.roi_status === 'ON' ? 'on' : 'off'}`}>
+                                        {editingRule.roi_status}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
 
