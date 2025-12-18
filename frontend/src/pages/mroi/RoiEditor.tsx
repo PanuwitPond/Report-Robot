@@ -56,28 +56,32 @@ export const RoiEditor: React.FC = () => {
                         setSnapshotUrl(blobUrl);
                     } else {
                         // Parse error details from response
-                        let errorMsg = `Failed to capture snapshot (Status: ${response.status})`;
+                        let errorMsg = `Unable to load snapshot`;
                         try {
                             const errorData = await response.json();
                             errorMsg = errorData.error || errorMsg;
-                            if (errorData.details) {
-                                errorMsg += ` - ${errorData.details}`;
-                            }
-                            if (errorData.suggestion) {
-                                errorMsg += `\n💡 ${errorData.suggestion}`;
-                            }
                         } catch (e) {
                             // Response is not JSON, use default message
                         }
+                        // ⚠️ Don't show technical error details to user
+                        console.warn('Snapshot capture failed:', errorMsg);
                         setSnapshotError(errorMsg);
+                        // 💡 Set a default placeholder - don't block drawing
+                        setSnapshotUrl('placeholder');
                     }
                 } catch (err: any) {
-                    setSnapshotError(`Error capturing snapshot: ${err.message}`);
-                    console.error('Snapshot error:', err);
+                    console.warn('Snapshot error:', err.message);
+                    // Use placeholder instead of error - user can still draw
+                    setSnapshotError(`Snapshot not available`);
+                    setSnapshotUrl('placeholder');
                 }
             };
 
             generateSnapshot();
+        } else {
+            // No RTSP URL - use placeholder
+            setSnapshotUrl('placeholder');
+            setSnapshotError(null);
         }
     }, [device?.rtspUrl]);
 
@@ -427,33 +431,41 @@ export const RoiEditor: React.FC = () => {
                 </div>
 
                 <div className="canvas-container">
-                    {snapshotError && (
-                        <div className="snapshot-error">
-                            ⚠️ {snapshotError}
-                        </div>
-                    )}
-                    {snapshotUrl ? (
-                        <div className="canvas-wrapper">
+                    <div className="canvas-wrapper">
+                        {snapshotUrl !== 'placeholder' && (
                             <img
                                 src={snapshotUrl}
                                 alt="Camera Snapshot"
                                 className="snapshot-image"
                                 style={{ display: 'none' }}
                             />
+                        )}
+                        {snapshotError && (
+                            <div className="snapshot-warning">
+                                <div className="warning-icon">⚠️</div>
+                                <div className="warning-content">
+                                    <div className="warning-title">Camera Snapshot Not Available</div>
+                                    <div className="warning-message">{snapshotError}</div>
+                                    <div className="warning-hint">You can still draw ROI regions on the canvas below</div>
+                                </div>
+                            </div>
+                        )}
+                        {!snapshotUrl && (
+                            <div className="canvas-loading">
+                                📸 Loading camera snapshot... Please wait
+                            </div>
+                        )}
+                        {snapshotUrl && (
                             <canvas
                                 ref={canvasRef}
                                 className="drawing-canvas"
                                 onClick={handleCanvasClick}
                             />
-                            <div className="canvas-hint">
-                                📌 Click on the image to add points. Draw the region you want to monitor.
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="canvas-loading">
-                            📸 Loading camera snapshot... Please wait
-                        </div>
-                    )}
+                        )}
+                    </div>
+                    <div className="canvas-hint">
+                        📌 Click to add points • Double-click last point to complete region • Save when done
+                    </div>
                 </div>
             </div>
         </div>
