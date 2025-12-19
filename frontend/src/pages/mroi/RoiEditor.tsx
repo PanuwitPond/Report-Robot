@@ -16,6 +16,8 @@ import {
 import { RuleList } from './components/RuleList';
 import { SetupEditor } from './components/SetupEditor';
 import { DrawingCanvas } from './components/DrawingCanvas';
+import { MroiLogger } from '@/utils/mroi.logger';
+import { normalizeRegionConfig, validateNormalizedData } from '@/utils/mroi.normalizer';
 import './RoiEditor.css';
 
 export const RoiEditor: React.FC = () => {
@@ -36,6 +38,7 @@ export const RoiEditor: React.FC = () => {
     
     // ✅ UI state
     const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
+    const [snapshotError, setSnapshotError] = useState<string | null>(null); // ✅ NEW: Snapshot error state
     const [isSaving, setIsSaving] = useState(false);
     const previousUrlRef = useRef<string | null>(null);
     
@@ -67,6 +70,7 @@ export const RoiEditor: React.FC = () => {
         
         // ✅ Fix #2A: Clear current snapshot before fetching new one
         setSnapshotUrl(null);
+        setSnapshotError(null); // ✅ NEW: Clear previous error
         
         try {
             const response = await fetch(`/api/mroi/iv-cameras/snapshot?rtsp=${encodeURIComponent(device.rtspUrl)}`);
@@ -79,21 +83,24 @@ export const RoiEditor: React.FC = () => {
                 // ✅ Fix #3: Store for next cleanup
                 previousUrlRef.current = blobUrl;
             } else {
-                // ใช้ error message ที่ user-friendly แทน technical details
-                const errorData = await response.json().catch(() => ({}));
-                
-                let userMessage = 'Cannot load camera snapshot';
-                if (response.status === 500) {
-                    userMessage = 'Camera stream is temporarily unavailable';
+                // ✅ NEW: Store user-friendly error message
+                let errorMsg = 'Cannot load camera snapshot';
+                if (response.status === 404) {
+                    errorMsg = 'Camera device not found. Please select another camera.';
+                } else if (response.status === 500) {
+                    errorMsg = 'Camera stream is temporarily unavailable';
                 } else if (response.status === 400) {
-                    userMessage = 'Invalid camera configuration';
+                    errorMsg = 'Invalid camera configuration';
                 } else if (response.status === 504) {
-                    userMessage = 'Camera connection timeout';
+                    errorMsg = 'Camera connection timeout - check network connectivity';
                 }
                 
-                console.error('Snapshot error details:', errorData, userMessage);
+                setSnapshotError(errorMsg);
+                console.error('Snapshot error:', response.status, errorMsg);
             }
         } catch (err: any) {
+            const errorMsg = err instanceof Error ? err.message : 'Network error loading snapshot';
+            setSnapshotError(errorMsg);
             console.error('Snapshot error:', err);
         }
     };
@@ -116,13 +123,35 @@ export const RoiEditor: React.FC = () => {
                     const data = await fetchIvRoiData(customer, selectedDeviceId);
                     
                     if (data?.rule && Array.isArray(data.rule)) {
-                        console.log(`✅ Loaded ${data.rule.length} rules`);
-                        setRegionAIConfig({ rule: data.rule });
+                        console.log(`✅ Loaded ${data.rule.length} rules (raw)`);
                         
-                        // Auto-select first rule
-                        if (data.rule.length > 0) {
-                            setSelectedRuleId(data.rule[0].roi_id);
-                            setSelectedRule(data.rule[0]);
+                        // ✅ NEW: Normalize data format to prevent array vs object inconsistency
+                        try {
+                            const normalizedConfig = normalizeRegionConfig(data);
+                            const validation = validateNormalizedData(normalizedConfig);
+                            
+                            if (!validation.valid) {
+                                MroiLogger.logDataInconsistency(normalizedConfig.rule);
+                                console.warn('⚠️ Data format issues detected:', validation.errors);
+                            } else {
+                                console.log('✅ Data format validation passed');
+                            }
+                            
+                            setRegionAIConfig(normalizedConfig);
+                            
+                            // Auto-select first rule
+                            if (normalizedConfig.rule.length > 0) {
+                                setSelectedRuleId(normalizedConfig.rule[0].roi_id);
+                                setSelectedRule(normalizedConfig.rule[0]);
+                            }
+                        } catch (normalizeError: any) {
+                            console.error('❌ Normalization error:', normalizeError.message);
+                            // Fallback: use raw data if normalization fails
+                            setRegionAIConfig({ rule: data.rule });
+                            if (data.rule.length > 0) {
+                                setSelectedRuleId(data.rule[0].roi_id);
+                                setSelectedRule(data.rule[0]);
+                            }
                         }
                     } else {
                         console.log('ℹ️ No saved ROI data found');
@@ -283,8 +312,23 @@ export const RoiEditor: React.FC = () => {
 
         setIsSaving(true);
         try {
+            // ✅ NEW: Normalize data before saving
+            let configToSave = regionAIConfig;
+            try {
+                configToSave = normalizeRegionConfig(regionAIConfig);
+                const validation = validateNormalizedData(configToSave);
+                if (!validation.valid) {
+                    console.warn('⚠️ Detected data format issues before save:', validation.errors);
+                    MroiLogger.logDataInconsistency(configToSave.rule);
+                }
+            } catch (normalizeError: any) {
+                console.warn('⚠️ Normalization during save failed:', normalizeError.message);
+                // Fallback to original data if normalization fails
+                configToSave = regionAIConfig;
+            }
+            
             // Validate all rules
-            const invalidRules = regionAIConfig.rule.filter(rule => {
+            const invalidRules = configToSave.rule.filter(rule => {
                 const minPoints = MIN_POINTS_FOR_TYPE[rule.roi_type];
                 return rule.points.length < minPoints;
             });
@@ -296,8 +340,8 @@ export const RoiEditor: React.FC = () => {
                 return;
             }
 
-            console.log('💾 Saving all rules:', regionAIConfig.rule.length);
-            await updateIvRegionConfig(customer, selectedDeviceId, regionAIConfig.rule);
+            console.log('💾 Saving all rules:', configToSave.rule.length);
+            await updateIvRegionConfig(customer, selectedDeviceId, configToSave.rule);
             
             // ✅ Verify: Fetch data to confirm save was successful
             console.log('🔍 Verifying saved data...');
@@ -402,13 +446,6 @@ export const RoiEditor: React.FC = () => {
                             <h3>📹 {device.name}</h3>
                             <small>{device.location || 'N/A'}</small>
                         </div>
-                        <button
-                            className="btn-change-device"
-                            title="Change device"
-                            onClick={() => setSelectedDeviceId(null)}
-                        >
-                            🔄
-                        </button>
                     </div>
                     <RuleList
                         rules={regionAIConfig.rule}
@@ -428,6 +465,7 @@ export const RoiEditor: React.FC = () => {
                     </div>
                     <DrawingCanvas
                         snapshotUrl={snapshotUrl}
+                        snapshotError={snapshotError} // ✅ NEW: Pass error state
                         rules={regionAIConfig.rule}
                         currentRule={selectedRule}
                         currentPoints={canvasState.currentPoints}
@@ -466,7 +504,7 @@ export const RoiEditor: React.FC = () => {
                 >
                     {isSaving ? '💾 Saving...' : '✅ Apply Changes'}
                 </button>
-                <button className="btn-cancel" onClick={() => navigate('/mroi')}>
+                <button className="btn-cancel" onClick={() => navigate('/mroi/devices')}>
                     ✕ Cancel
                 </button>
             </div>

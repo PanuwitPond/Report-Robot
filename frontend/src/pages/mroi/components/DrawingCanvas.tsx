@@ -12,6 +12,7 @@ import './DrawingCanvas.css';
  */
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     snapshotUrl,
+    snapshotError, // ✅ NEW: Accept error prop
     rules,
     currentRule,
     currentPoints,
@@ -190,8 +191,19 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
                     </>
                 ) : (
                     <div className="no-snapshot">
-                        <p>📷 Snapshot not available</p>
-                        <p className="small">Select a device and camera to load snapshot</p>
+                        {snapshotError ? (
+                            // ✅ NEW: Display error message with icon
+                            <>
+                                <p style={{ fontSize: '48px', margin: '0 0 16px 0' }}>⚠️</p>
+                                <p>{snapshotError}</p>
+                                <p className="small">Check camera connection or select a different device</p>
+                            </>
+                        ) : (
+                            <>
+                                <p>📷 Snapshot not available</p>
+                                <p className="small">Select a device and camera to load snapshot</p>
+                            </>
+                        )}
                     </div>
                 )}
             </div>

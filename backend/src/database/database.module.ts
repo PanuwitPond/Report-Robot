@@ -16,7 +16,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
                 database: configService.get('DATABASE_NAME'),
                 entities: [__dirname + '/../**/*.entity{.ts,.js}'],
                 synchronize: false,
-                logging: false,
+                logging: true,
                 // ✅ Connection Pool Settings (via pg driver)
                 extra: {
                     max: 5,                         // Max concurrent connections
@@ -42,7 +42,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
                 database: configService.get('MROI_DB_NAME'), // ค่าคือ ivs_service
                 entities: [],
                 synchronize: false,
-                logging: false,
+                logging: true,
                 // ✅ Connection Pool Settings (via pg driver)
                 extra: {
                     max: 5,                         // Max concurrent connections

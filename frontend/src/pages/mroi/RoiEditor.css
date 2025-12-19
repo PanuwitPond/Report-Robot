@@ -555,22 +555,6 @@
     margin-top: 0.2rem;
 }
 
-.btn-change-device {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-    padding: 0.4rem 0.6rem;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-    color: white;
-}
-
-.btn-change-device:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
 .panel-rules {
     overflow-y: auto;
 }

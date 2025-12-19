@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
@@ -42,6 +42,11 @@ export class TasksService {
     async update(id: string, updateData: Partial<CreateTaskDto>, file?: Express.Multer.File): Promise<Task> {
         const task = await this.findOne(id);
 
+        // ✅ ADD: Proper null check to prevent crashes
+        if (!task) {
+            throw new NotFoundException(`Task with id "${id}" not found`);
+        }
+
         if (file) {
             // Delete old image if exists
             if (task.imageUrl) {
@@ -56,6 +61,11 @@ export class TasksService {
 
     async delete(id: string): Promise<void> {
         const task = await this.findOne(id);
+
+        // ✅ ADD: Proper null check to prevent crashes
+        if (!task) {
+            throw new NotFoundException(`Task with id "${id}" not found`);
+        }
 
         if (task.imageUrl) {
             await this.storageService.deleteFile(task.imageUrl);
