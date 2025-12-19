@@ -1,5 +1,4 @@
 export * from './SignInPage';
-export * from './ExportReportPage';
 export * from './ReportTaskConfigPage';
 export * from './TaskEditorPage';
 export * from './AddImagePage';

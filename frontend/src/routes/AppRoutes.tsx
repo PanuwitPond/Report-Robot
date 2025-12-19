@@ -4,7 +4,6 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { getDefaultRouteByRole } from '@/utils/roleBasedRedirect';
 import {
     SignInPage,
-    ExportReportPage,
     ReportTaskConfigPage,
     TaskEditorPage,
     AddImagePage,
@@ -60,17 +59,6 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <DownloadReportPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/export-report"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <ExportReportPage />
                             </Layout>
                         </ProtectedRoute>
                     }
