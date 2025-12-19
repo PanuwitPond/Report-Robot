@@ -17,6 +17,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
                 entities: [__dirname + '/../**/*.entity{.ts,.js}'],
                 synchronize: false,
                 logging: false,
+                // ✅ Connection Pool Settings (via pg driver)
+                extra: {
+                    max: 5,                         // Max concurrent connections
+                    min: 1,                         // Min connections to maintain
+                    idleTimeoutMillis: 30000,       // Close idle connections after 30s
+                    connectionTimeoutMillis: 5000,  // Timeout for new connections
+                    statement_timeout: 30000,       // Statement timeout 30s
+                },
             }),
             inject: [ConfigService],
         }),
@@ -32,9 +40,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
                 username: configService.get('MROI_DB_USERNAME'),
                 password: configService.get('MROI_DB_PASSWORD'),
                 database: configService.get('MROI_DB_NAME'), // ค่าคือ ivs_service
-                entities: [], 
+                entities: [],
                 synchronize: false,
                 logging: false,
+                // ✅ Connection Pool Settings (via pg driver)
+                extra: {
+                    max: 5,                         // Max concurrent connections
+                    min: 1,                         // Min connections to maintain
+                    idleTimeoutMillis: 30000,       // Close idle connections after 30s
+                    connectionTimeoutMillis: 5000,  // Timeout for new connections
+                    statement_timeout: 30000,       // Statement timeout 30s
+                },
             }),
             inject: [ConfigService],
         }),
