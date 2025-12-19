@@ -441,13 +441,6 @@ export const RoiEditor: React.FC = () => {
                             <h3>📹 {device.name}</h3>
                             <small>{device.location || 'N/A'}</small>
                         </div>
-                        <button
-                            className="btn-change-device"
-                            title="Change device"
-                            onClick={() => setSelectedDeviceId(null)}
-                        >
-                            🔄
-                        </button>
                     </div>
                     <RuleList
                         rules={regionAIConfig.rule}
@@ -505,7 +498,7 @@ export const RoiEditor: React.FC = () => {
                 >
                     {isSaving ? '💾 Saving...' : '✅ Apply Changes'}
                 </button>
-                <button className="btn-cancel" onClick={() => navigate('/mroi')}>
+                <button className="btn-cancel" onClick={() => navigate('/mroi/devices')}>
                     ✕ Cancel
                 </button>
             </div>
