@@ -78,6 +78,8 @@ export class DevicesService {
                 scheduleCount: 0,
                 createdAt: new Date(),
                 updatedAt: new Date(),
+                isExternal: true,  // ← Flag indicating external device
+                readOnly: true,    // ← Flag indicating read-only
             } as DeviceResponseDto));
 
             // Also fetch local devices
@@ -147,6 +149,8 @@ export class DevicesService {
                     scheduleCount: 0,
                     createdAt: new Date(),
                     updatedAt: new Date(),
+                    isExternal: true,  // ← Flag indicating external device
+                    readOnly: true,    // ← Flag indicating read-only
                 } as DeviceResponseDto;
             }
 
@@ -171,11 +175,25 @@ export class DevicesService {
     }
 
     async update(id: string, updateDeviceDto: UpdateDeviceDto, domain: string): Promise<DeviceResponseDto> {
+        // First check if device exists in local database
         const device = await this.deviceRepository.findOne({
             where: { id, domain },
         });
 
+        // If device not found locally, check if it's an external device
         if (!device) {
+            // Check if it's an external device (trying to update)
+            const externalCameras = await this.getCachedExternalCameras();
+            const isExternal = externalCameras.some(
+                (cam: any) => cam.iv_camera_uuid === id || cam.device_id === id
+            );
+            
+            if (isExternal) {
+                throw new BadRequestException(
+                    'Cannot update device managed externally. Please use the external system to modify this device.'
+                );
+            }
+            
             throw new NotFoundException(`Device with id "${id}" not found`);
         }
 
