@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, DomainProvider } from './contexts';
 import { AppRoutes } from './routes';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -18,7 +19,9 @@ function App() {
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
                 <DomainProvider>
-                    <AppRoutes />
+                    <ErrorBoundary>
+                        <AppRoutes />
+                    </ErrorBoundary>
                 </DomainProvider>
             </AuthProvider>
         </QueryClientProvider>

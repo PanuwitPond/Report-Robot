@@ -16,6 +16,8 @@ import {
 import { RuleList } from './components/RuleList';
 import { SetupEditor } from './components/SetupEditor';
 import { DrawingCanvas } from './components/DrawingCanvas';
+import { MroiLogger } from '@/utils/mroi.logger';
+import { normalizeRegionConfig, validateNormalizedData } from '@/utils/mroi.normalizer';
 import './RoiEditor.css';
 
 export const RoiEditor: React.FC = () => {
@@ -116,13 +118,35 @@ export const RoiEditor: React.FC = () => {
                     const data = await fetchIvRoiData(customer, selectedDeviceId);
                     
                     if (data?.rule && Array.isArray(data.rule)) {
-                        console.log(`✅ Loaded ${data.rule.length} rules`);
-                        setRegionAIConfig({ rule: data.rule });
+                        console.log(`✅ Loaded ${data.rule.length} rules (raw)`);
                         
-                        // Auto-select first rule
-                        if (data.rule.length > 0) {
-                            setSelectedRuleId(data.rule[0].roi_id);
-                            setSelectedRule(data.rule[0]);
+                        // ✅ NEW: Normalize data format to prevent array vs object inconsistency
+                        try {
+                            const normalizedConfig = normalizeRegionConfig(data);
+                            const validation = validateNormalizedData(normalizedConfig);
+                            
+                            if (!validation.valid) {
+                                MroiLogger.logDataInconsistency(normalizedConfig.rule);
+                                console.warn('⚠️ Data format issues detected:', validation.errors);
+                            } else {
+                                console.log('✅ Data format validation passed');
+                            }
+                            
+                            setRegionAIConfig(normalizedConfig);
+                            
+                            // Auto-select first rule
+                            if (normalizedConfig.rule.length > 0) {
+                                setSelectedRuleId(normalizedConfig.rule[0].roi_id);
+                                setSelectedRule(normalizedConfig.rule[0]);
+                            }
+                        } catch (normalizeError: any) {
+                            console.error('❌ Normalization error:', normalizeError.message);
+                            // Fallback: use raw data if normalization fails
+                            setRegionAIConfig({ rule: data.rule });
+                            if (data.rule.length > 0) {
+                                setSelectedRuleId(data.rule[0].roi_id);
+                                setSelectedRule(data.rule[0]);
+                            }
                         }
                     } else {
                         console.log('ℹ️ No saved ROI data found');
@@ -283,8 +307,23 @@ export const RoiEditor: React.FC = () => {
 
         setIsSaving(true);
         try {
+            // ✅ NEW: Normalize data before saving
+            let configToSave = regionAIConfig;
+            try {
+                configToSave = normalizeRegionConfig(regionAIConfig);
+                const validation = validateNormalizedData(configToSave);
+                if (!validation.valid) {
+                    console.warn('⚠️ Detected data format issues before save:', validation.errors);
+                    MroiLogger.logDataInconsistency(configToSave.rule);
+                }
+            } catch (normalizeError: any) {
+                console.warn('⚠️ Normalization during save failed:', normalizeError.message);
+                // Fallback to original data if normalization fails
+                configToSave = regionAIConfig;
+            }
+            
             // Validate all rules
-            const invalidRules = regionAIConfig.rule.filter(rule => {
+            const invalidRules = configToSave.rule.filter(rule => {
                 const minPoints = MIN_POINTS_FOR_TYPE[rule.roi_type];
                 return rule.points.length < minPoints;
             });
@@ -296,8 +335,8 @@ export const RoiEditor: React.FC = () => {
                 return;
             }
 
-            console.log('💾 Saving all rules:', regionAIConfig.rule.length);
-            await updateIvRegionConfig(customer, selectedDeviceId, regionAIConfig.rule);
+            console.log('💾 Saving all rules:', configToSave.rule.length);
+            await updateIvRegionConfig(customer, selectedDeviceId, configToSave.rule);
             
             // ✅ Verify: Fetch data to confirm save was successful
             console.log('🔍 Verifying saved data...');

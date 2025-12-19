@@ -1,5 +1,5 @@
 // back/src/modules/mroi/services/iv-cameras.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from 'stream';
@@ -22,14 +22,19 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
 @Injectable()
-export class IvCamerasService {
+export class IvCamerasService implements OnModuleInit {
   private readonly logger = new Logger(IvCamerasService.name);
 
   constructor(
     @InjectDataSource('mroi_db_conn') 
     private dataSource: DataSource // จะเชื่อมต่อกับ ivs_service อัตโนมัติ
   ) {
-    this.checkFFmpegInstallation();
+    // ✅ Constructor is now clean - no async operations
+  }
+
+  // ✅ Lifecycle hook for async initialization
+  async onModuleInit() {
+    await this.checkFFmpegInstallation();
   }
 
   // ตรวจสอบว่า FFmpeg ติดตั้งแล้วหรือไม่
