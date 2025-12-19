@@ -38,6 +38,7 @@ export const RoiEditor: React.FC = () => {
     
     // ✅ UI state
     const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
+    const [snapshotError, setSnapshotError] = useState<string | null>(null); // ✅ NEW: Snapshot error state
     const [isSaving, setIsSaving] = useState(false);
     const previousUrlRef = useRef<string | null>(null);
     
@@ -69,6 +70,7 @@ export const RoiEditor: React.FC = () => {
         
         // ✅ Fix #2A: Clear current snapshot before fetching new one
         setSnapshotUrl(null);
+        setSnapshotError(null); // ✅ NEW: Clear previous error
         
         try {
             const response = await fetch(`/api/mroi/iv-cameras/snapshot?rtsp=${encodeURIComponent(device.rtspUrl)}`);
@@ -81,21 +83,24 @@ export const RoiEditor: React.FC = () => {
                 // ✅ Fix #3: Store for next cleanup
                 previousUrlRef.current = blobUrl;
             } else {
-                // ใช้ error message ที่ user-friendly แทน technical details
-                const errorData = await response.json().catch(() => ({}));
-                
-                let userMessage = 'Cannot load camera snapshot';
-                if (response.status === 500) {
-                    userMessage = 'Camera stream is temporarily unavailable';
+                // ✅ NEW: Store user-friendly error message
+                let errorMsg = 'Cannot load camera snapshot';
+                if (response.status === 404) {
+                    errorMsg = 'Camera device not found. Please select another camera.';
+                } else if (response.status === 500) {
+                    errorMsg = 'Camera stream is temporarily unavailable';
                 } else if (response.status === 400) {
-                    userMessage = 'Invalid camera configuration';
+                    errorMsg = 'Invalid camera configuration';
                 } else if (response.status === 504) {
-                    userMessage = 'Camera connection timeout';
+                    errorMsg = 'Camera connection timeout - check network connectivity';
                 }
                 
-                console.error('Snapshot error details:', errorData, userMessage);
+                setSnapshotError(errorMsg);
+                console.error('Snapshot error:', response.status, errorMsg);
             }
         } catch (err: any) {
+            const errorMsg = err instanceof Error ? err.message : 'Network error loading snapshot';
+            setSnapshotError(errorMsg);
             console.error('Snapshot error:', err);
         }
     };
@@ -460,6 +465,7 @@ export const RoiEditor: React.FC = () => {
                     </div>
                     <DrawingCanvas
                         snapshotUrl={snapshotUrl}
+                        snapshotError={snapshotError} // ✅ NEW: Pass error state
                         rules={regionAIConfig.rule}
                         currentRule={selectedRule}
                         currentPoints={canvasState.currentPoints}

@@ -119,6 +119,7 @@ export interface ScheduleControlsProps {
  */
 export interface DrawingCanvasProps {
     snapshotUrl: string | null;
+    snapshotError?: string | null; // ✅ NEW: Error message from snapshot loading
     rules: Rule[];
     currentRule: Rule | null;
     currentPoints: Point[];

@@ -29,6 +29,7 @@ export const RobotListPage = () => {
     // --- State ---
     const [robots, setRobots] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null); // ✅ NEW: Error state
     const [edits, setEdits] = useState<Record<string, any>>({});
     const [filterText, setFilterText] = useState('');
     const [filterActive, setFilterActive] = useState('all');
@@ -46,9 +47,12 @@ export const RobotListPage = () => {
     // --- Data Loading ---
     const loadRobots = async () => {
         try {
+            setError(null); // ✅ NEW: Clear error on retry
             const data = await robotsService.getAll();
             setRobots(data || []);
         } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Failed to load robots';
+            setError(errorMsg); // ✅ NEW: Store error message
             console.error(err);
         } finally {
             setLoading(false);
@@ -137,6 +141,24 @@ export const RobotListPage = () => {
     });
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+
+    // ✅ NEW: Error state display
+    if (error) {
+        return (
+            <div className="p-8">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <h3 className="text-red-800 font-semibold mb-2">Failed to Load Robots</h3>
+                    <p className="text-red-700 mb-4">{error}</p>
+                    <Button variant="primary" onClick={() => {
+                        setLoading(true);
+                        loadRobots();
+                    }}>
+                        🔄 Retry
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="page-container">

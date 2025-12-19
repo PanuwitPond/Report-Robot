@@ -169,8 +169,12 @@ export class DevicesService {
 
             return this.mapToResponseDto(device, device.rois?.length || 0, device.schedules?.length || 0);
         } catch (error) {
+            // ✅ IMPROVED: Re-throw NotFoundException properly
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
             this.logger.error(`Error fetching device ${id}`, error);
-            throw error;
+            throw new NotFoundException(`Device with id "${id}" not found`);
         }
     }
 

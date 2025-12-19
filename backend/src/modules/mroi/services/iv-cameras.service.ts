@@ -15,11 +15,34 @@ import * as os from 'os';
 
 const execAsync = promisify(exec);
 
-// Set FFmpeg path for Windows - uses WinGet installation path
-const ffmpegPath = 'C:\\Users\\panuwit.rak\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe';
-const ffprobePath = 'C:\\Users\\panuwit.rak\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffprobe.exe';
-ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath);
+// ✅ FIX #5: FFmpeg path detection (from env or auto-detect from PATH)
+function setupFFmpegPath(): void {
+  const ffmpegPathEnv = process.env.FFMPEG_PATH;
+  const ffprobePathEnv = process.env.FFPROBE_PATH;
+  
+  if (ffmpegPathEnv) {
+    // Use explicitly configured path from .env
+    if (!fs.existsSync(ffmpegPathEnv)) {
+      console.warn(`⚠️ FFMPEG_PATH configured but not found: ${ffmpegPathEnv}`);
+    } else {
+      ffmpeg.setFfmpegPath(ffmpegPathEnv);
+    }
+  }
+  
+  if (ffprobePathEnv) {
+    // Use explicitly configured path from .env
+    if (!fs.existsSync(ffprobePathEnv)) {
+      console.warn(`⚠️ FFPROBE_PATH configured but not found: ${ffprobePathEnv}`);
+    } else {
+      ffmpeg.setFfprobePath(ffprobePathEnv);
+    }
+  }
+  
+  // If not configured, fluent-ffmpeg will auto-detect from system PATH
+  // This works on Linux, macOS, and Windows if ffmpeg/ffprobe are in PATH
+}
+
+setupFFmpegPath();
 
 @Injectable()
 export class IvCamerasService implements OnModuleInit {
