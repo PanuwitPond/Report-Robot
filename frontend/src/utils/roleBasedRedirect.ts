@@ -5,13 +5,13 @@
  */
 export const getDefaultRouteByRole = (roles?: string[]): string => {
     if (!roles || roles.length === 0) {
-        // Fallback if no roles
-        return '/export-report';
+        // Fallback if no roles - redirect to signin
+        return '/signin';
     }
 
-    // Admin has full access - go to manage roles admin panel
+    // Admin has full access - go to MROI dashboard
     if (roles.includes('admin')) {
-        return '/admin/manage-roles';
+        return '/mroi';
     }
 
     // MIOC role - go to MIOC dashboard
@@ -24,6 +24,6 @@ export const getDefaultRouteByRole = (roles?: string[]): string => {
         return '/mroi';
     }
 
-    // Unknown role - fallback to export-report
-    return '/export-report';
+    // Unknown role - redirect to signin
+    return '/signin';
 };
