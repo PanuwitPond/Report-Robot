@@ -48,10 +48,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                         const me = await withTimeout(authService.me(), 5000); // ✅ 5s timeout
                         const fetchedUser = me?.user || null;
                         if (fetchedUser) {
-                            // attach permissions array
-                            fetchedUser.permissions = me?.permissions || [];
-                            setUser(fetchedUser);
-                            localStorage.setItem('user', JSON.stringify(fetchedUser));
+                            // Attach permissions array with type safety
+                            const userWithPermissions: User = {
+                                ...fetchedUser,
+                                permissions: me?.permissions || []
+                            };
+                            setUser(userWithPermissions);
+                            localStorage.setItem('user', JSON.stringify(userWithPermissions));
                         } else {
                             // Fallback to saved user if API call fails
                             const savedUser = localStorage.getItem('user');
@@ -90,10 +93,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             try {
                 const me = await withTimeout(authService.me(), 5000); // ✅ 5s timeout
                 const fetchedUser = me?.user || userWithRoles;
-                fetchedUser.permissions = me?.permissions || [];
-                finalUser = fetchedUser;
-                setUser(fetchedUser);
-                localStorage.setItem('user', JSON.stringify(fetchedUser));
+                // Create properly typed user with permissions
+                const userWithPermissions: User = {
+                    ...fetchedUser,
+                    permissions: me?.permissions || []
+                };
+                finalUser = userWithPermissions;
+                setUser(userWithPermissions);
+                localStorage.setItem('user', JSON.stringify(userWithPermissions));
             } catch (err) {
                 console.warn('Failed to fetch user permissions during login, using JWT roles:', err);
                 setUser(userWithRoles);

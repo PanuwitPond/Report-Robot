@@ -10,6 +10,7 @@ export interface User {
     email: string;
     roles: UserRole[];
     domain?: Domain;
+    permissions?: string[];
 }
 
 export interface LoginResponse {

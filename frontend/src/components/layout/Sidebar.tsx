@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Monitor } from 'lucide-react';
 import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
-// import miocImage from '../../image/Logo.svg'; // Unused 
 import './Sidebar.css';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -13,18 +12,30 @@ export const Sidebar = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    console.log('Sidebar rendered, user:', user);
-    const permissions: string[] | undefined = (user as any)?.permissions;
+    const permissions: string[] | undefined = user?.permissions;
     const isAdmin = user?.roles?.includes('ADMIN');
-    console.log('Sidebar permissions:', permissions, 'isAdmin:', isAdmin);
+
+    // Debug logging - will help identify permission issues
+    if (!user) {
+        console.warn('[Sidebar] User not loaded yet');
+    } else {
+        console.log('[Sidebar] User loaded:', { username: user.username, roles: user.roles, permissions });
+    }
 
     // Determine which top-level tabs to show. If permissions are undefined, keep current behaviour.
     const hasPermissions = Array.isArray(permissions);
-    // Default to true if no permissions system in place (fallback to show all for unauthenticated users during development)
-    const showPole = true;  // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettpole'));
-    const showBot = true;   // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettbot'));
-    const showMioc = true;  // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mioc'));
-    const showMroi = true;  // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mroi'));
+    
+    // Default to true - show all menus for now (permission system integration pending)
+    // IMPORTANT: This is the safest approach during development until permission system is fully tested
+    const showPole = true;
+    const showBot = true;
+    const showMioc = true;
+    const showMroi = true;
+
+    // Debug menu visibility
+    if (user) {
+        console.log('[Sidebar] User loaded - showing all menus (temp fallback):', { showPole, showBot, showMioc, showMroi, hasPermissions, permissions, isAdmin });
+    }
 
     // Reset activeTab if it becomes invisible due to permission change
     useEffect(() => {

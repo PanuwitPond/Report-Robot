@@ -26,8 +26,9 @@ export class RobotsService {
             return robots.map(robot => new RobotDto(robot));
         } catch (error) {
             this.logger.error('Error in findAll:', error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : '');
-            // Return empty array as fallback
-            this.logger.log('Returning empty array as fallback');
+            // Return empty array as fallback - prevents app crash while we debug actual issue
+            // TODO: Fix underlying database/repository issue that causes this error
+            this.logger.warn('[RobotsService] Falling back to empty array - database error:', error instanceof Error ? error.message : String(error));
             return [];
         }
     }

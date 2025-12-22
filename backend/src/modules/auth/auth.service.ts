@@ -26,12 +26,6 @@ export class AuthService {
         try {
             const tokenUrl = `${this.keycloakUrl}/realms/${this.realm}/protocol/openid-connect/token`;
 
-            console.log('--- Debug Login ---');
-            console.log('Token URL:', tokenUrl);
-            console.log('Client ID:', this.clientId);
-            console.log('Username:', username);
-            // Don't log password
-
             const params = new URLSearchParams();
             params.append('grant_type', 'password');
             params.append('client_id', this.clientId);
@@ -42,7 +36,6 @@ export class AuthService {
                 params.append('client_secret', this.clientSecret);
             }
 
-            console.log('Sending request to Keycloak...');
             const { data } = await firstValueFrom(
                 this.httpService.post(tokenUrl, params.toString(), {
                     headers: {
@@ -50,7 +43,6 @@ export class AuthService {
                     },
                 }),
             );
-            console.log('Keycloak response received');
 
             // Decode token to get user info if needed, or just return tokens
             // For now, we return the tokens directly from Keycloak
