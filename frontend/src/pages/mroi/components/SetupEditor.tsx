@@ -17,12 +17,17 @@ import './SetupEditor.css';
 export const SetupEditor: React.FC<SetupEditorProps> = ({
     selectedRule,
     onSaveRule,
-    onDeleteRule,
+    // onDeleteRule,  // ✅ Not used in Option B - delete handled in parent
 }) => {
     const { user } = useAuth();
     const [editingRule, setEditingRule] = useState<Rule | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
     const [activeTab, setActiveTab] = useState<'edit' | 'schedule' | 'audit'>('edit');
+    
+    // ✅ Option B: Save individual rule state
+    const [isSavingRule, setIsSavingRule] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
 
     // Sync with selectedRule
     useEffect(() => {
@@ -95,29 +100,117 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
         }
     };
 
-    const handleSave = () => {
-        if (!hasChanges) {
-            alert('⚠️ No changes to save');
-            return;
+    /**
+     * ✅ Option B: Validate rule data before saving
+     * Checks for:
+     * - Empty rule name
+     * - Name length
+     * - Valid rule type
+     * - Schedule for non-zoom rules
+     * - ROI ID exists
+     */
+    const validateRule = (rule: Rule | null): { valid: boolean; errors: string[] } => {
+        const errors: string[] = [];
+        
+        if (!rule) {
+            errors.push('❌ Rule object is null');
+            return { valid: false, errors };
         }
-
-        // Validate
-        if (!editingRule.name.trim()) {
-            alert('⚠️ Rule name cannot be empty');
-            return;
+        
+        // Check 1: Required fields
+        if (!rule.name || !rule.name.trim()) {
+            errors.push('Rule name cannot be empty');
         }
-
-        // Update state with audit timestamp
-        const now = dayjs().format(MROI_CONSTANTS.DATE_FORMAT_AUDIT);
-        const savedRule: Rule = {
-            ...editingRule,
-            updated_at: now,
+        
+        // Check 2: Name length
+        if (rule.name && rule.name.length > 50) {
+            errors.push('Rule name too long (max 50 characters)');
+        }
+        
+        // Check 3: Type is valid
+        const validTypes = ['intrusion', 'tripwire', 'density', 'zoom', 'health'];
+        if (!validTypes.includes(rule.roi_type)) {
+            errors.push('Invalid rule type');
+        }
+        
+        // Check 4: Schedule (if not zoom)
+        if (rule.roi_type !== 'zoom') {
+            if (!rule.schedule || rule.schedule.length === 0) {
+                errors.push('Schedule required for non-zoom rules');
+            }
+        }
+        
+        // Check 5: ROI ID exists
+        if (!rule.roi_id) {
+            errors.push('Rule ID missing');
+        }
+        
+        return {
+            valid: errors.length === 0,
+            errors
         };
-
-        // ✅ Sync changes with parent state
-        onSaveRule(savedRule);
-        setHasChanges(false);
     };
+
+    /**
+     * ✅ Option B: Save individual rule to parent
+     * Validates data first, then calls onSaveRule callback
+     * Shows feedback to user about success/error
+     */
+    const handleSaveRule = async () => {
+        if (!editingRule) {
+            setSaveError('No rule selected');
+            return;
+        }
+
+        // Step 1: Validate
+        const validation = validateRule(editingRule);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join('\n');
+            console.warn('❌ Validation failed:', errorMsg);
+            setSaveError(errorMsg);
+            return;  // ← Stop here, don't proceed
+        }
+
+        // Step 2: Set saving state
+        setIsSavingRule(true);
+        setSaveError(null);
+        
+        try {
+            // Step 3: Call parent to save to regionAIConfig
+            console.group('💾 Save Individual Rule');
+            console.log('Rule ID:', editingRule.roi_id);
+            console.log('Rule Name:', editingRule.name);
+            console.log('Rule Type:', editingRule.roi_type);
+            console.log('Timestamp:', new Date().toISOString());
+            console.groupEnd();
+            
+            // Add timestamp before saving
+            const now = dayjs().format(MROI_CONSTANTS.DATE_FORMAT_AUDIT);
+            const savedRule: Rule = {
+                ...editingRule,
+                updated_at: now,
+            };
+            
+            onSaveRule(savedRule);  // ← Call parent callback
+            
+            // Step 4: Success feedback
+            console.log('✅ Rule saved successfully');
+            setHasChanges(false);
+            setSaveError(null);
+            setLastSavedTime(new Date());
+            
+        } catch (error: any) {
+            // Step 5: Error handling
+            const errorMsg = error.message || 'Unknown error occurred';
+            console.error('❌ Failed to save rule:', errorMsg);
+            setSaveError(`Save failed: ${errorMsg}`);
+            
+        } finally {
+            setIsSavingRule(false);
+        }
+    };
+
+    // ✅ Option B: Removed handleSaveOld - using new handleSaveRule
 
     return (
         <div className="setup-editor">
@@ -158,6 +251,19 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
 
             {/* Tab Content */}
             <div className="editor-content">
+                {/* Error Message Display */}
+                {saveError && (
+                    <div className="save-error">
+                        <strong>❌ Error:</strong> {saveError}
+                    </div>
+                )}
+
+                {/* Success Indicator */}
+                {lastSavedTime && !saveError && !isSavingRule && (
+                    <div className="save-indicator">
+                        <span>✓ Saved at {lastSavedTime.toLocaleTimeString()}</span>
+                    </div>
+                )}
                 {/* Edit Tab */}
                 {activeTab === 'edit' && (
                     <>
@@ -251,6 +357,25 @@ export const SetupEditor: React.FC<SetupEditorProps> = ({
                         )}
                     </div>
                 )}
+            </div>
+
+            {/* Action Buttons - Option B: Save Individual Rule */}
+            <div className="action-buttons">
+                <button
+                    className="btn-save-rule"
+                    onClick={handleSaveRule}
+                    disabled={isSavingRule || !hasChanges}
+                    title={!hasChanges ? "No changes to save" : "Save this rule changes"}
+                >
+                    {isSavingRule ? (
+                        <>
+                            <span className="saving-spinner">⏳</span>
+                            Saving...
+                        </>
+                    ) : (
+                        '✓ Save Rule'
+                    )}
+                </button>
             </div>
         </div>
     );

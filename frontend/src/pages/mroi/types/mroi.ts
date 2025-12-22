@@ -97,11 +97,12 @@ export interface RuleListProps {
 /**
  * 📝 SetupEditorProps: Props for SetupEditor component
  * ③ Details panel component
+ * ✅ Option B: onDeleteRule removed (delete handled in parent RuleList)
  */
 export interface SetupEditorProps {
     selectedRule: Rule | null;
-    onSaveRule: (rule: Rule) => void;      // Save to state
-    onDeleteRule: (roi_id: string) => void;
+    onSaveRule: (rule: Rule) => void;      // ✅ Save individual rule to parent
+    // onDeleteRule removed - Option B doesn't support delete from SetupEditor
 }
 
 /**
