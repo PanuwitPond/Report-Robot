@@ -1,35 +1,19 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchIvCameras, fetchRois, fetchSchedules } from '@/services/mroi.service';
-import type { RoiResponseDto, ScheduleResponseDto } from '@/types';
+import { fetchIvCameras } from '@/services/mroi.service';
 import './MroiDashboard.css';
 
 export const MroiDashboard: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'overview' | 'devices' | 'rois' | 'schedules'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'devices'>('overview');
 
-    // ดึงข้อมูล
-    // แก้ไขการดึงข้อมูล devices (บรรทัดที่ 10)
-const { data: devices = [], isLoading: devicesLoading } = useQuery({
-    queryKey: ['mroi-devices'],
-    queryFn: () => fetchIvCameras('metthier'), // เปลี่ยนมาใช้ข้อมูลจาก iv_cameras
-    staleTime: 5 * 60 * 1000,
-});
-
-    const { data: rois = [], isLoading: roisLoading } = useQuery({
-        queryKey: ['mroi-rois'],
-        queryFn: () => fetchRois(),
-        staleTime: 5 * 60 * 1000,
-    });
-
-    const { data: schedules = [], isLoading: schedulesLoading } = useQuery({
-        queryKey: ['mroi-schedules'],
-        queryFn: () => fetchSchedules(),
+    // ดึงข้อมูล devices เท่านั้น
+    const { data: devices = [], isLoading: devicesLoading } = useQuery({
+        queryKey: ['mroi-devices'],
+        queryFn: () => fetchIvCameras('metthier'), // ข้อมูลจาก iv_cameras
         staleTime: 5 * 60 * 1000,
     });
 
     const activeDevices = devices.filter((d) => d.status === 'active').length;
-    const activeRois = rois.filter((r: RoiResponseDto) => r.isActive).length;
-    const activeSchedules = schedules.filter((s: ScheduleResponseDto) => s.isActive).length;
 
     const stats = [
         {
@@ -45,34 +29,6 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
             icon: '✓',
             color: '#10b981',
             lightColor: '#f0fdf4',
-        },
-        {
-            label: 'Total ROIs',
-            value: rois.length,
-            icon: '◉',
-            color: '#f59e0b',
-            lightColor: '#fffbf0',
-        },
-        {
-            label: 'Active ROIs',
-            value: activeRois,
-            icon: '⚡',
-            color: '#ec4899',
-            lightColor: '#fdf2f8',
-        },
-        {
-            label: 'Schedules',
-            value: schedules.length,
-            icon: '⏱',
-            color: '#0891b2',
-            lightColor: '#f0f9fa',
-        },
-        {
-            label: 'Active Schedules',
-            value: activeSchedules,
-            icon: '▶',
-            color: '#8b5cf6',
-            lightColor: '#faf5ff',
         },
     ];
 
@@ -118,22 +74,6 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                         Devices
                         <span className="tab-count">({devices.length})</span>
                     </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'rois' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('rois')}
-                    >
-                        <span className="tab-icon">◉</span>
-                        ROIs
-                        <span className="tab-count">({rois.length})</span>
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'schedules' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('schedules')}
-                    >
-                        <span className="tab-icon">⏱</span>
-                        Schedules
-                        <span className="tab-count">({schedules.length})</span>
-                    </button>
                 </div>
             </div>
 
@@ -153,42 +93,6 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                                 <span><strong>{devices.length}</strong> cameras</span>
                                 <span className="separator">•</span>
                                 <span><strong>{activeDevices}</strong> active</span>
-                            </div>
-                        </div>
-
-                        <div className="feature-card">
-                            <div className="feature-header">
-                                <div className="feature-icon" style={{ backgroundColor: '#fffbf0', color: '#f59e0b' }}>
-                                    ◉
-                                </div>
-                                <h3>ROI Detection</h3>
-                            </div>
-                            <p className="feature-description">Create multiple types of regions of interest for comprehensive monitoring:</p>
-                            <ul className="feature-list">
-                                <li>Intrusion detection zones</li>
-                                <li>Tripwire lines</li>
-                                <li>Density monitoring areas</li>
-                                <li>Zoom regions</li>
-                            </ul>
-                            <div className="feature-stats">
-                                <span><strong>{rois.length}</strong> total</span>
-                                <span className="separator">•</span>
-                                <span><strong>{activeRois}</strong> active</span>
-                            </div>
-                        </div>
-
-                        <div className="feature-card">
-                            <div className="feature-header">
-                                <div className="feature-icon" style={{ backgroundColor: '#f0f9fa', color: '#0891b2' }}>
-                                    ⏱
-                                </div>
-                                <h3>Scheduling</h3>
-                            </div>
-                            <p className="feature-description">Define time-based schedules to enable/disable ROIs or trigger actions automatically.</p>
-                            <div className="feature-stats">
-                                <span><strong>{schedules.length}</strong> schedules</span>
-                                <span className="separator">•</span>
-                                <span><strong>{activeSchedules}</strong> active</span>
                             </div>
                         </div>
                     </div>
@@ -212,64 +116,6 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                                         <div className="item-meta">
                                             <span>{device.roiCount || 0} ROIs</span>
                                             <span>{device.scheduleCount || 0} schedules</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'rois' && (
-                    <div className="list-content">
-                        <h3>🎯 Regions of Interest</h3>
-                        {roisLoading ? (
-                            <p className="loading">Loading ROIs...</p>
-                        ) : rois.length === 0 ? (
-                            <p className="empty">No ROIs created yet</p>
-                        ) : (
-                            <div className="list">
-                                {rois.map((roi: RoiResponseDto) => (
-                                    <div key={roi.id} className="list-item">
-                                        <div className="item-main">
-                                            <span className="item-name">{roi.name}</span>
-                                            <span className="item-badge">{roi.type}</span>
-                                            <span className={`item-status ${roi.isActive ? 'active' : 'inactive'}`}>
-                                                {roi.isActive ? '✓ Active' : '✕ Inactive'}
-                                            </span>
-                                        </div>
-                                        <div className="item-meta">
-                                            <span>Device: {roi.deviceId.slice(0, 8)}...</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'schedules' && (
-                    <div className="list-content">
-                        <h3>⏰ Schedules</h3>
-                        {schedulesLoading ? (
-                            <p className="loading">Loading schedules...</p>
-                        ) : schedules.length === 0 ? (
-                            <p className="empty">No schedules created yet</p>
-                        ) : (
-                            <div className="list">
-                                {schedules.map((schedule: ScheduleResponseDto) => (
-                                    <div key={schedule.id} className="list-item">
-                                        <div className="item-main">
-                                            <span className="item-name">{schedule.name}</span>
-                                            <span className={`item-status ${schedule.isActive ? 'active' : 'inactive'}`}>
-                                                {schedule.isActive ? '✓ Active' : '✕ Inactive'}
-                                            </span>
-                                        </div>
-                                        <div className="item-meta">
-                                            <span>
-                                                {schedule.timeRange.startTime} - {schedule.timeRange.endTime}
-                                            </span>
-                                            <span>{schedule.daysOfWeek.join(', ')}</span>
                                         </div>
                                     </div>
                                 ))}
