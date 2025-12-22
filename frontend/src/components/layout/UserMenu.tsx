@@ -22,7 +22,7 @@ export const UserMenu = () => {
         navigate('/admin/manage-roles');
     };
 
-    const isAdmin = user?.roles?.includes('admin');
+    const isAdmin = user?.roles?.includes('ADMIN');
 
     return (
         <div className="user-menu">

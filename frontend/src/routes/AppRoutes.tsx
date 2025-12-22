@@ -2,24 +2,15 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar, UserMenu, Sidebar } from '@/components/layout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { getDefaultRouteByRole } from '@/utils/roleBasedRedirect';
-import {
-    SignInPage,
-    ReportTaskConfigPage,
-    TaskEditorPage,
-    AddImagePage,
-    RobotImageConfigPage,
-    ManageRolesPage,
-    DownloadReportPage,
-} from '@/pages';
-import { RobotListPage } from '@/pages/RobotListPage';
-import { WorkforcePage } from '@/pages/WorkforcePage';
-import { RobotReportPage } from '@/pages/RobotReportPage';
-
-// นำเข้าหน้า MIOC
-import MiocDashboardPage from '../pages/MiocDashboardPage';
-
-// นำเข้าหน้า MROI
-import { MroiDashboard, DevicesPage, RoisPage, SchedulesPage, RoiEditor } from '../pages/mroi';
+import { SignInPage } from '@/pages/auth';
+import { ReportTaskConfigPage, DownloadReportPage } from '@/pages/reports';
+import { TaskEditorPage } from '@/pages/tasks';
+import { AddImagePage } from '@/pages/images';
+import { RobotImageConfigPage, RobotListPage, RobotReportPage } from '@/pages/robots';
+import { ManageRolesPage } from '@/pages/admin';
+import { WorkforcePage } from '@/pages/workforce';
+import { PageReport as MiocDashboardPage } from '@/pages/mioc';
+import { MroiDashboard, DevicesPage, RoisPage, SchedulesPage, RoiEditor } from '@/pages/mroi';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (

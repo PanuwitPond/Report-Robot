@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config'; // เพิ่ม ConfigService
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_INTERCEPTOR, APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { DatabaseModule } from './database/database.module';
 import { StorageModule } from './storage/storage.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -10,6 +11,11 @@ import { ImagesModule } from './modules/images/images.module';
 import { UsersModule } from './modules/users/users.module';
 import { RobotsModule } from './modules/robots/robots.module';
 import { MroiModule } from './modules/mroi/mroi.module';
+import { HealthModule } from './modules/health/health.module';
+import { ResponseInterceptor, LoggingInterceptor } from './shared/interceptors';
+import { GlobalExceptionFilter } from './shared/filters';
+import { ValidationPipe } from './shared/pipes';
+import { RequestTimeoutMiddleware } from './shared/middleware';
 
 @Module({
     imports: [
@@ -79,6 +85,29 @@ import { MroiModule } from './modules/mroi/mroi.module';
         UsersModule,
         RobotsModule,
         MroiModule,
+        HealthModule,
+    ],
+    providers: [
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: LoggingInterceptor,
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: ResponseInterceptor,
+        },
+        {
+            provide: APP_FILTER,
+            useClass: GlobalExceptionFilter,
+        },
+        {
+            provide: APP_PIPE,
+            useClass: ValidationPipe,
+        },
     ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(RequestTimeoutMiddleware).forRoutes('*');
+    }
+}

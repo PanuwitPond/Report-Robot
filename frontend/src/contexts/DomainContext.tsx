@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { Domain, UserRole } from '@/types';
+import type { Domain } from '@/types';
 import { useAuth } from './AuthContext';
 
 interface DomainContextType {

@@ -1,7 +1,8 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, BadRequestException, InternalServerErrorException, Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { UserRepository } from './repositories/user.repository';
 
 interface KeycloakUser {
     id: string;
@@ -25,6 +26,7 @@ export class UsersService {
     constructor(
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
+        @Inject('USER_REPOSITORY') private userRepository: UserRepository,
     ) { }
 
     /**

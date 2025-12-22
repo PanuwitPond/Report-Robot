@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import { fetchRois, fetchDevices, createRoi, updateRoi, deleteRoi } from '@/services/mroi.service';
 import { RoiResponseDto, CreateRoiDto, UpdateRoiDto } from '@/types';
 import './RoisPage.css';
@@ -52,7 +53,7 @@ export const RoisPage: React.FC = () => {
             });
             alert('✅ ROI saved successfully!');
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError<{ message?: string }>) => {
             const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
             alert(`❌ Error: ${errorMsg}`);
             console.error('Error saving ROI:', error);
@@ -66,7 +67,7 @@ export const RoisPage: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['mroi-rois'] });
             alert('✅ ROI deleted successfully!');
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError<{ message?: string }>) => {
             const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
             alert(`❌ Error: ${errorMsg}`);
             console.error('Error deleting ROI:', error);

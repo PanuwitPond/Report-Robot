@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts';
+import type { UserRole } from '@/types';
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -30,7 +31,7 @@ export const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps)
     // If specific roles are required, check if user has them
     if (requiredRoles && requiredRoles.length > 0) {
         const hasRequiredRole = requiredRoles.some(role =>
-            user?.roles?.includes(role) || user?.roles?.includes('admin')
+            user?.roles?.includes(role as UserRole) || user?.roles?.includes('ADMIN')
         );
 
         if (!hasRequiredRole) {

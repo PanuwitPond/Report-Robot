@@ -37,9 +37,20 @@ apiClient.interceptors.request.use(
     }
 );
 
-// Response interceptor - handle errors
+// Response interceptor - handle errors and unwrap standard responses
 apiClient.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Unwrap standard API responses
+        // If response has { success, data, timestamp }, extract the data
+        if (response.data && typeof response.data === 'object' && 'success' in response.data && 'data' in response.data) {
+            // Keep the original response structure but extract data as the main response
+            return {
+                ...response,
+                data: response.data.data,
+            };
+        }
+        return response;
+    },
     (error) => {
         if (error.response?.status === 401) {
             // Clear token and redirect to login

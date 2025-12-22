@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchIvCameras, fetchRois, fetchSchedules } from '@/services/mroi.service';
+import type { RoiResponseDto, ScheduleResponseDto } from '@/types';
 import './MroiDashboard.css';
 
 export const MroiDashboard: React.FC = () => {
@@ -27,8 +28,8 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
     });
 
     const activeDevices = devices.filter((d) => d.status === 'active').length;
-    const activeRois = (rois as any[]).filter((r: any) => r.isActive).length;
-    const activeSchedules = (schedules as any[]).filter((s: any) => s.isActive).length;
+    const activeRois = rois.filter((r: RoiResponseDto) => r.isActive).length;
+    const activeSchedules = schedules.filter((s: ScheduleResponseDto) => s.isActive).length;
 
     const stats = [
         {
@@ -47,7 +48,7 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
         },
         {
             label: 'Total ROIs',
-            value: (rois as any[]).length,
+            value: rois.length,
             icon: '◉',
             color: '#f59e0b',
             lightColor: '#fffbf0',
@@ -61,7 +62,7 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
         },
         {
             label: 'Schedules',
-            value: (schedules as any[]).length,
+            value: schedules.length,
             icon: '⏱',
             color: '#0891b2',
             lightColor: '#f0f9fa',
@@ -123,7 +124,7 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                     >
                         <span className="tab-icon">◉</span>
                         ROIs
-                        <span className="tab-count">({(rois as any[]).length})</span>
+                        <span className="tab-count">({rois.length})</span>
                     </button>
                     <button
                         className={`tab-btn ${activeTab === 'schedules' ? 'active' : ''}`}
@@ -131,7 +132,7 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                     >
                         <span className="tab-icon">⏱</span>
                         Schedules
-                        <span className="tab-count">({(schedules as any[]).length})</span>
+                        <span className="tab-count">({schedules.length})</span>
                     </button>
                 </div>
             </div>
@@ -170,7 +171,7 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                                 <li>Zoom regions</li>
                             </ul>
                             <div className="feature-stats">
-                                <span><strong>{(rois as any[]).length}</strong> total</span>
+                                <span><strong>{rois.length}</strong> total</span>
                                 <span className="separator">•</span>
                                 <span><strong>{activeRois}</strong> active</span>
                             </div>
@@ -185,7 +186,7 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                             </div>
                             <p className="feature-description">Define time-based schedules to enable/disable ROIs or trigger actions automatically.</p>
                             <div className="feature-stats">
-                                <span><strong>{(schedules as any[]).length}</strong> schedules</span>
+                                <span><strong>{schedules.length}</strong> schedules</span>
                                 <span className="separator">•</span>
                                 <span><strong>{activeSchedules}</strong> active</span>
                             </div>
@@ -224,11 +225,11 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                         <h3>🎯 Regions of Interest</h3>
                         {roisLoading ? (
                             <p className="loading">Loading ROIs...</p>
-                        ) : (rois as any[]).length === 0 ? (
+                        ) : rois.length === 0 ? (
                             <p className="empty">No ROIs created yet</p>
                         ) : (
                             <div className="list">
-                                {(rois as any[]).map((roi: any) => (
+                                {rois.map((roi: RoiResponseDto) => (
                                     <div key={roi.id} className="list-item">
                                         <div className="item-main">
                                             <span className="item-name">{roi.name}</span>
@@ -252,11 +253,11 @@ const { data: devices = [], isLoading: devicesLoading } = useQuery({
                         <h3>⏰ Schedules</h3>
                         {schedulesLoading ? (
                             <p className="loading">Loading schedules...</p>
-                        ) : (schedules as any[]).length === 0 ? (
+                        ) : schedules.length === 0 ? (
                             <p className="empty">No schedules created yet</p>
                         ) : (
                             <div className="list">
-                                {(schedules as any[]).map((schedule: any) => (
+                                {schedules.map((schedule: ScheduleResponseDto) => (
                                     <div key={schedule.id} className="list-item">
                                         <div className="item-main">
                                             <span className="item-name">{schedule.name}</span>

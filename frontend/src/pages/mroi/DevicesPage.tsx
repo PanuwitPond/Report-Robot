@@ -15,7 +15,7 @@ export const DevicesPage: React.FC = () => {
         rtspUrl: '',
         description: '',
         location: '',
-        status: undefined, // Only used in Edit mode
+        // status: undefined, // Only used in Edit mode - not in CreateDeviceDto
     });
 
     // ดึงข้อมูล devices
@@ -38,7 +38,7 @@ export const DevicesPage: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['mroi-devices'] });
             setShowForm(false);
             setEditingId(null);
-            setFormData({ name: '', rtspUrl: '', description: '', location: '', status: undefined });
+            setFormData({ name: '', rtspUrl: '', description: '', location: '' });
         },
         onError: (error: any) => {
             alert(`Error: ${error.response?.data?.message || error.message}`);
@@ -81,7 +81,6 @@ export const DevicesPage: React.FC = () => {
             description: device.description || '',
             location: device.location || '',
             cameraSettings: device.cameraSettings,
-            status: device.status as 'active' | 'inactive' | 'disconnected',
         });
         setShowForm(true);
     };
@@ -89,7 +88,7 @@ export const DevicesPage: React.FC = () => {
     const handleCancel = () => {
         setShowForm(false);
         setEditingId(null);
-        setFormData({ name: '', rtspUrl: '', description: '', location: '', status: undefined });
+        setFormData({ name: '', rtspUrl: '', description: '', location: '' });
     };
 
     // Handle ESC key to close modal
@@ -136,7 +135,7 @@ export const DevicesPage: React.FC = () => {
                     className="btn-add" 
                     onClick={() => {
                         setEditingId(null);
-                        setFormData({ name: '', rtspUrl: '', description: '', location: '', status: undefined });
+                        setFormData({ name: '', rtspUrl: '', description: '', location: '' });
                         setShowForm(true);
                     }}
                 >

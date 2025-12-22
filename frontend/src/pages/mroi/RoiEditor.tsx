@@ -16,6 +16,7 @@ import {
 import { RuleList } from './components/RuleList';
 import { SetupEditor } from './components/SetupEditor';
 import { DrawingCanvas } from './components/DrawingCanvas';
+import type { AxiosError } from 'axios';
 import './RoiEditor.css';
 
 export const RoiEditor: React.FC = () => {
@@ -93,7 +94,7 @@ export const RoiEditor: React.FC = () => {
                 
                 console.error('Snapshot error details:', errorData, userMessage);
             }
-        } catch (err: any) {
+        } catch (err: Error | unknown) {
             console.error('Snapshot error:', err);
         }
     };
@@ -128,9 +129,9 @@ export const RoiEditor: React.FC = () => {
                         console.log('ℹ️ No saved ROI data found');
                         setRegionAIConfig({ rule: [] });
                     }
-                } catch (error: any) {
+                } catch (error: AxiosError<{ message?: string }> | unknown) {
                     console.error('❌ Failed to load ROI:', error);
-                    const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+                    const errorMsg = (error as AxiosError<{ message?: string }>)?.response?.data?.message || (error as Error)?.message || 'Unknown error';
                     console.error(`Failed to load ROI: ${errorMsg}`);
                 }
             };
@@ -235,7 +236,7 @@ export const RoiEditor: React.FC = () => {
             
             return true;
             
-        } catch (error: any) {
+        } catch (error: Error | unknown) {
             console.error('❌ Error during consistency check:', error);
             console.groupEnd();
             return false;
@@ -410,8 +411,8 @@ export const RoiEditor: React.FC = () => {
                 console.warn(`⚠️ Data verification failed: expected ${regionAIConfig.rule.length} rules, got ${savedCount}`);
                 alert(`⚠️ Warning: Data saved but verification failed.\nExpected ${regionAIConfig.rule.length} rules, got ${savedCount}.\nPlease check the configuration.`);
             }
-        } catch (error: any) {
-            const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+        } catch (error: AxiosError<{ message?: string }> | unknown) {
+            const errorMsg = (error as AxiosError<{ message?: string }>)?.response?.data?.message || (error as Error)?.message || 'Unknown error';
             console.error('❌ Error saving configuration:', error);
             alert(`❌ Error saving configuration: ${errorMsg}`);
         } finally {

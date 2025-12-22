@@ -1,0 +1,1 @@
+export { AddImagePage } from './AddImagePage';

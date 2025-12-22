@@ -1,0 +1,1 @@
+export { RobotImageConfigPage } from './RobotImageConfigPage';

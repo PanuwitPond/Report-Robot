@@ -1,4 +1,25 @@
 // Device Types
+export interface IvCamera {
+    id: string;
+    name: string;
+    description?: string;
+    rtspUrl: string;
+    status: 'active' | 'inactive' | 'disconnected';
+    location?: string;
+    cameraSettings?: {
+        resolution?: string;
+        fps?: number;
+        bitrate?: string;
+    };
+    createdAt?: Date;
+    updatedAt?: Date;
+    domain?: string;
+    roiCount?: number;
+    scheduleCount?: number;
+    isExternal?: boolean;
+    readOnly?: boolean;
+}
+
 export interface DeviceResponseDto {
     id: string;
     name: string;

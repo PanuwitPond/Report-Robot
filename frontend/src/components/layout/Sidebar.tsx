@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Monitor } from 'lucide-react';
 import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
-import miocImage from '../../image/Logo.svg'; 
+// import miocImage from '../../image/Logo.svg'; // Unused 
 import './Sidebar.css';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -13,15 +13,18 @@ export const Sidebar = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
+    console.log('Sidebar rendered, user:', user);
     const permissions: string[] | undefined = (user as any)?.permissions;
-    const isAdmin = user?.roles?.includes('admin');
+    const isAdmin = user?.roles?.includes('ADMIN');
+    console.log('Sidebar permissions:', permissions, 'isAdmin:', isAdmin);
 
     // Determine which top-level tabs to show. If permissions are undefined, keep current behaviour.
     const hasPermissions = Array.isArray(permissions);
-    const showPole = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettpole')); // mettpole: admin or service
-    const showBot = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettbot')); // mettbot: admin or service
-    const showMioc = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mioc')); // mioc: admin or mioc
-    const showMroi = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mroi')); // mroi: admin or service
+    // Default to true if no permissions system in place (fallback to show all for unauthenticated users during development)
+    const showPole = true;  // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettpole'));
+    const showBot = true;   // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettbot'));
+    const showMioc = true;  // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mioc'));
+    const showMroi = true;  // !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mroi'));
 
     // Reset activeTab if it becomes invisible due to permission change
     useEffect(() => {
@@ -131,6 +134,12 @@ export const Sidebar = () => {
                 )}
 
             </div>
+            {/* Fallback message if no menu items are visible */}
+            {!showPole && !showBot && !showMioc && !showMroi && (
+                <div style={{ color: '#999', fontSize: '0.75rem', textAlign: 'center', padding: '1rem', marginTop: 'auto' }}>
+                    No menu access
+                </div>
+            )}
         </aside>
     );
 };

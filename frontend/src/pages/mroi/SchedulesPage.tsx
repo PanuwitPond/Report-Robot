@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import { fetchSchedules, fetchDevices, createSchedule, updateSchedule, deleteSchedule } from '@/services/mroi.service';
 import { ScheduleResponseDto, CreateScheduleDto, UpdateScheduleDto } from '@/types';
+import type { IvCamera } from '@/types';
 import './SchedulesPage.css';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -54,7 +56,7 @@ export const SchedulesPage: React.FC = () => {
             });
             alert('✅ Schedule saved successfully!');
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError<{ message?: string }>) => {
             const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
             alert(`❌ Error: ${errorMsg}`);
             console.error('Error saving schedule:', error);
@@ -68,7 +70,7 @@ export const SchedulesPage: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['mroi-schedules'] });
             alert('✅ Schedule deleted successfully!');
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError<{ message?: string }>) => {
             const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
             alert(`❌ Error: ${errorMsg}`);
             console.error('Error deleting schedule:', error);
@@ -140,7 +142,7 @@ export const SchedulesPage: React.FC = () => {
 
     // Get device name by ID
     const getDeviceName = (deviceId: string) => {
-        const device = devices.find((d: any) => d.id === deviceId);
+        const device = devices.find((d: IvCamera) => d.id === deviceId);
         return device?.name || deviceId.slice(0, 8) + '...';
     };
 
@@ -198,7 +200,7 @@ export const SchedulesPage: React.FC = () => {
                                 required
                             >
                                 <option value="">Select a device...</option>
-                                {devices.map((device: any) => (
+                                {devices.map((device: IvCamera) => (
                                     <option key={device.id} value={device.id}>
                                         {device.name}
                                     </option>
@@ -270,12 +272,12 @@ export const SchedulesPage: React.FC = () => {
 
             {/* Schedules List */}
             <div className="schedules-list">
-                {(schedules as any[]).length === 0 ? (
+                {schedules.length === 0 ? (
                     <div className="empty-state">
                         <p>⏰ No schedules yet. Create your first schedule!</p>
                     </div>
                 ) : (
-                    (schedules as any[]).map((schedule: ScheduleResponseDto) => (
+                    schedules.map((schedule: ScheduleResponseDto) => (
                         <div key={schedule.id} className="schedule-card">
                             <div className="schedule-header">
                                 <div>

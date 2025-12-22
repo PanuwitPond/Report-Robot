@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Res, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Res, HttpStatus, UseGuards, Logger } from '@nestjs/common';
 import { Response } from 'express';
 import { RobotsService } from './robots.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -7,16 +7,24 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @Controller('robots')
 @UseGuards(JwtAuthGuard)
 export class RobotsController {
+    private readonly logger = new Logger(RobotsController.name);
+
     constructor(private readonly robotsService: RobotsService) {}
 
     @Get()
     async findAll(@Res() res: Response) {
         try {
+            this.logger.log('GET /robots called');
             const robots = await this.robotsService.findAll();
+            this.logger.log(`Returning ${robots.length} robots`);
             // คืนค่ารูปแบบ { robots: [...] } เพื่อให้เหมือนกับ backend เดิม
             return res.status(HttpStatus.OK).json({ robots });
         } catch (error) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch robots' });
+            this.logger.error('[RobotsController] Error fetching robots:', error instanceof Error ? error.message : String(error));
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                error: 'Failed to fetch robots',
+                message: error instanceof Error ? error.message : String(error)
+            });
         }
     }
 
@@ -46,7 +54,7 @@ export class RobotsController {
     @Delete(':vin')
     async remove(@Param('vin') vin: string, @Res() res: Response) {
         try {
-            const message = await this.robotsService.remove(vin);
+            const message = await this.robotsService.deleteByVin(vin);
             return res.status(HttpStatus.OK).json(message);
         } catch (error) {
             return res.status(HttpStatus.NOT_FOUND).json({ error: error.message });
