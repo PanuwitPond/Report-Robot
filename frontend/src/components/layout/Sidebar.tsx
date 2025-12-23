@@ -123,9 +123,6 @@ export const Sidebar = () => {
                             <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mroi')}>
                                 🎥 MROI Dashboard
                             </button>
-                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mroi/devices')}>
-                                📹 Manage Devices
-                            </button>
                         </div>
                     </div>
                 )}
