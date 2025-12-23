@@ -9,9 +9,9 @@ export const getDefaultRouteByRole = (roles?: string[]): string => {
         return '/signin';
     }
 
-    // Admin has full access - go to MROI dashboard
+    // Admin has full access - go to Download Report page (METTPOLE)
     if (roles.includes('admin')) {
-        return '/mroi';
+        return '/download-report';
     }
 
     // MIOC role - go to MIOC dashboard
@@ -19,9 +19,9 @@ export const getDefaultRouteByRole = (roles?: string[]): string => {
         return '/mioc-dashboard';
     }
 
-    // Service role - go to MROI dashboard (one of service's main pages)
+    // Service role - go to Download Report page
     if (roles.includes('service')) {
-        return '/mroi';
+        return '/download-report';
     }
 
     // Unknown role - redirect to signin

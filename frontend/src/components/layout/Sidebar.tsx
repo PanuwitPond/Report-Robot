@@ -134,11 +134,11 @@ export const Sidebar = () => {
                             </div>
                         </button>
                         <div className={`sidebar-submenu ${activeTab === 'mroi' ? 'open' : ''}`}>
-                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mroi')}>
+                            <button className="sidebar-menu-link" onClick={() => {
+                                setActiveTab(null);
+                                window.location.href = 'http://10.2.113.35:4173/mroi';
+                            }}>
                                 🎥 MROI Dashboard
-                            </button>
-                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mroi/devices')}>
-                                📹 Manage Devices
                             </button>
                         </div>
                     </div>

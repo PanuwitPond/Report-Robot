@@ -10,7 +10,6 @@ import { RobotImageConfigPage, RobotListPage, RobotReportPage } from '@/pages/ro
 import { ManageRolesPage } from '@/pages/admin';
 import { WorkforcePage } from '@/pages/workforce';
 import { PageReport as MiocDashboardPage } from '@/pages/mioc';
-import { MroiDashboard, DevicesPage, RoisPage, SchedulesPage, RoiEditor } from '@/pages/mroi';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
@@ -111,72 +110,7 @@ export const AppRoutes = () => {
                     }
                 />
 
-                {/* --- ส่วนที่เพิ่มใหม่สำหรับ MROI --- */}
-                <Route
-                    path="/mroi"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <MroiDashboard />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/mroi/devices"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <DevicesPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/mroi/rois"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <RoisPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/mroi/schedules"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <SchedulesPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/mroi/editor"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <RoiEditor />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/mroi/editor/:deviceId"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <RoiEditor />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
+                {/* --- MROI now redirects to external URL via Sidebar click handler --- */}
 
                 <Route
                     path="/admin/manage-roles"
