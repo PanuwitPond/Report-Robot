@@ -5,6 +5,7 @@ import poleImage from '../../image/pole.svg';
 import botImage from '../../image/bot.svg';
 import './Sidebar.css';
 import { useAuth } from '../../contexts/AuthContext';
+import { canAccessMenu } from '../../config/roleMenuMap';
 
 export const Sidebar = () => {
     // เพิ่ม 'mioc' และ 'mroi' เข้าไปใน type ของ state
@@ -12,29 +13,26 @@ export const Sidebar = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const permissions: string[] | undefined = user?.permissions;
-    const isAdmin = user?.roles?.includes('ADMIN');
+    // Get the user's business role (filter out Keycloak technical roles like 'offline_access')
+    const userRole = user?.roles?.find(role => ['admin', 'mioc', 'service'].includes(role)) || null;
 
-    // Debug logging - will help identify permission issues
+    // Debug logging
     if (!user) {
         console.warn('[Sidebar] User not loaded yet');
     } else {
-        console.log('[Sidebar] User loaded:', { username: user.username, roles: user.roles, permissions });
+        console.log('[Sidebar] User loaded:', { username: user.username, roles: user.roles, userRole });
     }
 
-    // Determine which top-level tabs to show. If permissions are undefined, keep current behaviour.
-    const hasPermissions = Array.isArray(permissions);
-    
-    // Default to true - show all menus for now (permission system integration pending)
-    // IMPORTANT: This is the safest approach during development until permission system is fully tested
-    const showPole = true;
-    const showBot = true;
-    const showMioc = true;
-    const showMroi = true;
+    // Determine which top-level tabs to show based on user role
+    // Use role-based access control with safe fallback
+    const showPole = userRole ? canAccessMenu(userRole, 'pole') : true;   // Show if admin (safe default)
+    const showBot = userRole ? canAccessMenu(userRole, 'bot') : true;     // Show if admin (safe default)
+    const showMioc = userRole ? canAccessMenu(userRole, 'mioc') : true;   // Show if admin (safe default)
+    const showMroi = userRole ? canAccessMenu(userRole, 'mroi') : true;   // Show if admin (safe default)
 
     // Debug menu visibility
     if (user) {
-        console.log('[Sidebar] User loaded - showing all menus (temp fallback):', { showPole, showBot, showMioc, showMroi, hasPermissions, permissions, isAdmin });
+        console.log('[Sidebar] Menu visibility:', { showPole, showBot, showMioc, showMroi, userRole });
     }
 
     // Reset activeTab if it becomes invisible due to permission change

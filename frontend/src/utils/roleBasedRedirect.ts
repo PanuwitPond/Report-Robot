@@ -19,6 +19,13 @@ export const getDefaultRouteByRole = (roles?: string[]): string => {
         return '/mioc-dashboard';
     }
 
+    // MROI role - redirect to external MROI dashboard
+    if (roles.includes('mroi')) {
+        // Note: External redirect happens in window.location.href
+        // This is just for routing logic
+        return '/download-report'; // Fallback, will redirect externally in middleware
+    }
+
     // Service role - go to Download Report page
     if (roles.includes('service')) {
         return '/download-report';

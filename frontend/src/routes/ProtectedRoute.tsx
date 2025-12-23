@@ -31,7 +31,7 @@ export const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps)
     // If specific roles are required, check if user has them
     if (requiredRoles && requiredRoles.length > 0) {
         const hasRequiredRole = requiredRoles.some(role =>
-            user?.roles?.includes(role as UserRole) || user?.roles?.includes('ADMIN')
+            user?.roles?.includes(role as UserRole) || user?.roles?.includes('admin')
         );
 
         if (!hasRequiredRole) {

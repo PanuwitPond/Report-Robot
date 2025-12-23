@@ -25,7 +25,7 @@ export const DomainProvider = ({ children }: DomainProviderProps) => {
         const roles = user.roles || [];
 
         // Admin can access all domains
-        if (roles.includes('ADMIN')) {
+        if (roles.includes('admin')) {
             return ['METTBOT', 'METTPOLE'];
         }
 

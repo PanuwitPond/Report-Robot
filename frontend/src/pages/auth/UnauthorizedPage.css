@@ -1,0 +1,113 @@
+.unauthorized-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0F0F1D 0%, #1a1a2e 100%);
+    padding: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+}
+
+.unauthorized-content {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.unauthorized-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+}
+
+.unauthorized-content h1 {
+    color: #2d3436;
+    font-size: 2rem;
+    margin: 1rem 0;
+    font-weight: 600;
+}
+
+.unauthorized-message {
+    color: #636e72;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.unauthorized-detail {
+    color: #95a5a6;
+    font-size: 0.95rem;
+    margin: 0.5rem 0 2rem 0;
+    line-height: 1.5;
+}
+
+.unauthorized-actions {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-direction: column;
+}
+
+@media (min-width: 480px) {
+    .unauthorized-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+@media (min-width: 480px) {
+    .btn {
+        flex: 0 1 auto;
+    }
+}
+
+.btn-primary {
+    background: #8b5cf6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #7c3aed;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-secondary {
+    background: #e0e6ed;
+    color: #2d3436;
+}
+
+.btn-secondary:hover {
+    background: #d1dbe6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.unauthorized-help {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #ecf0f1;
+}
+
+.unauthorized-help p {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}

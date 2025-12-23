@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar, UserMenu, Sidebar } from '@/components/layout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { getDefaultRouteByRole } from '@/utils/roleBasedRedirect';
-import { SignInPage } from '@/pages/auth';
+import { SignInPage, UnauthorizedPage } from '@/pages/auth';
 import { ReportTaskConfigPage, DownloadReportPage } from '@/pages/reports';
 import { TaskEditorPage } from '@/pages/tasks';
 import { AddImagePage } from '@/pages/images';
@@ -10,6 +10,7 @@ import { RobotImageConfigPage, RobotListPage, RobotReportPage } from '@/pages/ro
 import { ManageRolesPage } from '@/pages/admin';
 import { WorkforcePage } from '@/pages/workforce';
 import { PageReport as MiocDashboardPage } from '@/pages/mioc';
+import { useAuth } from '@/contexts';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
@@ -35,18 +36,18 @@ const DefaultRoute = () => {
     return <Navigate to={defaultPath} replace />;
 };
 
-import { useAuth } from '@/contexts';
-
 export const AppRoutes = () => {
     return (
         <BrowserRouter>
             <Routes>
                 <Route path="/signin" element={<SignInPage />} />
+                <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
+                {/* --- METTPOLE Routes (admin, service) --- */}
                 <Route
                     path="/download-report"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <DownloadReportPage />
                             </Layout>
@@ -57,7 +58,7 @@ export const AppRoutes = () => {
                 <Route
                     path="/report-task-config"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <ReportTaskConfigPage />
                             </Layout>
@@ -68,7 +69,7 @@ export const AppRoutes = () => {
                 <Route
                     path="/task-editor"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <TaskEditorPage />
                             </Layout>
@@ -79,7 +80,7 @@ export const AppRoutes = () => {
                 <Route
                     path="/add-image"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <AddImagePage />
                             </Layout>
@@ -90,7 +91,7 @@ export const AppRoutes = () => {
                 <Route
                     path="/report-image-config"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <RobotImageConfigPage />
                             </Layout>
@@ -98,35 +99,11 @@ export const AppRoutes = () => {
                     }
                 />
 
-                {/* --- ส่วนที่เพิ่มใหม่สำหรับ MIOC --- */}
-                <Route
-                    path="/mioc-dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <MiocDashboardPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* --- MROI now redirects to external URL via Sidebar click handler --- */}
-
-                <Route
-                    path="/admin/manage-roles"
-                    element={
-                        <ProtectedRoute requiredRoles={['admin']}>
-                            <Layout>
-                                <ManageRolesPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-                
+                {/* --- METTBOT Routes (admin, service) --- */}
                 <Route
                     path="/robots"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <RobotListPage />
                             </Layout>
@@ -137,7 +114,7 @@ export const AppRoutes = () => {
                 <Route
                     path="/workforce"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <WorkforcePage />
                             </Layout>
@@ -148,7 +125,7 @@ export const AppRoutes = () => {
                 <Route
                     path="/robot-cleaning-report"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'service']}>
                             <Layout>
                                 <RobotReportPage />
                             </Layout>
@@ -156,8 +133,36 @@ export const AppRoutes = () => {
                     }
                 />
 
+                {/* --- MIOC Routes (admin, mioc) --- */}
+                <Route
+                    path="/mioc-dashboard"
+                    element={
+                        <ProtectedRoute requiredRoles={['admin', 'mioc']}>
+                            <Layout>
+                                <MiocDashboardPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* --- Admin Routes (admin only) --- */}
+                <Route
+                    path="/admin/manage-roles"
+                    element={
+                        <ProtectedRoute requiredRoles={['admin']}>
+                            <Layout>
+                                <ManageRolesPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* --- Default Route --- */}
                 <Route path="/" element={<DefaultRoute />} />
-                            </Routes>
-                        </BrowserRouter>
-                    );
-                };
+
+                {/* --- Catch-all for undefined routes --- */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </BrowserRouter>
+    );
+};
