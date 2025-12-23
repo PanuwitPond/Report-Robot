@@ -182,19 +182,51 @@ export class ReportsService {
         const queryString = new URLSearchParams(params).toString();
         const fullUrl = `${url}?${queryString}`;
 
+        console.log('🔍 [Jasper Request] URL:', fullUrl);
+        console.log('🔍 [Jasper Request] Params:', params);
+        console.log('🔍 [Jasper Request] Auth:', `${username}:***`);
+
         const auth = Buffer.from(`${username}:${password}`).toString('base64');
         const response = await fetch(fullUrl, {
             method: 'GET',
             headers: { Authorization: `Basic ${auth}` }
         });
 
+        console.log('🔍 [Jasper Response] Status:', response.status, response.statusText);
+        console.log('🔍 [Jasper Response] Content-Type:', response.headers.get('content-type'));
+        console.log('🔍 [Jasper Response] Content-Length:', response.headers.get('content-length'));
+
         if (!response.ok) {
-            throw new Error(`Jasper Error: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('❌ [Jasper Error Response Body]:', errorBody.substring(0, 500)); // แสดง 500 chars แรก
+            throw new Error(`Jasper Error (${response.status} ${response.statusText}): ${errorBody}`);
         }
 
         const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        console.log('✅ [Jasper Success] Received buffer size:', buffer.byteLength, 'bytes');
+        
+        // ตรวจสอบ Magic Number เพื่อยืนยัน File Type
+        const magicNumber = buffer.slice(0, 4).toString('hex');
+        console.log('🔎 [Buffer Magic Number]:', magicNumber);
+        console.log('🔎 [Buffer First 200 chars]:', buffer.slice(0, 200).toString('utf-8', 0, Math.min(200, buffer.length)));
+        
+        // Excel (.xlsx) = ZIP format, ควรเริ่มด้วย "504b0304" (PK magic number)
+        if (magicNumber !== '504b0304') {
+            console.warn('⚠️ [Warning] File is NOT Excel/ZIP format!');
+            console.warn('⚠️ This might be HTML error response or empty file');
+        } else {
+            console.log('✅ [Confirmed] File is valid Excel/ZIP format');
+        }
+        
+        // ตรวจสอบ buffer ว่างหรือไม่
+        if (buffer.byteLength === 0) {
+            console.warn('⚠️ [Warning] Jasper returned empty buffer');
+        }
+
         return {
-            buffer: Buffer.from(arrayBuffer),
+            buffer: buffer,
             filename: `report_${site}_${year}_${month}.${extension}`,
             mimeType
         };
