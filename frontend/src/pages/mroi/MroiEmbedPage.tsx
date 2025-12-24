@@ -54,12 +54,6 @@ export const MroiEmbedPage: React.FC = () => {
 
   return (
     <div className="mroi-embed-container">
-      {/* Header */}
-      <div className="mroi-header">
-        <h1>🎥 MROI Dashboard</h1>
-        <p>Multiple Region of Interest Management System</p>
-      </div>
-
       {/* Loading State */}
       {isLoading && !iframeError && (
         <div className="mroi-loading">
