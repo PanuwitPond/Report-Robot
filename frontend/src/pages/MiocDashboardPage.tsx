@@ -1,6 +1,6 @@
 // นำเข้า Component ที่ย้ายมา (สมมติชื่อ PageReport)
 import React from 'react';
-import PageReport from '../pages/mioc/PageReport'; 
+import PageReport from './mioc/PageReport'; 
 import './MiocDashboardPage.css'; // นำเข้าคลาส CSS
 
 const MiocDashboardPage = () => {
@@ -8,10 +8,11 @@ const MiocDashboardPage = () => {
         <div className="page-container">
             <div className="page-header">
                 <h1>MIOC</h1>
-                <p>Downlode Reports</p>
-                <div style={{ width: '100%', height: '100%' }}>
-                    <PageReport />
-                </div>
+                <p>Download Reports</p>
+            </div>
+            
+            <div className="page-content">
+                <PageReport />
             </div>
         </div>
     );

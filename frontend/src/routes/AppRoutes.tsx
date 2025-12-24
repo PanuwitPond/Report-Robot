@@ -25,7 +25,7 @@ import { MroiEmbedPage, DevicesPage, RoisPage, SchedulesPage, RoiEditor } from '
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem', background: '#0F0F1D' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem', background: '#1a1a1a' }}>
                 <Navbar />
                 <UserMenu />
             </div>

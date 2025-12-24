@@ -1,26 +1,58 @@
+/* ===== PAGE HEADER ===== */
+.page-header {
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    padding: 2.5rem 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    border-bottom: 3px solid #41285a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: #1a1a1a;
+    line-height: 1.2;
+}
+
+.page-header p {
+    color: #666;
+    font-size: 0.95rem;
+    margin: 0.25rem 0 0 0;
+}
+
+/* ===== BREADCRUMB ===== */
 .breadcrumb {
     display: flex;
     align-items: center;
-    padding: 1rem;
-    background: #f3f4f6;
+    padding: 1.25rem 1.5rem;
+    background: white;
     border-radius: 8px;
     margin-bottom: 2rem;
     font-size: 1rem;
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #41285a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .breadcrumb-item {
     cursor: pointer;
     color: #4b5563;
     font-weight: 500;
+    transition: all 0.2s;
 }
 
 .breadcrumb-item:hover {
     color: #ff6a2b;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .breadcrumb-item.active {
-    color: #111827;
+    color: #41285a;
     cursor: default;
     text-decoration: none;
     font-weight: 700;
@@ -31,40 +63,50 @@
     color: #9ca3af;
 }
 
+/* ===== FILE GRID ===== */
 .file-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+    padding: 0.5rem 0;
 }
 
 .grid-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    padding: 1.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
     background: white;
-    transition: all 0.2s;
+    transition: all 0.3s;
     cursor: pointer;
     text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .grid-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border-color: #ff6a2b;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .folder-item {
-    background: #fffbeb; /* สีพื้นหลัง folder อ่อนๆ */
+    background: rgba(255, 106, 43, 0.08);
+    border: 2px solid rgba(255, 106, 43, 0.2);
+    transition: all 0.3s;
+}
+
+.folder-item:hover {
+    background: rgba(255, 106, 43, 0.12);
+    border-color: #ff6a2b;
+    box-shadow: 0 12px 24px rgba(255, 106, 43, 0.15) !important;
 }
 
 .item-name {
-    margin-top: 0.75rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #374151;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a1a;
     word-break: break-word;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -73,35 +115,75 @@
 }
 
 .item-size {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: #9ca3af;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
 }
 
 .file-item {
-    cursor: default; /* File กดที่กล่องไม่ได้ ให้กดปุ่ม Download */
+    border-color: #e5e7eb;
+    cursor: default;
 }
 
 .file-item:hover {
-    transform: none; /* File ไม่ต้องเด้ง */
+    transform: translateY(-4px);
+    border-color: #6a3ea8;
+    box-shadow: 0 12px 24px rgba(106, 62, 168, 0.15) !important;
 }
 
 .download-btn {
     margin-top: auto;
     width: 100%;
+    margin-top: 1rem;
+    background: #ff6a2b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.download-btn:hover {
+    background: #f15a24;
+    transform: translateY(-2px);
 }
 
 .empty-state {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 3rem;
+    padding: 4rem 2rem;
     color: #9ca3af;
-    font-style: italic;
+    font-size: 1.1rem;
+}
+
+/* ===== LOADING SPINNER ===== */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .loading {
     text-align: center;
-    padding: 2rem;
-    font-size: 1.2rem;
-    color: #6b7280;
+    padding: 3rem 2rem;
+    font-size: 1.1rem;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.loading::before {
+    content: "";
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #ff6a2b;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
