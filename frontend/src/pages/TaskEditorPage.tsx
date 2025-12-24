@@ -1,18 +1,29 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react'; // [1] เพิ่ม useMemo
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import Swal from 'sweetalert2'; // [1] เพิ่ม SweetAlert2
+import Swal from 'sweetalert2';
 import { useDomain } from '@/contexts';
 import { taskService } from '@/services';
 import { DataTable, Column } from '@/components/data-table';
 import { Button, Modal, Input, Select } from '@/components/ui';
 import type { Task, CreateTaskDTO } from '@/types';
 
+// Type สำหรับ Sort Config
+type SortConfig = {
+    key: keyof Task | '';
+    direction: 'asc' | 'desc';
+};
+
 export const TaskEditorPage = () => {
     const { currentDomain } = useDomain();
     const queryClient = useQueryClient();
     
+    // State
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    // [2] เพิ่ม State สำหรับ Sort
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: '', direction: 'asc' });
 
     const { 
         register, 
@@ -31,13 +42,56 @@ export const TaskEditorPage = () => {
         queryFn: () => taskService.getSites(),
     });
 
-    // Mutation: Create Task
+    // [3] Logic การ Sort + Filter (ใช้ useMemo เพื่อประสิทธิภาพ)
+    const processedTasks = useMemo(() => {
+        // 1. Filter ก่อน
+        let filtered = tasks.filter((task) => {
+            const term = searchTerm.toLowerCase();
+            // เช็ค type guard เพื่อความปลอดภัย
+            const idMatch = String(task.task_id || '').toLowerCase().includes(term);
+            const nameMatch = String(task.task_name || '').toLowerCase().includes(term);
+            return idMatch || nameMatch;
+        });
+
+        // 2. Sort ต่อ
+        if (sortConfig.key) {
+            filtered.sort((a, b) => {
+                // ดึงค่าตาม key ที่เลือก (ใช้ as any ถ้า key dynamic มาก แต่ตรงนี้เรารู้ key อยู่แล้ว)
+                const aValue = a[sortConfig.key] as string || '';
+                const bValue = b[sortConfig.key] as string || '';
+
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return filtered;
+    }, [tasks, searchTerm, sortConfig]);
+
+    // ฟังก์ชันสำหรับเปลี่ยนการ Sort เมื่อกดหัวตาราง
+    const requestSort = (key: keyof Task) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    // Helper สำหรับแสดงลูกศร Sort
+    const getSortIcon = (key: keyof Task) => {
+        if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: 5 }}>↕</span>;
+        return sortConfig.direction === 'asc' ? <span style={{ marginLeft: 5 }}>▲</span> : <span style={{ marginLeft: 5 }}>▼</span>;
+    };
+
+    // Mutation: Create
     const createTaskMutation = useMutation({
         mutationFn: (data: CreateTaskDTO) => taskService.create(data, currentDomain),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks', currentDomain] });
-            
-            // [2] แจ้งเตือนสำเร็จสวยๆ
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
@@ -45,7 +99,6 @@ export const TaskEditorPage = () => {
                 showConfirmButton: false,
                 timer: 1500
             });
-
             setIsAddModalOpen(false);
             reset();
         },
@@ -58,13 +111,11 @@ export const TaskEditorPage = () => {
         },
     });
 
-    // Mutation: Delete Task
+    // Mutation: Delete
     const deleteTaskMutation = useMutation({
         mutationFn: (id: string) => taskService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks', currentDomain] });
-            
-            // [3] แจ้งเตือนลบสำเร็จ
             Swal.fire({
                 icon: 'success',
                 title: 'Deleted!',
@@ -74,7 +125,6 @@ export const TaskEditorPage = () => {
             });
         },
         onError: (error: any) => {
-            console.error('Delete error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -91,7 +141,6 @@ export const TaskEditorPage = () => {
         createTaskMutation.mutate(formData);
     };
 
-    // ฟังก์ชันสำหรับกดปุ่มลบ (เรียก SweetAlert Confirm)
     const handleDeleteClick = (row: any) => {
         const idToDelete = row.task_id || row.taskId; 
         const nameToDelete = row.task_name || row.taskName;
@@ -116,13 +165,36 @@ export const TaskEditorPage = () => {
         });
     };
 
+    // [4] กำหนด Columns พร้อม Header ที่กดได้
     const columns: Column<Task>[] = [
         { key: 'task_id', header: 'Task ID' },     
-        { key: 'task_name', header: 'Task Name' }, 
+        { 
+            key: 'task_name', 
+            // เปลี่ยน header จาก string เป็น JSX เพื่อให้กดได้
+            header: (
+                <div 
+                    onClick={() => requestSort('task_name')} 
+                    style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center' }}
+                >
+                    Task Name {getSortIcon('task_name')}
+                </div>
+            ) as any // cast as any หาก Column type บังคับเป็น string
+        }, 
         { key: 'map_name', header: 'Map Name' },   
         { key: 'mode', header: 'Mode' },
         { key: 'purpose', header: 'Purpose' },
-        { key: 'siteName', header: 'Site Name' },
+        { 
+            key: 'siteName', 
+            // เปลี่ยน header ให้กด Sort ได้เช่นกัน
+            header: (
+                <div 
+                    onClick={() => requestSort('siteName')} 
+                    style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center' }}
+                >
+                    Site Name {getSortIcon('siteName')}
+                </div>
+            ) as any
+        },
         {
             key: 'imageUrl',
             header: 'Task Image',
@@ -163,7 +235,7 @@ export const TaskEditorPage = () => {
                     onClick={() => handleDeleteClick(row)}
                     disabled={deleteTaskMutation.isPending}
                 >
-                    {deleteTaskMutation.isPending ? 'Deleting...' : 'Delete'}
+                    Delete
                 </Button>
             ),
         },
@@ -176,7 +248,14 @@ export const TaskEditorPage = () => {
                 <p>Manage robot tasks</p>
             </div>
 
-            <div className="page-actions">
+            <div className="page-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem' }}>
+                <Input
+                    placeholder="Search by Task ID or Name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ maxWidth: '300px' }}
+                />
+                
                 <Button onClick={() => setIsAddModalOpen(true)}>
                     Add New Task
                 </Button>
@@ -184,9 +263,9 @@ export const TaskEditorPage = () => {
 
             <DataTable
                 columns={columns}
-                data={tasks}
+                data={processedTasks} // [5] ส่งข้อมูลที่ Sort แล้วไปแสดง
                 isLoading={isLoading}
-                emptyMessage="No tasks found. Click 'Add New Task' to create one."
+                emptyMessage={searchTerm ? "No tasks match your search." : "No tasks found. Click 'Add New Task' to create one."}
             />
 
             <Modal

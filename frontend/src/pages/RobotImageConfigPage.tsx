@@ -1,22 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import Swal from 'sweetalert2'; // เรียกใช้ SweetAlert2
+import Swal from 'sweetalert2';
 import { useDomain } from '@/contexts';
 import { imageService } from '@/services';
 import { DataTable, Column } from '@/components/data-table';
 import { Button, Modal, Select, Input } from '@/components/ui';
 import type { RobotImage, UpdateImageDTO, UploadImageDTO } from '@/types';
 
+type SortConfig = {
+    key: keyof RobotImage | '';
+    direction: 'asc' | 'desc';
+};
+
 export const RobotImageConfigPage = () => {
     const { currentDomain } = useDomain();
     const queryClient = useQueryClient();
 
-    // State ควบคุม Modal
+    // State
     const [editingImage, setEditingImage] = useState<RobotImage | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    
+    // State Search & Filter
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedType, setSelectedType] = useState('');
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: '', direction: 'asc' });
 
-    // Form Hook สำหรับ ADD
+    // Form Hooks
     const {
         register: registerAdd,
         handleSubmit: handleSubmitAdd,
@@ -24,26 +34,24 @@ export const RobotImageConfigPage = () => {
         reset: resetAdd
     } = useForm<UploadImageDTO>();
 
-    // Form Hook สำหรับ EDIT
     const {
         register: registerEdit,
         handleSubmit: handleSubmitEdit,
         reset: resetEdit,
     } = useForm<UpdateImageDTO>();
 
-    // 1. ดึงข้อมูลรูปภาพทั้งหมด
+    // Fetch Data
     const { data: images = [], isLoading } = useQuery({
         queryKey: ['images', currentDomain],
         queryFn: () => imageService.getAll(currentDomain),
     });
 
-    // 2. ดึงข้อมูล Sites จาก API (เพื่อให้ Dropdown ตรงกับ Robot Web)
     const { data: sites = [] } = useQuery({
         queryKey: ['robot-sites'],
         queryFn: () => imageService.getSites(),
     });
 
-    // 3. กำหนด Image Type Options (ค่ามาตรฐาน + ค่าที่มีอยู่ใน DB)
+    // Options
     const standardImageTypes = [
         'Operation',
         'Equipment Care',
@@ -51,34 +59,62 @@ export const RobotImageConfigPage = () => {
         'Docking',
         'Installation Map'
     ];
-    // รวมกับค่าเก่าที่อาจจะมีใน DB (เผื่อมี Custom Type)
     const availableImageTypes = Array.from(new Set(images.map(img => img.imageType))).filter(Boolean);
     const imageTypeOptions = Array.from(new Set([...standardImageTypes, ...availableImageTypes])).sort();
 
-    // Effect: เมื่อกด Edit ให้เอาข้อมูลเก่าไปใส่ใน Form
+    // Logic: Filter & Sort
+    const processedImages = useMemo(() => {
+        let result = images.filter((img) => {
+            const term = searchTerm.toLowerCase();
+            const siteMatch = (img.site || '').toLowerCase().includes(term);
+            const nameMatch = (img.imageName || '').toLowerCase().includes(term);
+            const searchMatch = siteMatch || nameMatch;
+            const typeMatch = selectedType ? img.imageType === selectedType : true;
+            return searchMatch && typeMatch;
+        });
+
+        if (sortConfig.key) {
+            result.sort((a, b) => {
+                const aValue = a[sortConfig.key] || '';
+                const bValue = b[sortConfig.key] || '';
+                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+        return result;
+    }, [images, searchTerm, selectedType, sortConfig]);
+
+    // Helpers
+    const requestSort = (key: keyof RobotImage) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (key: keyof RobotImage) => {
+        if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: 5 }}>↕</span>;
+        return sortConfig.direction === 'asc' ? <span style={{ marginLeft: 5 }}>▲</span> : <span style={{ marginLeft: 5 }}>▼</span>;
+    };
+
     useEffect(() => {
         if (editingImage) {
             resetEdit({
                 site: editingImage.site,
                 imageType: editingImage.imageType,
-                // image: ไม่ต้องใส่ เพราะ input type='file' ใส่ค่าเริ่มต้นไม่ได้
             });
         }
     }, [editingImage, resetEdit]);
 
     // --- Mutations ---
-
-    // 1. Upload (Add)
     const uploadImageMutation = useMutation({
         mutationFn: (data: UploadImageDTO) => imageService.upload(data, currentDomain),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
-            
-            // ปิด Modal และ Reset Form
             setIsAddModalOpen(false);
             resetAdd();
-
-            // แสดงแจ้งเตือนสวยๆ (ติ๊กถูก)
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
@@ -96,13 +132,11 @@ export const RobotImageConfigPage = () => {
         },
     });
 
-    // 2. Update (Edit)
     const updateMutation = useMutation({
         mutationFn: (data: UpdateImageDTO) => imageService.update(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
-            setEditingImage(null); // ปิด Modal Edit
-
+            setEditingImage(null);
             Swal.fire({
                 icon: 'success',
                 title: 'Updated!',
@@ -117,15 +151,13 @@ export const RobotImageConfigPage = () => {
                 title: 'Error',
                 text: error.response?.data?.message || 'Failed to update image',
             });
-        }
+        },
     });
 
-    // 3. Delete
     const deleteMutation = useMutation({
         mutationFn: (id: string) => imageService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
-            
             Swal.fire({
                 icon: 'success',
                 title: 'Deleted!',
@@ -140,15 +172,11 @@ export const RobotImageConfigPage = () => {
                 title: 'Error',
                 text: error.response?.data?.message || 'Failed to delete image',
             });
-        }
+        },
     });
 
-    // Handlers
     const onAddSubmit = (data: UploadImageDTO) => {
-        const formData = { 
-            ...data, 
-            image: data.image[0] as any 
-        };
+        const formData = { ...data, image: data.image[0] as any };
         uploadImageMutation.mutate(formData);
     };
 
@@ -158,14 +186,12 @@ export const RobotImageConfigPage = () => {
             id: editingImage.id,
             site: data.site,
             imageType: data.imageType,
-            // ส่งรูปไปเฉพาะเมื่อมีการเลือกไฟล์ใหม่
             image: (data.image && data.image.length > 0) ? data.image[0] : undefined
         };
         updateMutation.mutate(formData as any);
     };
 
     const handleDelete = (row: RobotImage) => {
-        // ใช้ Swal Confirm แทน window.confirm เดิม
         Swal.fire({
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -183,9 +209,39 @@ export const RobotImageConfigPage = () => {
 
     // Table Columns
     const columns: Column<RobotImage>[] = [
-        { key: 'site', header: 'Site' },
-        { key: 'imageName', header: 'Image Name' },
+        { 
+            key: 'site', 
+            header: (
+                <div onClick={() => requestSort('site')} style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                    Site {getSortIcon('site')}
+                </div>
+            ) as any
+        },
+        { 
+            key: 'imageName', 
+            header: (
+                <div onClick={() => requestSort('imageName')} style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                    Image Name {getSortIcon('imageName')}
+                </div>
+            ) as any
+        },
         { key: 'imageType', header: 'Image Type' },
+        {
+            key: 'createdAt',
+            header: (
+                <div onClick={() => requestSort('createdAt')} style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+                    Upload Date {getSortIcon('createdAt')}
+                </div>
+            ) as any,
+            cell: (row) => {
+                if (!row.createdAt) return '-';
+                return new Date(row.createdAt).toLocaleString('en-US', {
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: 'numeric', minute: 'numeric', second: 'numeric',
+                    hour12: true
+                });
+            }
+        },
         {
             key: 'imageUrl',
             header: 'Image',
@@ -203,7 +259,6 @@ export const RobotImageConfigPage = () => {
                         style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            // Fallback logic for loading failures
                             if (!target.dataset.triedProxy && row.imageUrl && row.imageUrl.startsWith('http')) {
                                 target.dataset.triedProxy = 'true';
                                 const filename = row.imageUrl.split('/').pop();
@@ -221,17 +276,8 @@ export const RobotImageConfigPage = () => {
             header: 'Actions',
             cell: (row) => (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {/* <Button size="small" onClick={() => setEditingImage(row)}>
-                        Edit
-                    </Button> */}
-                    <Button
-                        size="small"
-                        variant="danger"
-                        onClick={() => handleDelete(row)}
-                        disabled={deleteMutation.isPending}
-                    >
-                        {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                    </Button>
+                    {/* <Button size="small" onClick={() => setEditingImage(row)}>Edit</Button> */}
+                    <Button size="small" variant="danger" onClick={() => handleDelete(row)} disabled={deleteMutation.isPending}>Delete</Button>
                 </div>
             ),
         },
@@ -244,17 +290,59 @@ export const RobotImageConfigPage = () => {
                 <p>Manage robot images</p>
             </div>
 
-            <div className="page-actions" style={{ marginBottom: '1rem' }}>
-                <Button onClick={() => setIsAddModalOpen(true)}>
-                    Add New Image
-                </Button>
+            {/* Action Bar */}
+            <div className="page-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <Input
+                        placeholder="Search by Site or Name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ maxWidth: '300px' }}
+                    />
+                    
+                    <select 
+                        value={selectedType}
+                        onChange={(e) => setSelectedType(e.target.value)}
+                        style={{ 
+                            padding: '0.5rem', 
+                            borderRadius: '4px', 
+                            border: '1px solid #ccc',
+                            height: '40px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <option value="">All Types</option>
+                        {imageTypeOptions.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* [แก้ไข] ปุ่ม Add เป็นสี่เหลี่ยมจัตุรัสขนาดเล็ก ชิดขวา */}
+                <Button 
+                        onClick={() => setIsAddModalOpen(true)}
+                        style={{ 
+                            width: '120px',        // กำหนดกว้าง 40px
+                            height: '40px',       // สูง 40px (เป็นสี่เหลี่ยมจัตุรัส)
+                            padding: 0,           // เอา padding ออก
+                               // ยกเลิก min-width เดิม
+                            flexGrow: 0,          // ห้ามยืด
+                            display: 'flex',      // จัด icon ตรงกลาง
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderRadius: '4px'   // มนมุมนิดหน่อย
+                        }}
+                        title="Add New Image"
+                    >
+                        Add New Image
+                    </Button>
             </div>
 
             <DataTable
                 columns={columns}
-                data={images}
+                data={processedImages}
                 isLoading={isLoading}
-                emptyMessage="No images found"
+                emptyMessage={searchTerm || selectedType ? "No images match your criteria." : "No images found."}
             />
 
             {/* Modal ADD */}
@@ -264,14 +352,12 @@ export const RobotImageConfigPage = () => {
                 title="Add New Image"
             >
                 <form onSubmit={handleSubmitAdd(onAddSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '400px' }}>
-                    
                     <Input
                         label="Image Name"
                         placeholder="e.g. Robot A - Front View"
                         {...registerAdd('imageName', { required: 'Image name is required' })}
                         error={errorsAdd.imageName?.message}
                     />
-
                     <Select
                         label="Site"
                         {...registerAdd('site', { required: 'Site is required' })}
@@ -282,7 +368,6 @@ export const RobotImageConfigPage = () => {
                             <option key={site} value={site}>{site}</option>
                         ))}
                     </Select>
-
                     <Select
                         label="Image Type"
                         {...registerAdd('imageType', { required: 'Image type is required' })}
@@ -293,7 +378,6 @@ export const RobotImageConfigPage = () => {
                             <option key={type} value={type}>{type}</option>
                         ))}
                     </Select>
-
                     <Input
                         label="Image File"
                         type="file"
@@ -301,7 +385,6 @@ export const RobotImageConfigPage = () => {
                         {...registerAdd('image', { required: 'Image is required' })}
                         error={errorsAdd.image?.message as string}
                     />
-
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                         <Button type="submit" disabled={uploadImageMutation.isPending}>
                             {uploadImageMutation.isPending ? 'Uploading...' : 'Upload Image'}
@@ -328,7 +411,6 @@ export const RobotImageConfigPage = () => {
                             <option key={site} value={site}>{site}</option>
                         ))}
                     </Select>
-
                     <Select
                         label="Image Type"
                         {...registerEdit('imageType')}
@@ -337,17 +419,12 @@ export const RobotImageConfigPage = () => {
                             <option key={type} value={type}>{type}</option>
                         ))}
                     </Select>
-
                     <Input
                         label="New Image (optional)"
                         type="file"
                         accept="image/*"
                         {...registerEdit('image')}
                     />
-                    <p style={{ fontSize: '0.8rem', color: '#666' }}>
-                        *Leave empty to keep current image
-                    </p>
-                    
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                         <Button type="submit" disabled={updateMutation.isPending}>
                             {updateMutation.isPending ? 'Updating...' : 'Update'}
