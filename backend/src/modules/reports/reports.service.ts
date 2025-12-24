@@ -3,7 +3,7 @@ import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Report } from './entities/report.entity';
 import { StorageService } from '@/storage/storage.service';
-
+import { Readable } from 'stream';
 
 // 2. ถ้า Node.js รุ่นเก่าอาจต้องใช้ axios แต่ถ้าใหม่ใช้ fetch ได้เลย (สมมติใช้ fetch)
 
@@ -42,7 +42,16 @@ export class ReportsService {
         if (!report) {
             throw new Error('Report not found');
         }
-        return this.storageService.getFile(report.fileUrl);
+
+        // รับค่ามาเป็น Stream
+        const stream = await this.storageService.getFile(report.fileUrl);
+        
+        // แปลง Stream เป็น Buffer เพื่อให้ตรงกับ Return Type
+        const chunks: Buffer[] = [];
+        for await (const chunk of stream) {
+            chunks.push(Buffer.from(chunk));
+        }
+        return Buffer.concat(chunks);
     }
 
     // --- ส่วนที่เพิ่มใหม่สำหรับ Migration ---

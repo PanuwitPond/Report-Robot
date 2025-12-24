@@ -1,26 +1,59 @@
 import { useState } from 'react';
-// [เพิ่ม] import useNavigate
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form'; // [เพิ่ม]
 import { useDomain } from '@/contexts';
 import { imageService } from '@/services';
 import { DataTable, Column } from '@/components/data-table';
 import { Button, Modal, Select, Input } from '@/components/ui';
-import type { RobotImage, UpdateImageDTO } from '@/types';
+import type { RobotImage, UpdateImageDTO, UploadImageDTO } from '@/types'; // [เพิ่ม] UploadImageDTO
 
 export const RobotImageConfigPage = () => {
-    // [เพิ่ม] เรียกใช้ hook navigate
-    const navigate = useNavigate();
     const { currentDomain } = useDomain();
     const queryClient = useQueryClient();
+    
+    // State สำหรับ Modal
     const [editingImage, setEditingImage] = useState<RobotImage | null>(null);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false); // [เพิ่ม] State เปิดปิด Modal Add
+
+    // State สำหรับ Edit Form (แบบ Manual เดิม)
     const [updateData, setUpdateData] = useState<Partial<UpdateImageDTO>>({});
+
+    // React Hook Form สำหรับ Add Image
+    const { 
+        register, 
+        handleSubmit, 
+        formState: { errors }, 
+        reset 
+    } = useForm<UploadImageDTO>();
 
     const { data: images = [], isLoading } = useQuery({
         queryKey: ['images', currentDomain],
         queryFn: () => imageService.getAll(currentDomain),
     });
 
+    // Mutation: Upload Image (Add)
+    const uploadImageMutation = useMutation({
+        mutationFn: (data: UploadImageDTO) => imageService.upload(data, currentDomain),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
+            alert('Image uploaded successfully!');
+            setIsAddModalOpen(false);
+            reset();
+        },
+        onError: (error: any) => {
+            alert(error.response?.data?.message || 'Failed to upload image');
+        },
+    });
+
+    const onAddSubmit = (data: UploadImageDTO) => {
+        const formData = {
+            ...data,
+            image: data.image[0] as any,
+        };
+        uploadImageMutation.mutate(formData);
+    };
+
+    // Mutation: Update Image
     const updateMutation = useMutation({
         mutationFn: (data: UpdateImageDTO) => imageService.update(data),
         onSuccess: () => {
@@ -31,6 +64,7 @@ export const RobotImageConfigPage = () => {
         },
     });
 
+    // Mutation: Delete Image
     const deleteMutation = useMutation({
         mutationFn: (id: string) => imageService.delete(id),
         onSuccess: () => {
@@ -59,22 +93,34 @@ export const RobotImageConfigPage = () => {
         {
             key: 'imageUrl',
             header: 'Image',
-           cell: (row) => {
-            if (!row.imageUrl) return 'No Image';
-            
-            // ต่อ Path เข้ากับ Proxy URL ของ Backend
-            const fullImageUrl = `/api/storage/url?path=${row.imageUrl}`;
-            
-            return (
-                <img
-                    src={fullImageUrl}
-                    alt="Robot Data"
-                    style={{ width: '80px', height: '60px', objectFit: 'cover' }}
-                    // ถ้าโหลดไม่ได้ ไม่ต้องเรียก placeholder ภายนอก ให้แสดงข้อความแทน
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }} 
-                />
-            );
-        }  ,
+            cell: (row) => {
+                const getImgSrc = (path: string) => {
+                    if (!path) return '';
+                    if (path.startsWith('http')) return path;
+                    if (path.startsWith('/api')) return path;
+                    return `/api/storage/url?path=${path}`;
+                };
+
+                return row.imageUrl ? (
+                    <img
+                        src={getImgSrc(row.imageUrl)}
+                        alt="Robot Data"
+                        style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.dataset.triedProxy && row.imageUrl && row.imageUrl.startsWith('http')) {
+                                target.dataset.triedProxy = 'true';
+                                const filename = row.imageUrl.split('/').pop();
+                                if (filename) {
+                                    target.src = `/api/storage/url?path=operation_eqn/${filename}`;
+                                }
+                            } else {
+                                target.src = '/img/default-bot.png';
+                            }
+                        }}
+                    />
+                ) : 'No Image';
+            },
         },
         {
             key: 'id',
@@ -107,9 +153,9 @@ export const RobotImageConfigPage = () => {
                 <p>Manage robot images</p>
             </div>
 
-            {/* [เพิ่ม] ปุ่ม Add New Image */}
             <div className="page-actions" style={{ marginBottom: '1rem' }}>
-                <Button onClick={() => navigate('/add-image')}>
+                {/* เปลี่ยน onClick เป็นเปิด Modal */}
+                <Button onClick={() => setIsAddModalOpen(true)}>
                     Add New Image
                 </Button>
             </div>
@@ -121,6 +167,56 @@ export const RobotImageConfigPage = () => {
                 emptyMessage="No images found"
             />
 
+            {/* Modal สำหรับ Add New Image */}
+            <Modal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                title="Add New Image"
+            >
+                <form onSubmit={handleSubmit(onAddSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '400px' }}>
+                    <Select
+                        label="Site"
+                        {...register('site', { required: 'Site is required' })}
+                        error={errors.site?.message}
+                    >
+                        <option value="">Select site...</option>
+                        <option value="Site A">Site A</option>
+                        <option value="Site B">Site B</option>
+                        <option value="Site C">Site C</option>
+                    </Select>
+
+                    <Select
+                        label="Image Type"
+                        {...register('imageType', { required: 'Image type is required' })}
+                        error={errors.imageType?.message}
+                    >
+                        <option value="">Select image type...</option>
+                        <option value="Front View">Front View</option>
+                        <option value="Side View">Side View</option>
+                        <option value="Top View">Top View</option>
+                        <option value="Detail">Detail</option>
+                    </Select>
+
+                    <Input
+                        label="Image File"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        {...register('image', { required: 'Image is required' })}
+                        error={errors.image?.message as string}
+                    />
+
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                        <Button type="submit" disabled={uploadImageMutation.isPending}>
+                            {uploadImageMutation.isPending ? 'Uploading...' : 'Upload Image'}
+                        </Button>
+                        <Button type="button" variant="secondary" onClick={() => setIsAddModalOpen(false)}>
+                            Cancel
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Modal สำหรับ Edit Image (คงเดิม) */}
             <Modal
                 isOpen={!!editingImage}
                 onClose={() => setEditingImage(null)}
