@@ -85,27 +85,29 @@
 
 /* ปุ่มรอง (General) */
 .btn-secondary {
-    background-color: #ffffff;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    background-color: #16a34a !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2) !important;
 }
 
 .btn-secondary:hover {
-    background-color: #f9fafb;
-    border-color: #9ca3af;
-    color: #111827;
+    background-color: #15803d !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px rgba(22, 163, 74, 0.3) !important;
 }
 
 /* ปุ่ม Face Rec */
 .btn-accent {
-    background-color: #eff6ff;
-    color: #2563eb;
-    border: 1px solid #bfdbfe;
+    background-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .btn-accent:hover {
-    background-color: #dbeafe;
-    color: #1e40af;
+    background-color: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
 }
 
 /* Loading Spinner */
