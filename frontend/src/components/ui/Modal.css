@@ -2,22 +2,23 @@
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
+    
+    /* ใช้ Grid แทน Flex เพื่อการจัดกึ่งกลางที่นิ่งกว่า */
+    display: grid;
+    place-items: center;
+    
+    z-index: 9999;
+    animation: fadeIn 0.2s ease-out forwards;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
     }
-
     to {
         opacity: 1;
     }
@@ -27,21 +28,29 @@
     background: white;
     border-radius: 0.75rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    max-width: 90%;
+    
+    /* กำหนดขนาดให้ชัดเจน */
+    width: 90%;
+    max-width: 600px; /* ปรับความกว้างสูงสุดตามต้องการ */
     max-height: 90vh;
-    overflow: auto;
-    animation: slideUp 0.3s ease-out;
+    overflow-y: auto;
+    
+    /* ตัด margin: auto ออก (Grid จัดการให้แล้ว) */
+    margin: 0; 
+    
+    /* เปลี่ยน Animation เป็น Zoom In เพื่อไม่ให้กระทบตำแหน่ง XY */
+    animation: zoomIn 0.2s ease-out forwards;
 }
 
-@keyframes slideUp {
+/* ใช้ Zoom In แทน Slide Up เพื่อแก้ปัญหาเด้งจากมุมซ้าย */
+@keyframes zoomIn {
     from {
-        transform: translateY(20px);
         opacity: 0;
+        transform: scale(0.95);
     }
-
     to {
-        transform: translateY(0);
         opacity: 1;
+        transform: scale(1);
     }
 }
 
@@ -51,6 +60,10 @@
     align-items: center;
     padding: 1.5rem;
     border-bottom: 1px solid #e5e7eb;
+    position: sticky; /* ทำให้ Header ค้างด้านบนเวลา Scroll */
+    top: 0;
+    background: white;
+    z-index: 10;
 }
 
 .modal-title {

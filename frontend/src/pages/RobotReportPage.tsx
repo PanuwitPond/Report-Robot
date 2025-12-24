@@ -39,7 +39,8 @@ export const RobotReportPage = () => {
     };
 
     const months = Array.from({length: 12}, (_, i) => i + 1);
-    const years = [2024, 2025, 2026];
+    const currentYear = new Date().getFullYear();
+    const years = [currentYear, currentYear - 1];
 
     return (
         <div className="report-page-container">
