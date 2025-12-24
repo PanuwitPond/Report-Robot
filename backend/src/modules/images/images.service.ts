@@ -20,38 +20,40 @@ export class ImagesService {
         });
     }
 
-    async findOne(id: number) {
+    // [แก้ 1] เปลี่ยน id: number เป็น id: string
+    async findOne(id: string) {
+        // [แก้ 1] ลบการแปลง Number() ออก (ถ้ามี)
         const image = await this.imagesRepository.findOne({ where: { id } });
         if (!image) throw new NotFoundException('Image not found');
         return image;
     }
 
-    async create(site: string, imageType: string, domain: string, file: Express.Multer.File) {
+    async create(site: string, imageType: string, imageName: string, domain: string, file: Express.Multer.File) {
         const uuid = randomUUID();
         const fileExt = path.extname(file.originalname);
-        const fileName = `operation_eqn/${uuid}${fileExt}`; // Path เดิมของ robot-web
+        const fileName = `operation_eqn/${uuid}${fileExt}`;
 
-        // [แก้ตรงนี้] ใช้ uploadRobotFile เพื่อให้ลง Bucket 'robot' และได้ Full URL
         const imageUrl = await this.storageService.uploadRobotFile(file, fileName);
 
         const newImage = this.imagesRepository.create({
             site,
             imageType,
-            imageUrl: imageUrl, // บันทึก Full URL (https://...)
-            imageName: file.originalname,
+            imageUrl: imageUrl,
+            imageName: imageName || file.originalname,
+            // [แก้ 2] กำหนดค่า createdAt เองเลย เพื่อแก้ปัญหา DB ไม่ยอมรับค่า Default
+            createdAt: new Date(), 
         });
         return this.imagesRepository.save(newImage);
     }
 
-    async update(id: number, updateData: { site?: string; imageType?: string }, file?: Express.Multer.File) {
+    // [แก้ 1] เปลี่ยน id: number เป็น id: string
+    async update(id: string, updateData: { site?: string; imageType?: string }, file?: Express.Multer.File) {
         const image = await this.findOne(id);
         
         if (file) {
             const uuid = randomUUID();
             const fileExt = path.extname(file.originalname);
             const fileName = `operation_eqn/${uuid}${fileExt}`;
-            
-            // [แก้ตรงนี้] ใช้ uploadRobotFile เช่นกัน
             image.imageUrl = await this.storageService.uploadRobotFile(file, fileName);
         }
 
@@ -59,8 +61,11 @@ export class ImagesService {
         return this.imagesRepository.save(image);
     }
 
+    
+
+    // [แก้ 1] เปลี่ยน id: number เป็น id: string
     async delete(id: string) {
-        const image = await this.findOne(Number(id));
+        const image = await this.findOne(id);
         return this.imagesRepository.remove(image);
     }
 }

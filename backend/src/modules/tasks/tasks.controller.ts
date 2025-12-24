@@ -1,74 +1,43 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Patch,
-    Delete,
-    Body,
-    Param,
-    Query,
-    UploadedFile,
-    UseInterceptors,
-    UseGuards,Res, NotFoundException
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UseGuards, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Response } from 'express';
+// import { RolesGuard } from '../auth/guards/roles.guard'; // เปิดใช้ถ้ามี
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard) // เปิด Guard ตามความเหมาะสม
 export class TasksController {
-    constructor(private readonly tasksService: TasksService) { }
+  constructor(private readonly tasksService: TasksService) {}
 
-    @Get()
-    async findAll(@Query('domain') domain: string) {
-        return this.tasksService.findAll(domain);
-    }
+  @Get()
+  findAll(@Query('domain') domain: string) {
+    return this.tasksService.findAll(domain);
+  }
 
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-        return this.tasksService.findOne(id);
-    }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.tasksService.findOne(id);
+  }
 
-    @Get('image/:id')
-async getTaskImage(@Param('id') id: string, @Res() res: Response) {
-    const task = await this.tasksService.findOne(id);
-    if (!task || !task.imageUrl) {
-        throw new NotFoundException('Image not found');
-    }
+  @Post()
+  @UseInterceptors(FileInterceptor('image'))
+  create(@Body() createTaskDto: CreateTaskDto, @UploadedFile() file: Express.Multer.File) {
+    return this.tasksService.create(createTaskDto, file);
+  }
 
-    // กรณีที่ imageUrl ใน DB เก็บเป็น ByteA (Binary) หรือ Path ที่ต้องดึงจาก DB
-    // ให้ส่งข้อมูลออกไปเป็น Stream รูปภาพ
-    res.setHeader('Content-Type', 'image/jpeg'); // หรือประเภทไฟล์ที่ถูกต้อง
-    return res.send(task.imageUrl); 
-}
-    
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('image'))
+  update(
+    @Param('id') id: string,
+    @Body() updateTaskDto: Partial<CreateTaskDto>,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.tasksService.update(id, updateTaskDto, file);
+  }
 
-    @Post()
-    @UseInterceptors(FileInterceptor('image'))
-    async create(
-        @Body() createTaskDto: CreateTaskDto,
-        @UploadedFile() file: Express.Multer.File,
-    ) {
-        return this.tasksService.create(createTaskDto, file);
-    }
-
-    @Patch(':id')
-    @UseInterceptors(FileInterceptor('image'))
-    async update(
-        @Param('id') id: string,
-        @Body() updateData: Partial<CreateTaskDto>,
-        @UploadedFile() file: Express.Multer.File,
-    ) {
-        return this.tasksService.update(id, updateData, file);
-    }
-
-    @Delete(':id')
-    async delete(@Param('id') id: string) {
-        await this.tasksService.delete(id);
-        return { message: 'Task deleted successfully' };
-    }
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.tasksService.delete(id);
+  }
 }

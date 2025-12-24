@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import Swal from 'sweetalert2'; // เรียกใช้ SweetAlert2
 import { useDomain } from '@/contexts';
 import { imageService } from '@/services';
 import { DataTable, Column } from '@/components/data-table';
@@ -11,9 +12,11 @@ export const RobotImageConfigPage = () => {
     const { currentDomain } = useDomain();
     const queryClient = useQueryClient();
 
+    // State ควบคุม Modal
     const [editingImage, setEditingImage] = useState<RobotImage | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+    // Form Hook สำหรับ ADD
     const {
         register: registerAdd,
         handleSubmit: handleSubmitAdd,
@@ -21,26 +24,36 @@ export const RobotImageConfigPage = () => {
         reset: resetAdd
     } = useForm<UploadImageDTO>();
 
+    // Form Hook สำหรับ EDIT
     const {
         register: registerEdit,
         handleSubmit: handleSubmitEdit,
         reset: resetEdit,
-        // formState: { errors: errorsEdit } // ไม่ได้ใช้ ลบออกได้
     } = useForm<UpdateImageDTO>();
 
+    // 1. ดึงข้อมูลรูปภาพทั้งหมด
     const { data: images = [], isLoading } = useQuery({
         queryKey: ['images', currentDomain],
         queryFn: () => imageService.getAll(currentDomain),
     });
 
-    // 1. สร้างตัวเลือก Site จากข้อมูลจริง (ป้องกัน dropdown ว่าง)
-    const availableSites = Array.from(new Set(images.map(img => img.site))).filter(Boolean).sort();
-    const siteOptions = Array.from(new Set([...availableSites, 'Site A', 'Site B', 'Site C']));
+    // 2. ดึงข้อมูล Sites จาก API (เพื่อให้ Dropdown ตรงกับ Robot Web)
+    const { data: sites = [] } = useQuery({
+        queryKey: ['robot-sites'],
+        queryFn: () => imageService.getSites(),
+    });
 
-    // 2. [เพิ่ม] สร้างตัวเลือก Image Type จากข้อมูลจริง (แก้ปัญหา Image Type ไม่ขึ้น)
-    const availableImageTypes = Array.from(new Set(images.map(img => img.imageType))).filter(Boolean).sort();
-    // รวมกับค่า Default ที่เราต้องการให้มีแน่นอน
-    const imageTypeOptions = Array.from(new Set([...availableImageTypes, 'Front View', 'Side View', 'Top View', 'Detail']));
+    // 3. กำหนด Image Type Options (ค่ามาตรฐาน + ค่าที่มีอยู่ใน DB)
+    const standardImageTypes = [
+        'Operation',
+        'Equipment Care',
+        'Station',
+        'Docking',
+        'Installation Map'
+    ];
+    // รวมกับค่าเก่าที่อาจจะมีใน DB (เผื่อมี Custom Type)
+    const availableImageTypes = Array.from(new Set(images.map(img => img.imageType))).filter(Boolean);
+    const imageTypeOptions = Array.from(new Set([...standardImageTypes, ...availableImageTypes])).sort();
 
     // Effect: เมื่อกด Edit ให้เอาข้อมูลเก่าไปใส่ใน Form
     useEffect(() => {
@@ -48,45 +61,94 @@ export const RobotImageConfigPage = () => {
             resetEdit({
                 site: editingImage.site,
                 imageType: editingImage.imageType,
+                // image: ไม่ต้องใส่ เพราะ input type='file' ใส่ค่าเริ่มต้นไม่ได้
             });
         }
     }, [editingImage, resetEdit]);
 
+    // --- Mutations ---
+
+    // 1. Upload (Add)
     const uploadImageMutation = useMutation({
         mutationFn: (data: UploadImageDTO) => imageService.upload(data, currentDomain),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
-            alert('Image uploaded successfully!');
+            
+            // ปิด Modal และ Reset Form
             setIsAddModalOpen(false);
             resetAdd();
+
+            // แสดงแจ้งเตือนสวยๆ (ติ๊กถูก)
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Image uploaded successfully',
+                showConfirmButton: false,
+                timer: 1500
+            });
         },
         onError: (error: any) => {
-            alert(error.response?.data?.message || 'Failed to upload image');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.response?.data?.message || 'Failed to upload image',
+            });
         },
     });
 
+    // 2. Update (Edit)
     const updateMutation = useMutation({
         mutationFn: (data: UpdateImageDTO) => imageService.update(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
-            setEditingImage(null);
-            alert('Image updated successfully!');
+            setEditingImage(null); // ปิด Modal Edit
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Updated!',
+                text: 'Image updated successfully',
+                showConfirmButton: false,
+                timer: 1500
+            });
         },
         onError: (error: any) => {
-            alert(error.response?.data?.message || 'Failed to update image');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.response?.data?.message || 'Failed to update image',
+            });
         }
     });
 
+    // 3. Delete
     const deleteMutation = useMutation({
         mutationFn: (id: string) => imageService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
-            alert('Image deleted successfully!');
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'Image has been deleted.',
+                showConfirmButton: false,
+                timer: 1500
+            });
         },
+        onError: (error: any) => {
+             Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.response?.data?.message || 'Failed to delete image',
+            });
+        }
     });
 
+    // Handlers
     const onAddSubmit = (data: UploadImageDTO) => {
-        const formData = { ...data, image: data.image[0] as any };
+        const formData = { 
+            ...data, 
+            image: data.image[0] as any 
+        };
         uploadImageMutation.mutate(formData);
     };
 
@@ -96,19 +158,34 @@ export const RobotImageConfigPage = () => {
             id: editingImage.id,
             site: data.site,
             imageType: data.imageType,
+            // ส่งรูปไปเฉพาะเมื่อมีการเลือกไฟล์ใหม่
             image: (data.image && data.image.length > 0) ? data.image[0] : undefined
         };
         updateMutation.mutate(formData as any);
     };
 
+    const handleDelete = (row: RobotImage) => {
+        // ใช้ Swal Confirm แทน window.confirm เดิม
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteMutation.mutate(row.id);
+            }
+        });
+    };
+
+    // Table Columns
     const columns: Column<RobotImage>[] = [
         { key: 'site', header: 'Site' },
+        { key: 'imageName', header: 'Image Name' },
         { key: 'imageType', header: 'Image Type' },
-        {
-            key: 'createdAt',
-            header: 'Date',
-            cell: (row) => new Date(row.createdAt).toLocaleDateString(),
-        },
         {
             key: 'imageUrl',
             header: 'Image',
@@ -122,10 +199,11 @@ export const RobotImageConfigPage = () => {
                 return row.imageUrl ? (
                     <img
                         src={getImgSrc(row.imageUrl)}
-                        alt="Robot Data"
+                        alt={row.imageName || "Robot Data"}
                         style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
+                            // Fallback logic for loading failures
                             if (!target.dataset.triedProxy && row.imageUrl && row.imageUrl.startsWith('http')) {
                                 target.dataset.triedProxy = 'true';
                                 const filename = row.imageUrl.split('/').pop();
@@ -143,19 +221,16 @@ export const RobotImageConfigPage = () => {
             header: 'Actions',
             cell: (row) => (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Button size="small" onClick={() => setEditingImage(row)}>
+                    {/* <Button size="small" onClick={() => setEditingImage(row)}>
                         Edit
-                    </Button>
+                    </Button> */}
                     <Button
                         size="small"
                         variant="danger"
-                        onClick={() => {
-                            if (confirm('Are you sure you want to delete this image?')) {
-                                deleteMutation.mutate(row.id);
-                            }
-                        }}
+                        onClick={() => handleDelete(row)}
+                        disabled={deleteMutation.isPending}
                     >
-                        Delete
+                        {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
                     </Button>
                 </div>
             ),
@@ -189,13 +264,21 @@ export const RobotImageConfigPage = () => {
                 title="Add New Image"
             >
                 <form onSubmit={handleSubmitAdd(onAddSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '400px' }}>
+                    
+                    <Input
+                        label="Image Name"
+                        placeholder="e.g. Robot A - Front View"
+                        {...registerAdd('imageName', { required: 'Image name is required' })}
+                        error={errorsAdd.imageName?.message}
+                    />
+
                     <Select
                         label="Site"
                         {...registerAdd('site', { required: 'Site is required' })}
                         error={errorsAdd.site?.message}
                     >
                         <option value="">Select site...</option>
-                        {siteOptions.map(site => (
+                        {sites.map(site => (
                             <option key={site} value={site}>{site}</option>
                         ))}
                     </Select>
@@ -214,7 +297,7 @@ export const RobotImageConfigPage = () => {
                     <Input
                         label="Image File"
                         type="file"
-                        accept="image/jpeg,image/jpg,image/png"
+                        accept="image/*"
                         {...registerAdd('image', { required: 'Image is required' })}
                         error={errorsAdd.image?.message as string}
                     />
@@ -241,7 +324,7 @@ export const RobotImageConfigPage = () => {
                         label="Site"
                         {...registerEdit('site')}
                     >
-                        {siteOptions.map(site => (
+                        {sites.map(site => (
                             <option key={site} value={site}>{site}</option>
                         ))}
                     </Select>
@@ -250,7 +333,6 @@ export const RobotImageConfigPage = () => {
                         label="Image Type"
                         {...registerEdit('imageType')}
                     >
-                        {/* [แก้ไข] ใช้ imageTypeOptions แทนการ hardcode เพื่อให้รองรับค่าที่มีอยู่จริงใน DB */}
                         {imageTypeOptions.map(type => (
                             <option key={type} value={type}>{type}</option>
                         ))}
@@ -259,13 +341,13 @@ export const RobotImageConfigPage = () => {
                     <Input
                         label="New Image (optional)"
                         type="file"
-                        accept="image/jpeg,image/jpg,image/png"
+                        accept="image/*"
                         {...registerEdit('image')}
                     />
                     <p style={{ fontSize: '0.8rem', color: '#666' }}>
                         *Leave empty to keep current image
                     </p>
-
+                    
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                         <Button type="submit" disabled={updateMutation.isPending}>
                             {updateMutation.isPending ? 'Updating...' : 'Update'}

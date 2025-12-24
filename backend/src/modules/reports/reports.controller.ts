@@ -20,10 +20,9 @@ export class ReportsController {
         return this.reportsService.getCamOwners();
     }
 
-    @Get('robot-sites') // ย้ายมาไว้ตรงนี้ (ก่อน :id)
+      @Get('robot-sites')
     async getRobotSites() {
-        const sites = await this.reportsService.getRobotSites();
-        return { sites };
+        return this.reportsService.getRobotSites();
     }
 
     @Get('workforce/departments') // ย้ายมาไว้ตรงนี้ (ก่อน :id)
@@ -83,6 +82,7 @@ export class ReportsController {
     async findOne(@Param('id') id: string) {
         return this.reportsService.findOne(id);
     }
+
 
     @Get(':id/download')
     async download(@Param('id') id: string, @Res() res: Response) {
