@@ -133,7 +133,14 @@ export class UsersService {
                 }),
             );
 
-            return data;
+            // Filter out system/default roles
+            const systemRolePrefixes = ['default-roles-', 'offline_access', 'uma_authorization'];
+            const filteredRoles = data.filter(role => {
+                // Exclude roles that start with system prefixes
+                return !systemRolePrefixes.some(prefix => role.name.startsWith(prefix));
+            });
+
+            return filteredRoles;
         } catch (error) {
             console.error(`Failed to get roles for user ${userId}:`, error.response?.data || error.message);
             return [];
