@@ -22,8 +22,8 @@
 
 .input:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #ff6a2b;
+    box-shadow: 0 0 0 3px rgba(255, 106, 43, 0.1);
 }
 
 .input-error {

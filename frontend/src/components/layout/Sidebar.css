@@ -50,9 +50,9 @@
 }
 
 .sidebar-tab-btn.active {
-    background: #d4761f;
-    border-color: #f0c840;
-    box-shadow: 0 4px 12px rgba(212, 164, 31, 0.3);
+    background: #ff6a2b;
+    border-color: #f15a24;
+    box-shadow: 0 4px 12px rgba(255, 106, 43, 0.3);
     border-radius: 10px 10px 0 0; /* โค้งมนแค่ด้านบนเมื่อเปิดเมนู */
 }
 
@@ -74,7 +74,7 @@
     opacity: 1;
     margin-bottom: 0.5rem;
     padding-bottom: 5px;
-    border: 1px solid rgba(240, 200, 64, 0.3);
+    border: 1px solid rgba(255, 106, 43, 0.3);
     border-top: none;
 }
 
@@ -95,8 +95,8 @@
 }
 
 .sidebar-menu-link:hover {
-    background: rgba(212, 164, 31, 0.2);
-    color: #f0c840;
+    background: rgba(255, 106, 43, 0.2);
+    color: #ff6a2b;
     padding-left: 1.5rem; /* ลูกเล่นเลื่อนขวาเล็กน้อยเมื่อ hover */
 }
 

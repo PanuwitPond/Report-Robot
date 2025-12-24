@@ -8,6 +8,7 @@ export const ManageRolesPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
+    const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [showAddUserModal, setShowAddUserModal] = useState(false);
     const [addUserStep, setAddUserStep] = useState(1); // 1: basic info, 2: password
@@ -87,6 +88,7 @@ export const ManageRolesPage = () => {
 
     const openRoleModal = (user: UserWithRoles) => {
         setSelectedUser(user);
+        setSelectedRole(null);
         setShowRoleModal(true);
     };
 
@@ -230,8 +232,8 @@ export const ManageRolesPage = () => {
                             {availableRoles.filter((role: string) => !selectedUser.roles.includes(role)).map((role: string) => (
                                 <button
                                     key={role}
-                                    className={`role-option role-${role}`}
-                                    onClick={() => handleAssignRole(selectedUser.id, role)}
+                                    className={`role-option role-${role} ${selectedRole === role ? 'selected' : ''}`}
+                                    onClick={() => setSelectedRole(role)}
                                 >
                                     {role}
                                 </button>
@@ -240,9 +242,23 @@ export const ManageRolesPage = () => {
                                 <p>User already has all available roles</p>
                             )}
                         </div>
-                        <button className="btn-cancel" onClick={() => setShowRoleModal(false)}>
-                            Cancel
-                        </button>
+                        <div className="modal-buttons">
+                            <button 
+                                className="btn-primary" 
+                                disabled={!selectedRole}
+                                onClick={() => {
+                                    if (selectedRole) {
+                                        handleAssignRole(selectedUser.id, selectedRole);
+                                        setShowRoleModal(false);
+                                    }
+                                }}
+                            >
+                                Confirm
+                            </button>
+                            <button className="btn-cancel" onClick={() => setShowRoleModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

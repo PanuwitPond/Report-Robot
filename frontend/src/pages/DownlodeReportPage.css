@@ -15,7 +15,7 @@
 }
 
 .breadcrumb-item:hover {
-    color: #2563eb;
+    color: #ff6a2b;
     text-decoration: underline;
 }
 
@@ -53,7 +53,7 @@
 .grid-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border-color: #667eea;
+    border-color: #ff6a2b;
 }
 
 .folder-item {

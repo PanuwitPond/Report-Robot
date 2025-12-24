@@ -5,24 +5,53 @@
 }
 
 .manage-roles-header {
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    padding: 2rem;
+    border-radius: 8px;
     margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    border-bottom: 3px solid #41285a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.manage-roles-header > div:first-child {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.manage-roles-header::before {
+    content: "👥";
+    font-size: 2rem;
+    flex-shrink: 0;
 }
 
 .manage-roles-header h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
     color: #1a1a1a;
+    line-height: 1.2;
 }
 
 .manage-roles-header p {
     color: #666;
-    font-size: 1rem;
+    font-size: 0.9rem;
+    margin: 0.25rem 0 0 0;
+}
+
+.manage-roles-header .btn-add-user {
+    margin: 0;
+    flex-shrink: 0;
 }
 
 .btn-add-user {
     padding: 0.75rem 1.5rem;
-    background: #10b981;
+    background: #ff6a2b;
     color: white;
     border: none;
     border-radius: 6px;
@@ -33,29 +62,31 @@
 }
 
 .btn-add-user:hover {
-    background: #059669;
+    background: #f15a24;
 }
 
 .users-table-container {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-top: 4px solid #41285a;
 }
 
 .users-table {
     width: 100%;
     border-collapse: collapse;
 }
-
-.users-table thead {
-    background: #f8f9fa;
+41285a;
 }
 
 .users-table th {
     padding: 1rem;
     text-align: left;
     font-weight: 600;
+    color: #ffffff;
+    border-bottom: 2px solid #2a1a47
     color: #333;
     border-bottom: 2px solid #e0e0e0;
 }
@@ -65,8 +96,22 @@
     border-bottom: 1px solid #f0f0f0;
 }
 
+/* Center align Roles column */
+.users-table td:nth-child(3) {
+    text-align: center;
+}
+
+/* Center align Actions column */
+.users-table td:nth-child(4) {
+    text-align: center;
+}
+
+.users-table tbody tr:nth-child(even) {
+    background: #f9fafb;
+}
+
 .users-table tbody tr:hover {
-    background: #f8f9fa;
+    background: rgba(255, 106, 43, 0.08);
 }
 
 .roles-badges {
@@ -74,21 +119,24 @@
     gap: 0.5rem;
     flex-wrap: wrap;
 }
-
-.role-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
+4rem 0.8rem;
+    border-radius: 6px;
     font-size: 0.875rem;
     font-weight: 500;
     position: relative;
+    border: 1px solid;
 }
 
 .role-admin {
-    background: #fee;
+    background: rgba(192, 0, 0, 0.1);
     color: #c00;
+    border-color: #c00;
 }
+
+.role-user {
+    background: rgba(25, 118, 210, 0.1);
+    color: #1976d2;
+    border-
 
 .role-user {
     background: #e3f2fd;
@@ -97,7 +145,7 @@
 
 .btn-edit {
     padding: 0.5rem 1rem;
-    background: #6366f1;
+    background: #ff6a2b;
     color: white;
     border: none;
     border-radius: 6px;
@@ -108,7 +156,7 @@
 }
 
 .btn-edit:hover {
-    background: #4f46e5;
+    background: #f15a24;
 }
 
 .manage-roles-note {
@@ -149,7 +197,7 @@
 
 .manage-roles-error button {
     padding: 0.5rem 1.5rem;
-    background: #6366f1;
+    background: #ff6a2b;
     color: white;
     border: none;
     border-radius: 6px;
@@ -190,68 +238,96 @@
     z-index: 1000;
 }
 
-.modal-content {
+.modal-overlay .modal-content {
     background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    min-width: 400px;
-    max-width: 500px;
+    padding: 3rem;
+    border-radius: 12px;
+    min-width: 450px;
+    max-width: 600px;
+    border-top: 4px solid #41285a;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }
 
-.modal-content h2 {
+.modal-overlay .modal-content h2 {
     margin-top: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
-.role-options {
+.modal-overlay .modal-content h2::before {
+    content: "➕";
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.modal-overlay .role-options {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
 }
 
-.role-option {
-    padding: 0.75rem 1rem;
-    border: 2px solid;
-    border-radius: 6px;
+.modal-overlay .role-option {
+    padding: 1.25rem 1.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 500;
-    transition: all 0.2s;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #ffffff;
+    position: relative;
+    font-size: 1rem;
 }
 
-.role-option.role-admin {
-    border-color: #c00;
-    color: #c00;
-    background: #fff;
+.modal-overlay .role-option::before {
+    content: "○";
+    font-size: 1.5rem;
+    color: #9ca3af;
+    transition: all 0.3s;
+    flex-shrink: 0;
 }
 
-.role-option.role-admin:hover {
-    background: #fee;
+.modal-overlay .role-option:hover {
+    border-color: #ff6a2b;
+    background: rgba(255, 106, 43, 0.08);
+    transform: translateX(4px);
 }
 
-.role-option.role-user {
-    border-color: #1976d2;
-    color: #1976d2;
-    background: #fff;
+.modal-overlay .role-option:hover::before {
+    color: #ff6a2b;
 }
 
-.role-option.role-user:hover {
-    background: #e3f2fd;
+.modal-overlay .role-option.role-admin,
+.modal-overlay .role-option.role-user {
+    border-color: #e5e7eb;
+    color: #1a1a1a;
+    background: #ffffff;
 }
 
-.btn-cancel {
-    padding: 0.5rem 1.5rem;
-    background: #666;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
+.modal-overlay .role-option.role-admin:hover,
+.modal-overlay .role-option.role-user:hover {
+    border-color: #ff6a2b;
+    background: rgba(255, 106, 43, 0.08);
+    transform: translateX(4px);
 }
 
-.btn-cancel:hover {
-    background: #555;
+.modal-overlay .role-option.selected {
+    border-color: #ff6a2b;
+    background: rgba(255, 106, 43, 0.15);
+    box-shadow: 0 0 0 1px rgba(255, 106, 43, 0.3);
+}
+
+.modal-overlay .role-option.selected::before {
+    content: "✓";
+    color: #ff6a2b;
 }
 
 .form-group {
@@ -276,31 +352,54 @@
 
 .form-input:focus {
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: #ff6a2b;
+    box-shadow: 0 0 0 3px rgba(255, 106, 43, 0.1);
 }
 
 .modal-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    margin-top: 2rem;
+    display: flex !important;
+    gap: 1.25rem !important;
+    justify-content: flex-end !important;
+    margin-top: 2.5rem !important;
 }
 
-.btn-primary {
-    padding: 0.75rem 1.5rem;
-    background: #6366f1;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: background 0.2s;
+.modal-buttons button {
+    padding: 1rem 2rem !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
 }
 
-.btn-primary:hover {
-    background: #4f46e5;
+.modal-buttons button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+.modal-buttons .btn-primary {
+    background: linear-gradient(135deg, #ff6a2b 0%, #f15a24 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(255, 106, 43, 0.3) !important;
+}
+
+.modal-buttons .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #f15a24 0%, #e04a14 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 106, 43, 0.4) !important;
+}
+
+.modal-buttons .btn-cancel {
+    background: #e5e7eb !important;
+    color: #374151 !important;
+    box-shadow: none !important;
+}
+
+.modal-buttons .btn-cancel:hover:not(:disabled) {
+    background: #d1d5db !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .btn-verify {
