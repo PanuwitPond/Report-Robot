@@ -187,7 +187,7 @@ export const RobotListPage = () => {
                 </div>
                 
                 {/* ปุ่ม Add Robot */}
-                <Button variant="primary" onClick={handleAddClick}>
+                <Button variant="primary" size="small" className="btn-add-robot" onClick={handleAddClick}>
                     + Add New Robot
                 </Button>
             </div>

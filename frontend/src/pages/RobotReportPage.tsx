@@ -113,7 +113,7 @@ export const RobotReportPage = () => {
                     type="submit" 
                     variant="primary" 
                     disabled={isLoading}
-                    style={{ marginTop: '1rem', height: '48px', fontSize: '1rem' }}
+                    className="report-submit-btn"
                 >
                     {isLoading ? 'Generating...' : 'Download Report'}
                 </Button>

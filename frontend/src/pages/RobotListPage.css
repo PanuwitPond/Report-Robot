@@ -54,7 +54,7 @@
     width: 10vw;
     margin-left: 350px;
     gap: 10px;
-    
+    color: #1a1a1a;
 }
 .data-table {
     width: 100%;
@@ -103,7 +103,7 @@
     border-radius: 6px;
     background-color: #fff;
     font-size: 0.9rem;
-    color: #374151;
+    color: #1a1a1a;
     height: 42px; /* Match input height */
     cursor: pointer;
 }
@@ -123,8 +123,13 @@
 
 .action-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-column {
+    min-width: 200px;
 }
 
 .btn-save {
@@ -159,3 +164,26 @@
 /* Helper utility classes if Tailwind is not fully set up */
 .text-center { text-align: center; }
 .font-medium { font-weight: 500; }
+
+/* Add Robot Button - Square Icon Only */
+.btn-add-robot {
+    width: 50px !important;
+    height: 32px !important;
+    min-width: 50px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0;
+    border-radius: 4px !important;
+    line-height: 1 !important;
+}
+
+.btn-add-robot::before {
+    content: "Add";
+    font-size: 0.65rem;
+    color: white;
+    font-weight: bold;
+}

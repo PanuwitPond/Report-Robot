@@ -71,28 +71,28 @@
 }
 
 /* ปุ่มหลัก (GBB-UT) */
-.btn-primary {
-    background-color: #2563eb;
-    color: #ffffff;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+button.btn-primary {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
-.btn-primary:hover {
-    background-color: #ff6a2b;
-    color: #1a1a1a;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(255, 106, 43, 0.3);
+button.btn-primary:hover {
+    background-color: #ff6a2b !important;
+    color: #1a1a1a !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px rgba(255, 106, 43, 0.3) !important;
 }
 
 /* ปุ่มรอง (General) */
-.btn-secondary {
+button.btn-secondary {
     background-color: #2563eb !important;
     color: #ffffff !important;
     border: none !important;
     box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
-.btn-secondary:hover {
+button.btn-secondary:hover {
     background-color: #ff6a2b !important;
     color: #1a1a1a !important;
     transform: translateY(-1px) !important;
@@ -100,17 +100,17 @@
 }
 
 /* ปุ่ม Face Rec */
-.btn-accent {
-    background-color: #2563eb;
-    color: #ffffff;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+button.btn-accent {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
-.btn-accent:hover {
-    background-color: #ff6a2b;
-    color: #1a1a1a;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(255, 106, 43, 0.3);
+button.btn-accent:hover {
+    background-color: #ff6a2b !important;
+    color: #1a1a1a !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px rgba(255, 106, 43, 0.3) !important;
 }
 
 /* Loading Spinner */
