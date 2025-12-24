@@ -8,8 +8,8 @@ import './Sidebar.css';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const Sidebar = () => {
-    // เพิ่ม 'mioc' และ 'mroi' เข้าไปใน type ของ state
-    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mioc' | 'mroi' | null>(null);
+    // เพิ่ม 'mioc', 'mroi' และ 'mettforce' เข้าไปใน type ของ state
+    const [activeTab, setActiveTab] = useState<'pole' | 'bot' | 'mettforce' | 'mioc' | 'mroi' | null>(null);
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -20,6 +20,7 @@ export const Sidebar = () => {
     const hasPermissions = Array.isArray(permissions);
     const showPole = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettpole')); // mettpole: admin or service
     const showBot = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettbot')); // mettbot: admin or service
+    const showMettforce = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mettforce')); // mettforce: admin or service
     const showMioc = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mioc')); // mioc: admin or mioc
     const showMroi = !hasPermissions ? true : (isAdmin || permissions!.includes('menu.mroi')); // mroi: admin or service
 
@@ -27,9 +28,10 @@ export const Sidebar = () => {
     useEffect(() => {
         if (activeTab === 'pole' && !showPole) setActiveTab(null);
         if (activeTab === 'bot' && !showBot) setActiveTab(null);
+        if (activeTab === 'mettforce' && !showMettforce) setActiveTab(null);
         if (activeTab === 'mioc' && !showMioc) setActiveTab(null);
         if (activeTab === 'mroi' && !showMroi) setActiveTab(null);
-    }, [showPole, showBot, showMioc, showMroi]);
+    }, [showPole, showBot, showMettforce, showMioc, showMroi]);
 
     const handleMenuClick = (path: string) => {
         navigate(path);
@@ -89,8 +91,25 @@ export const Sidebar = () => {
                             <button className="sidebar-menu-link" onClick={() => handleMenuClick('/robots')}>
                                 🤖 Robot Management
                             </button>
-                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/workforce')}>
-                                👥 Workforce
+                        </div>
+                    </div>
+                )}
+
+                {/* --- กลุ่ม MF DEPARTMENTS (ใหม่) --- */}
+                {showMettforce && (
+                    <div className="sidebar-group">
+                        <button
+                            className={`sidebar-tab-btn ${activeTab === 'mettforce' ? 'active' : ''}`}
+                            onClick={() => setActiveTab(activeTab === 'mettforce' ? null : 'mettforce')}
+                        >
+                            <div className="sidebar-tab-content">
+                                <span className="sidebar-tab-icon-emoji">👥</span>
+                                <span className="sidebar-tab-label">MF Departments</span>
+                            </div>
+                        </button>
+                        <div className={`sidebar-submenu ${activeTab === 'mettforce' ? 'open' : ''}`}>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mettforce')}>
+                                👥 METTFORCE Departments
                             </button>
                         </div>
                     </div>
