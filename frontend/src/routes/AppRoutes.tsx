@@ -175,6 +175,17 @@ export const AppRoutes = () => {
                 />
 
                 <Route
+                    path="/mettforce"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <WorkforcePage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
                     path="/robot-cleaning-report"
                     element={
                         <ProtectedRoute>

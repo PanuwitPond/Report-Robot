@@ -8,12 +8,14 @@ export const rolePermissions: Record<string, string[]> = {
         'api.mioc.*',
     ],
 
-    // Service: access to Mettbot, Mettpole, and MROI menus and APIs
+    // Service: access to Mettbot, Mettpole, METTFORCE, and MROI menus and APIs
     service: [
         'menu.mettbot',
         'api.mettbot.*',
         'menu.mettpole',
         'api.mettpole.*',
+        'menu.mettforce',
+        'api.mettforce.*',
         'menu.mroi',
         'api.mroi.*',
     ],
