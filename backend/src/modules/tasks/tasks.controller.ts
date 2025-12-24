@@ -9,13 +9,14 @@ import {
     Query,
     UploadedFile,
     UseInterceptors,
-    UseGuards,
+    UseGuards,Res, NotFoundException
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Response } from 'express';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,6 +32,20 @@ export class TasksController {
     async findOne(@Param('id') id: string) {
         return this.tasksService.findOne(id);
     }
+
+    @Get('image/:id')
+async getTaskImage(@Param('id') id: string, @Res() res: Response) {
+    const task = await this.tasksService.findOne(id);
+    if (!task || !task.imageUrl) {
+        throw new NotFoundException('Image not found');
+    }
+
+    // กรณีที่ imageUrl ใน DB เก็บเป็น ByteA (Binary) หรือ Path ที่ต้องดึงจาก DB
+    // ให้ส่งข้อมูลออกไปเป็น Stream รูปภาพ
+    res.setHeader('Content-Type', 'image/jpeg'); // หรือประเภทไฟล์ที่ถูกต้อง
+    return res.send(task.imageUrl); 
+}
+    
 
     @Post()
     @UseInterceptors(FileInterceptor('image'))

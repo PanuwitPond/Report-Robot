@@ -1,25 +1,22 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
-@Entity('robot_images')
+@Entity({ schema: 'metthier', name: 'ml_robot_images' })
 export class RobotImage {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    site: string;
+  @Column()
+  site: string;
 
-    @Column()
-    imageType: string;
+  @Column({ name: 'image_type' })
+  imageType: string;
 
-    @Column()
-    imageUrl: string;
+  @Column({ name: 'image_name' })
+  imageName: string;
 
-    @Column({ type: 'enum', enum: ['METTBOT', 'METTPOLE'] })
-    domain: string;
+  @Column({ name: 'image_path' }) // เก็บ URL/Path รูปภาพ
+  imageUrl: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @CreateDateColumn({ name: 'upload_date' })
+  createdAt: Date;
 }

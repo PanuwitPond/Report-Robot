@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Task } from '@/modules/tasks/entities/task.entity';
+import { RobotImage } from '@/modules/images/entities/robot-image.entity';
 
 @Module({
     imports: [
@@ -54,6 +56,27 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             }),
             inject: [ConfigService],
         }),
+        TypeOrmModule.forRootAsync({
+            name: 'ROBOT_CONNECTION', 
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get('ROBOT_DB_HOST'),
+                port: configService.get('ROBOT_DB_PORT'),
+                username: configService.get('ROBOT_DB_USER'),
+                password: configService.get('ROBOT_DB_PASSWORD'),
+                database: configService.get('ROBOT_DB_NAME'), // ค่าคือ data_robot
+                entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+                synchronize: false,
+                logging: true,
+                extra: {
+                    max: 5,
+                    idleTimeoutMillis: 30000,
+                },
+            }),
+            inject: [ConfigService],
+        }),
     ],
+    
 })
 export class DatabaseModule { }

@@ -9,12 +9,13 @@ import {
     Query,
     UploadedFile,
     UseInterceptors,
-    UseGuards,
+    UseGuards, Res, NotFoundException
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImagesService } from './images.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Response } from 'express';
 
 @Controller('images')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,8 +29,9 @@ export class ImagesController {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        return this.imagesService.findOne(id);
-    }
+    return this.imagesService.findOne(+id); 
+}
+    
 
     @Post()
     @UseInterceptors(FileInterceptor('image'))
@@ -49,7 +51,8 @@ export class ImagesController {
         @Body() updateData: { site?: string; imageType?: string },
         @UploadedFile() file: Express.Multer.File,
     ) {
-        return this.imagesService.update(id, updateData, file);
+        // ส่ง +id (number) และข้อมูลที่ต้องการ update
+        return this.imagesService.update(+id, updateData, file);
     }
 
     @Delete(':id')

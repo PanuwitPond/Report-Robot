@@ -5,7 +5,8 @@ import { TasksService } from './tasks.service';
 import { Task } from './entities/task.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Task])],
+    // ระบุ 'ROBOT_CONNECTION' เพื่อให้ Task Entity ไปดึงข้อมูลจาก DB data_robot
+    imports: [TypeOrmModule.forFeature([Task], 'ROBOT_CONNECTION')], 
     controllers: [TasksController],
     providers: [TasksService],
 })

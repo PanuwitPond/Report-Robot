@@ -15,6 +15,7 @@ import { RobotListPage } from '@/pages/RobotListPage';
 import { WorkforcePage } from '@/pages/WorkforcePage';
 import { RobotReportPage } from '@/pages/RobotReportPage';
 
+
 // นำเข้าหน้า MIOC
 import MiocDashboardPage from '../pages/MiocDashboardPage';
 
@@ -85,7 +86,6 @@ export const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
-
                 <Route
                     path="/add-image"
                     element={

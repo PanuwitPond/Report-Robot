@@ -1,37 +1,27 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity('tasks')
+@Entity({ schema: 'metthier', name: 'ml_robot_tasks' }) // เชื่อมตารางเดียวกับ robot_web
 export class Task {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryColumn()
+  task_id: string;
 
-    @Column()
-    taskId: string;
+  @Column()
+  task_name: string;
 
-    @Column()
-    taskName: string;
+  @Column()
+  map_name: string;
 
-    @Column()
-    mapName: string;
+  @Column()
+  mode: string;
 
-    @Column()
-    mode: string;
+  @Column()
+  purpose: string;
 
-    @Column()
-    purpose: string;
+ @Column({ name: 'task_img' })
+imageUrl: string;// เปลี่ยนจาก string เป็น Buffer ถ้าเก็บภาพเป็น Binary ใน DB
 
-    @Column()
-    siteName: string;
+  
 
-    @Column({ nullable: true })
-    imageUrl: string;
-
-    @Column({ type: 'enum', enum: ['METTBOT', 'METTPOLE'] })
-    domain: string;
-
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @Column({ name: 'site_name' })
+  siteName: string;
 }

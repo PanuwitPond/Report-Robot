@@ -5,7 +5,8 @@ import { ImagesService } from './images.service';
 import { RobotImage } from './entities/robot-image.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([RobotImage])],
+    // ระบุ 'ROBOT_CONNECTION' เพื่อให้ RobotImage Entity ไปดึงข้อมูลจาก DB data_robot
+    imports: [TypeOrmModule.forFeature([RobotImage], 'ROBOT_CONNECTION')],
     controllers: [ImagesController],
     providers: [ImagesService],
 })

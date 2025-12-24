@@ -1,4 +1,6 @@
 import { useState } from 'react';
+// [เพิ่ม] import useNavigate
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDomain } from '@/contexts';
 import { imageService } from '@/services';
@@ -7,6 +9,8 @@ import { Button, Modal, Select, Input } from '@/components/ui';
 import type { RobotImage, UpdateImageDTO } from '@/types';
 
 export const RobotImageConfigPage = () => {
+    // [เพิ่ม] เรียกใช้ hook navigate
+    const navigate = useNavigate();
     const { currentDomain } = useDomain();
     const queryClient = useQueryClient();
     const [editingImage, setEditingImage] = useState<RobotImage | null>(null);
@@ -55,13 +59,22 @@ export const RobotImageConfigPage = () => {
         {
             key: 'imageUrl',
             header: 'Image',
-            cell: (row) => (
+           cell: (row) => {
+            if (!row.imageUrl) return 'No Image';
+            
+            // ต่อ Path เข้ากับ Proxy URL ของ Backend
+            const fullImageUrl = `/api/storage/url?path=${row.imageUrl}`;
+            
+            return (
                 <img
-                    src={`/api/storage/url?path=${row.imageUrl}`}
-                    alt="Robot"
-                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+                    src={fullImageUrl}
+                    alt="Robot Data"
+                    style={{ width: '80px', height: '60px', objectFit: 'cover' }}
+                    // ถ้าโหลดไม่ได้ ไม่ต้องเรียก placeholder ภายนอก ให้แสดงข้อความแทน
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }} 
                 />
-            ),
+            );
+        }  ,
         },
         {
             key: 'id',
@@ -92,6 +105,13 @@ export const RobotImageConfigPage = () => {
             <div className="page-header">
                 <h1>Robot Image Config</h1>
                 <p>Manage robot images</p>
+            </div>
+
+            {/* [เพิ่ม] ปุ่ม Add New Image */}
+            <div className="page-actions" style={{ marginBottom: '1rem' }}>
+                <Button onClick={() => navigate('/add-image')}>
+                    Add New Image
+                </Button>
             </div>
 
             <DataTable

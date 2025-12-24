@@ -23,18 +23,22 @@ export const TaskEditorPage = () => {
         { key: 'purpose', header: 'Purpose' },
         { key: 'siteName', header: 'Site Name' },
         {
-            key: 'imageUrl',
-            header: 'Task Image',
-            cell: (row) => row.imageUrl ? (
-                <img
-                    src={`/api/storage/url?path=${row.imageUrl}`}
-                    alt="Task"
-                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
-                />
-            ) : 'No image',
-        },
-    ];
-
+    key: 'imageUrl',
+    header: 'Task Image',
+    cell: (row) => row.imageUrl ? (
+        <img
+            // เรียกผ่าน Storage Proxy ของ Backend
+            src={`/api/storage/url?path=${row.imageUrl}`} 
+            alt="Task"
+            style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+            onError={(e) => {
+                // หากโหลดไม่สำเร็จ ให้แสดงภาพ default
+                (e.target as HTMLImageElement).src = '/img/default-bot.png';
+            }}
+        />
+    ) : 'No Image',
+},
+];
     return (
         <div className="page-container">
             <div className="page-header">

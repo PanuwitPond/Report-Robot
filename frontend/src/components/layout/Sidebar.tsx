@@ -78,6 +78,14 @@ export const Sidebar = () => {
                             <button className="sidebar-menu-link" onClick={() => handleMenuClick('/robot-cleaning-report')}>
                                 🧹 Cleaning Report
                             </button>
+                            {/* [เพิ่ม] เมนู Task Config */}
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/task-editor')}>
+                                📋 Task Config
+                            </button>
+                            {/* [เพิ่ม] เมนู Image Config */}
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/report-image-config')}>
+                                🖼️ Image Config
+                            </button>
                             <button className="sidebar-menu-link" onClick={() => handleMenuClick('/robots')}>
                                 🤖 Robot Management
                             </button>
