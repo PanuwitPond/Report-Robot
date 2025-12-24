@@ -33,7 +33,8 @@ const customSelectStyles: StylesConfig<OptionType, false> = {
     singleValue: (provided) => ({
         ...provided,
         color: '#1f2937',
-        fontWeight: 500
+        fontWeight: 500,
+        textAlign: 'left'
     }),
     placeholder: (provided) => ({
         ...provided,
