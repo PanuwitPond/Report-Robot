@@ -1,0 +1,237 @@
+/* DrawingCanvas Component Styles */
+
+.drawing-canvas-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.canvas-wrapper {
+    position: relative;
+    flex: 1;
+    overflow: auto;
+    background: #f5f5f5;
+}
+
+.canvas-element {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: white;
+    cursor: crosshair;
+    user-select: none;
+}
+
+.canvas-element:not(.drawing-mode) {
+    cursor: default;
+}
+
+.canvas-element.drawing-mode {
+    cursor: crosshair;
+}
+
+.no-snapshot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    text-align: center;
+}
+
+.no-snapshot p {
+    margin: 0.5rem 0;
+}
+
+.no-snapshot .small {
+    font-size: 0.9rem;
+    color: #bbb;
+}
+
+/* Mode Indicator */
+.mode-indicator {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    z-index: 5;
+    transition: all 0.2s ease;
+}
+
+.mode-indicator.active {
+    background: rgba(255, 215, 0, 0.9);
+    color: black;
+}
+
+.mode-indicator.inactive {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+}
+
+/* Points Counter */
+.points-counter {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.clear-btn {
+    padding: 0.3rem 0.6rem;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.clear-btn:hover {
+    background: #d32f2f;
+}
+
+/* Right-Click Hint */
+.right-click-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    animation: pulse-hint 1.2s ease-in-out infinite, float-hint 2s ease-in-out infinite;
+}
+
+.hint-icon {
+    font-size: 1rem;
+    animation: point-hint 1s ease-in-out infinite;
+}
+
+@keyframes pulse-hint {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes float-hint {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes point-hint {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(3px);
+    }
+}
+
+/* Legend */
+.canvas-legend {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.75rem;
+    max-width: 250px;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.canvas-legend h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #333;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.4rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    font-size: 0.85rem;
+    color: #333;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.legend-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.no-rules {
+    margin: 0.5rem 0;
+    color: #999;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .canvas-legend {
+        max-width: 180px;
+    }
+
+    .canvas-legend h4 {
+        font-size: 0.85rem;
+    }
+
+    .legend-item {
+        font-size: 0.8rem;
+    }
+
+    .mode-indicator,
+    .points-counter {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+}

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RobotImage } from './entities/robot-image.entity';
@@ -48,6 +48,11 @@ export class ImagesService {
     ): Promise<RobotImage> {
         const image = await this.findOne(id);
 
+        // ✅ ADD: Proper null check to prevent crashes
+        if (!image) {
+            throw new NotFoundException(`Image with id "${id}" not found`);
+        }
+
         if (file) {
             if (image.imageUrl) {
                 await this.storageService.deleteFile(image.imageUrl);
@@ -61,6 +66,11 @@ export class ImagesService {
 
     async delete(id: string): Promise<void> {
         const image = await this.findOne(id);
+
+        // ✅ ADD: Proper null check to prevent crashes
+        if (!image) {
+            throw new NotFoundException(`Image with id "${id}" not found`);
+        }
 
         if (image.imageUrl) {
             await this.storageService.deleteFile(image.imageUrl);

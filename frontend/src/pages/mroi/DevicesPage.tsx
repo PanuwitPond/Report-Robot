@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchIvCameras, createDevice, updateDevice, deleteDevice } from '@/services/mroi.service';
 import { DeviceResponseDto, CreateDeviceDto, UpdateDeviceDto } from '@/types';
@@ -6,6 +7,7 @@ import './DevicesPage.css';
 
 export const DevicesPage: React.FC = () => {
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<CreateDeviceDto>({
@@ -13,6 +15,7 @@ export const DevicesPage: React.FC = () => {
         rtspUrl: '',
         description: '',
         location: '',
+        status: undefined, // Only used in Edit mode
     });
 
     // ดึงข้อมูล devices
@@ -35,7 +38,7 @@ export const DevicesPage: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['mroi-devices'] });
             setShowForm(false);
             setEditingId(null);
-            setFormData({ name: '', rtspUrl: '', description: '', location: '' });
+            setFormData({ name: '', rtspUrl: '', description: '', location: '', status: undefined });
         },
         onError: (error: any) => {
             alert(`Error: ${error.response?.data?.message || error.message}`);
@@ -78,6 +81,7 @@ export const DevicesPage: React.FC = () => {
             description: device.description || '',
             location: device.location || '',
             cameraSettings: device.cameraSettings,
+            status: device.status as 'active' | 'inactive' | 'disconnected',
         });
         setShowForm(true);
     };
@@ -85,8 +89,28 @@ export const DevicesPage: React.FC = () => {
     const handleCancel = () => {
         setShowForm(false);
         setEditingId(null);
-        setFormData({ name: '', rtspUrl: '', description: '', location: '' });
+        setFormData({ name: '', rtspUrl: '', description: '', location: '', status: undefined });
     };
+
+    // Handle ESC key to close modal
+    useEffect(() => {
+        const handleEscKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && showForm) {
+                handleCancel();
+            }
+        };
+
+        if (showForm) {
+            document.addEventListener('keydown', handleEscKey);
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+            document.body.style.overflow = 'unset';
+        };
+    }, [showForm]);
 
     if (isLoading) {
         return (
@@ -108,16 +132,35 @@ export const DevicesPage: React.FC = () => {
         <div className="devices-container">
             <div className="devices-header">
                 <h1>📹 MROI Devices Management</h1>
-                <button className="btn-add" onClick={() => setShowForm(!showForm)}>
-                    {showForm ? '✕ Cancel' : '+ Add Device'}
+                <button 
+                    className="btn-add" 
+                    onClick={() => {
+                        setEditingId(null);
+                        setFormData({ name: '', rtspUrl: '', description: '', location: '', status: undefined });
+                        setShowForm(true);
+                    }}
+                >
+                    ➕ Add Device
                 </button>
             </div>
 
-            {/* Form */}
+            {/* Modal Form */}
             {showForm && (
-                <div className="devices-form-wrapper">
-                    <form onSubmit={handleSubmit} className="devices-form">
-                        <h2>{editingId ? 'Edit Device' : 'Add New Device'}</h2>
+                <>
+                    <div className="modal-overlay" onClick={() => handleCancel()} />
+                    <div className="modal-container">
+                        <form onSubmit={handleSubmit} className="devices-form modal-form">
+                            <div className="modal-header">
+                                <h2>{editingId ? '✏️ Edit Device' : '➕ Add New Device'}</h2>
+                                <button
+                                    type="button"
+                                    className="btn-modal-close"
+                                    onClick={handleCancel}
+                                    aria-label="Close dialog"
+                                >
+                                    ✕
+                                </button>
+                            </div>
 
                         <div className="form-group">
                             <label>Device Name *</label>
@@ -165,16 +208,37 @@ export const DevicesPage: React.FC = () => {
                             />
                         </div>
 
+                        {editingId && (
+                            <div className="form-group">
+                                <label>Status</label>
+                                <select
+                                    name="status"
+                                    value={(formData as UpdateDeviceDto).status || 'active'}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            status: e.target.value as 'active' | 'inactive' | 'disconnected',
+                                        }))
+                                    }
+                                >
+                                    <option value="active">🟢 Active</option>
+                                    <option value="inactive">🔵 Inactive</option>
+                                    <option value="disconnected">🔴 Disconnected</option>
+                                </select>
+                            </div>
+                        )}
+
                         <div className="form-actions">
                             <button type="submit" className="btn-submit" disabled={mutation.isPending}>
-                                {mutation.isPending ? 'Saving...' : 'Save Device'}
+                                {mutation.isPending ? 'Saving...' : editingId ? '💾 Update' : '✨ Create'}
                             </button>
                             <button type="button" className="btn-cancel" onClick={handleCancel}>
                                 Cancel
                             </button>
                         </div>
-                    </form>
-                </div>
+                        </form>
+                    </div>
+                </>
             )}
 
             {/* Devices List */}
@@ -187,7 +251,14 @@ export const DevicesPage: React.FC = () => {
                     devices.map((device) => (
                         <div key={device.id} className="device-card">
                             <div className="device-header">
-                                <h3>{device.name}</h3>
+                                <div className="device-title-section">
+                                    <h3>{device.name}</h3>
+                                    {device.isExternal && (
+                                        <span className="badge-external" title="This device is managed externally">
+                                            📌 Managed Externally
+                                        </span>
+                                    )}
+                                </div>
                                 <span className={`status ${device.status}`}>{device.status}</span>
                             </div>
 
@@ -215,8 +286,20 @@ export const DevicesPage: React.FC = () => {
                             </div>
 
                             <div className="device-actions">
-                                <button className="btn-edit" onClick={() => handleEdit(device)}>
+                                <button 
+                                    className="btn-edit" 
+                                    onClick={() => handleEdit(device)}
+                                    disabled={device.isExternal}
+                                    title={device.isExternal ? 'Cannot edit external device' : 'Edit device'}
+                                >
                                     ✏️ Edit
+                                </button>
+                                <button
+                                    className="btn-draw"
+                                    onClick={() => navigate(`/mroi/editor/${device.id}`)}
+                                    title="Draw ROI zones on this camera"
+                                >
+                                    🎨 Draw ROI
                                 </button>
                                 <button
                                     className="btn-delete"
@@ -225,7 +308,8 @@ export const DevicesPage: React.FC = () => {
                                             deleteMutation.mutate(device.id);
                                         }
                                     }}
-                                    disabled={deleteMutation.isPending}
+                                    disabled={deleteMutation.isPending || device.isExternal}
+                                    title={device.isExternal ? 'Cannot delete external device' : 'Delete device'}
                                 >
                                     🗑️ Delete
                                 </button>

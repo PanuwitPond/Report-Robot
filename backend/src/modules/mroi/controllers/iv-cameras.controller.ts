@@ -44,6 +44,11 @@ export class IvCamerasController {
     return this.ivCamerasService.captureSnapshot(rtsp, res);
   }
 
+  @Get('health')
+  async getHealth() {
+    return await this.ivCamerasService.getFFmpegStatus();
+  }
+
   @Post('save-region-config')
   async saveRegionConfig(
     @Query('customer') customer: string,

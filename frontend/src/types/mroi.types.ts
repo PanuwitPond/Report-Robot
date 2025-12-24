@@ -16,6 +16,8 @@ export interface DeviceResponseDto {
     domain: string;
     roiCount?: number;
     scheduleCount?: number;
+    isExternal?: boolean;  // ← Indicates if device is from external database
+    readOnly?: boolean;    // ← Indicates if device cannot be edited
 }
 
 export interface CreateDeviceDto {

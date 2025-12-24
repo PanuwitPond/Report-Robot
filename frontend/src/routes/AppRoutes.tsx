@@ -4,7 +4,6 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { getDefaultRouteByRole } from '@/utils/roleBasedRedirect';
 import {
     SignInPage,
-    ExportReportPage,
     ReportTaskConfigPage,
     TaskEditorPage,
     AddImagePage,
@@ -20,7 +19,7 @@ import { RobotReportPage } from '@/pages/RobotReportPage';
 import MiocDashboardPage from '../pages/MiocDashboardPage';
 
 // นำเข้าหน้า MROI
-import { MroiDashboard, DevicesPage } from '../pages/mroi';
+import { MroiEmbedPage, DevicesPage, RoisPage, SchedulesPage, RoiEditor } from '../pages/mroi';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
@@ -60,17 +59,6 @@ export const AppRoutes = () => {
                         <ProtectedRoute>
                             <Layout>
                                 <DownloadReportPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/export-report"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <ExportReportPage />
                             </Layout>
                         </ProtectedRoute>
                     }
@@ -138,22 +126,20 @@ export const AppRoutes = () => {
                     element={
                         <ProtectedRoute>
                             <Layout>
-                                <MroiDashboard />
+                                <MroiEmbedPage />
                             </Layout>
                         </ProtectedRoute>
                     }
                 />
 
-                <Route
-                    path="/mroi/devices"
-                    element={
-                        <ProtectedRoute>
-                            <Layout>
-                                <DevicesPage />
-                            </Layout>
-                        </ProtectedRoute>
-                    }
-                />
+                {/* Sub-routes ของ MROI ถูกตัดการแสดง - ลบสำหรับการทำให้ /mroi เป็น หน้าเดียว */}
+                {/* 
+                <Route path="/mroi/devices" ... />
+                <Route path="/mroi/rois" ... />
+                <Route path="/mroi/schedules" ... />
+                <Route path="/mroi/editor" ... />
+                <Route path="/mroi/editor/:deviceId" ... />
+                */}
 
                 <Route
                     path="/admin/manage-roles"
