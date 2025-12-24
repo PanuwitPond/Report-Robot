@@ -33,7 +33,7 @@ export const WorkforcePage = () => {
     return (
         <div className="page-container">
             <div className="page-header">
-                <h1 className="page-title">Workforce Departments</h1>
+                <h1 className="page-title">METTFORCE Departments</h1>
                 <p className="page-subtitle">Search and view department information and manpower</p>
             </div>
 
