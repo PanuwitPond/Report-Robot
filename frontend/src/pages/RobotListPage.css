@@ -110,15 +110,15 @@
 
 .std-select:focus {
     outline: none;
-    border-color: #2563eb;
-    ring: 2px solid #bfdbfe;
+    border-color: #ff6a2b;
+    ring: 2px solid rgba(255, 106, 43, 0.1);
 }
 
 .toggle-checkbox {
     width: 1.2rem;
     height: 1.2rem;
     cursor: pointer;
-    accent-color: #2563eb;
+    accent-color: #ff6a2b;
 }
 
 .action-buttons {

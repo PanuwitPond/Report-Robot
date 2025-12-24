@@ -22,7 +22,7 @@
 
 .btn-add-user {
     padding: 0.75rem 1.5rem;
-    background: #10b981;
+    background: #ff6a2b;
     color: white;
     border: none;
     border-radius: 6px;
@@ -33,7 +33,7 @@
 }
 
 .btn-add-user:hover {
-    background: #059669;
+    background: #f15a24;
 }
 
 .users-table-container {
@@ -97,7 +97,7 @@
 
 .btn-edit {
     padding: 0.5rem 1rem;
-    background: #6366f1;
+    background: #ff6a2b;
     color: white;
     border: none;
     border-radius: 6px;
@@ -108,7 +108,7 @@
 }
 
 .btn-edit:hover {
-    background: #4f46e5;
+    background: #f15a24;
 }
 
 .manage-roles-note {
@@ -149,7 +149,7 @@
 
 .manage-roles-error button {
     padding: 0.5rem 1.5rem;
-    background: #6366f1;
+    background: #ff6a2b;
     color: white;
     border: none;
     border-radius: 6px;
@@ -276,8 +276,8 @@
 
 .form-input:focus {
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: #ff6a2b;
+    box-shadow: 0 0 0 3px rgba(255, 106, 43, 0.1);
 }
 
 .modal-buttons {
@@ -289,7 +289,7 @@
 
 .btn-primary {
     padding: 0.75rem 1.5rem;
-    background: #6366f1;
+    background: #ff6a2b;
     color: white;
     border: none;
     border-radius: 6px;
@@ -300,7 +300,7 @@
 }
 
 .btn-primary:hover {
-    background: #4f46e5;
+    background: #f15a24;
 }
 
 .btn-verify {
