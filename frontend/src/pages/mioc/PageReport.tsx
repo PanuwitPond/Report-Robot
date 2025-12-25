@@ -54,8 +54,9 @@ const PageReport: React.FC = () => {
     const [hoverBtn3, setHoverBtn3] = useState(false);
 
     const navigate = useNavigate();
-    
-    console.log('🚀 PageReport component MOUNTED with hover states:', { hoverBtn1, hoverBtn2, hoverBtn3 });
+
+    // Debug: Log hover state changes
+    console.log('🎨 Button Hover States:', { hoverBtn1, hoverBtn2, hoverBtn3 });
 
     const get_cam_owner = async (): Promise<string[]> => {
         const token = localStorage.getItem("access_token");
@@ -196,43 +197,22 @@ const PageReport: React.FC = () => {
                     {/* Action Buttons */}
                     <div className="button-group">
                         <button 
-                            className="report-btn btn-primary" 
+                            className="report-btn"
                             onClick={() => handleDownload('gbbut', 'gbb-ut')}
-                            onMouseEnter={() => setHoverBtn1(true)}
-                            onMouseLeave={() => setHoverBtn1(false)}
-                            style={{
-                                backgroundColor: hoverBtn1 ? '#ff6a2b' : '#2563eb',
-                                color: hoverBtn1 ? '#1a1a1a' : '#ffffff',
-                                transition: 'all 0.2s ease'
-                            }}
                         >
                             📄 ออกรีพอร์ตสำหรับ GBB-UT
                         </button>
                         
                         <button 
-                            className="report-btn btn-secondary" 
+                            className="report-btn"
                             onClick={() => handleDownload('general', 'general')}
-                            onMouseEnter={() => setHoverBtn2(true)}
-                            onMouseLeave={() => setHoverBtn2(false)}
-                            style={{
-                                backgroundColor: hoverBtn2 ? '#ff6a2b' : '#2563eb',
-                                color: hoverBtn2 ? '#1a1a1a' : '#ffffff',
-                                transition: 'all 0.2s ease'
-                            }}
                         >
                             📊 ออกรีพอร์ตสำหรับ Site อื่นๆ
                         </button>
                         
                         <button 
-                            className="report-btn btn-accent" 
+                            className="report-btn"
                             onClick={() => handleDownload('face-rec', 'face_rec')}
-                            onMouseEnter={() => setHoverBtn3(true)}
-                            onMouseLeave={() => setHoverBtn3(false)}
-                            style={{
-                                backgroundColor: hoverBtn3 ? '#ff6a2b' : '#2563eb',
-                                color: hoverBtn3 ? '#1a1a1a' : '#ffffff',
-                                transition: 'all 0.2s ease'
-                            }}
                         >
                             👤 ออกรีพอร์ต Face Recognition
                         </button>
