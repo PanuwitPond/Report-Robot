@@ -121,9 +121,9 @@ const PageTrueAlarm: React.FC = () => {
             const date = new Date(value);
             if (isNaN(date.getTime())) return '-';
             return date.toLocaleString('th-TH', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
+                // year: 'numeric',
+                // month: '2-digit',
+                // day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
