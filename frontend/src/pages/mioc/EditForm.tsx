@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Grid, TextField, Button, DialogActions, Typography
+    Grid, TextField, Button, DialogActions, Typography,
+    FormControlLabel, Checkbox, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
 
 interface EditFormProps {
@@ -81,6 +82,22 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
         }));
     };
 
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: checked
+        }));
+    };
+
+    const handleSelectChange = (e: any) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -128,9 +145,37 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
                     />
                 </Grid>
 
-                {/* ✅ เปลี่ยนเป็น type="time" และใช้ InputLabelProps={{ shrink: true }} เพื่อให้ Label ไม่ทับเวลา */}
-                
-                {/* 2. เวลาเกิดเหตุ */}
+                {/* ✨ เพิ่ม: Checkbox "ควบคุมได้" */}
+                <Grid item xs={6}>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                name="arrest_flag"
+                                checked={formData.arrest_flag}
+                                onChange={handleCheckboxChange}
+                            />
+                        }
+                        label="ควบคุมได้"
+                    />
+                </Grid>
+
+                {/* ✨ เพิ่ม: Dropdown "น่าสงสัย" */}
+                <Grid item xs={6}>
+                    <FormControl fullWidth size="small">
+                        <InputLabel>น่าสงสัย</InputLabel>
+                        <Select
+                            name="suspect"
+                            value={formData.suspect}
+                            onChange={handleSelectChange}
+                            label="น่าสงสัย"
+                        >
+                            <MenuItem value="">ไม่ระบุ</MenuItem>
+                            <MenuItem value="N">N</MenuItem>
+                            <MenuItem value="A">A</MenuItem>
+                            <MenuItem value="N/A">N/A</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
                 <Grid item xs={6}>
                     <TextField
                         fullWidth
