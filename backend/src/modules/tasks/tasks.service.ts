@@ -4,38 +4,40 @@ import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { StorageService } from '../../storage/storage.service';
-import { ConfigService } from '@nestjs/config'; // เพิ่ม ConfigService
+import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 
 @Injectable()
 export class TasksService {
     constructor(
-       @InjectRepository(Task, 'ROBOT_CONNECTION')
+        @InjectRepository(Task, 'ROBOT_CONNECTION')
         private readonly tasksRepository: Repository<Task>,
         private readonly storageService: StorageService,
-        private readonly configService: ConfigService, // Inject ConfigService
+        private readonly configService: ConfigService,
     ) { }
 
     async findAll(domain: string) {
-        // ส่งข้อมูลดิบออกไปเลย ไม่ต้อง map URL ที่นี่ (ให้ Frontend จัดการ)
         return this.tasksRepository.find();
     }
 
     async findOne(id: string) {
-        // Fixed: Task uses task_id as primary key, not id
         const task = await this.tasksRepository.findOne({ where: { task_id: id } });
         if (!task) throw new NotFoundException('Task not found');
         return task;
     }
 
     async create(createTaskDto: CreateTaskDto, file: Express.Multer.File) {
-    const fileExt = path.extname(file.originalname);
-    const fileName = `task_image/${createTaskDto.taskId}${fileExt}`;
+        let fullUrl = '';
+        
+        if (file) {
+            const fileExt = path.extname(file.originalname);
+            // ตั้งชื่อไฟล์ตาม robot-web: task_image/{task_id}.ext
+            const fileName = `task_image/${createTaskDto.taskId}${fileExt}`;
+            
+            // อัปโหลดไปที่ Robot Bucket และรับ URL เต็มกลับมา
+            fullUrl = await this.storageService.uploadRobotFile(file, fileName);
+        }
 
-    // เรียกใช้ฟังก์ชันใหม่ uploadRobotFile
-    const fullUrl = await this.storageService.uploadRobotFile(file, fileName);
-
-        // 3. บันทึก Full URL ลง DB
         const task = this.tasksRepository.create({
             task_id: createTaskDto.taskId,
             task_name: createTaskDto.taskName,
@@ -43,7 +45,7 @@ export class TasksService {
             mode: createTaskDto.mode,
             purpose: createTaskDto.purpose,
             siteName: createTaskDto.siteName,
-            imageUrl: fullUrl, // บันทึกเป็น https://...
+            imageUrl: fullUrl, // บันทึก URL เต็ม (https://...)
         });
         
         return this.tasksRepository.save(task);
@@ -55,13 +57,7 @@ export class TasksService {
         if (file) {
             const fileExt = path.extname(file.originalname);
             const fileName = `task_image/${task.task_id}${fileExt}`;
-            
-            await this.storageService.uploadFile(file, fileName);
-
-            // อัปเดต URL ใหม่ (เผื่อมีการเปลี่ยน config หรืออะไรก็ตาม)
-            const endpoint = this.configService.get('MINIO_ENDPOINT');
-            const bucket = this.configService.get('MINIO_BUCKET');
-            task.imageUrl = `https://${endpoint}/${bucket}/${fileName}`;
+            task.imageUrl = await this.storageService.uploadRobotFile(file, fileName);
         }
 
         if (updateData.taskName) task.task_name = updateData.taskName;
@@ -77,6 +73,4 @@ export class TasksService {
         const task = await this.findOne(id);
         return this.tasksRepository.remove(task);
     }
-
-    
 }

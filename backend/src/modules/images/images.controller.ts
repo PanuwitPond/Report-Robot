@@ -22,42 +22,42 @@ import { Response } from 'express';
 export class ImagesController {
     constructor(private readonly imagesService: ImagesService) { }
 
-    @Get()
-    async findAll(@Query('domain') domain: string) {
-        return this.imagesService.findAll(domain);
-    }
-
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-    return this.imagesService.findOne(+id); 
-}
-    
-
     @Post()
     @UseInterceptors(FileInterceptor('image'))
     async create(
-        @Body('site') site: string,
-        @Body('imageType') imageType: string,
-        @Body('domain') domain: string,
-        @UploadedFile() file: Express.Multer.File,
-    ) {
-        return this.imagesService.create(site, imageType, domain, file);
-    }
+    @Body() body: { site: string; imageType: string; imageName: string; domain: string }, // [เพิ่ม] imageName
+    @UploadedFile() file: Express.Multer.File,
+) {
+    // ส่ง imageName ไปให้ Service ด้วย
+    return this.imagesService.create(body.site, body.imageType, body.imageName, body.domain, file);
+}
+    @Get()
+  async findAll(@Query('domain') domain: string) {
+    return this.imagesService.findAll(domain);
+  }
 
-    @Patch(':id')
-    @UseInterceptors(FileInterceptor('image'))
-    async update(
-        @Param('id') id: string,
-        @Body() updateData: { site?: string; imageType?: string },
-        @UploadedFile() file: Express.Multer.File,
-    ) {
-        // ส่ง +id (number) และข้อมูลที่ต้องการ update
-        return this.imagesService.update(+id, updateData, file);
-    }
 
-    @Delete(':id')
-    async delete(@Param('id') id: string) {
-        await this.imagesService.delete(id);
-        return { message: 'Image deleted successfully' };
-    }
+   @Get(':id')
+  async findOne(@Param('id') id: string) {
+    // [แก้ไข] ลบเครื่องหมาย + ออก
+    return this.imagesService.findOne(id); 
+  }
+
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('image'))
+  async update(
+    @Param('id') id: string,
+    @Body() updateData: { site?: string; imageType?: string },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // [แก้ไข] ลบเครื่องหมาย + ออก
+    return this.imagesService.update(id, updateData, file);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    // [แก้ไข] ลบเครื่องหมาย + ออก (ถ้ามี)
+    await this.imagesService.delete(id);
+    return { message: 'Image deleted successfully' };
+  }
 }

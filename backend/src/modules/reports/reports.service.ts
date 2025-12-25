@@ -10,6 +10,7 @@ import { Readable } from 'stream';
 @Injectable()
 export class ReportsService {
     constructor(
+        
         @InjectRepository(Report)
         private reportsRepository: Repository<Report>,
         private storageService: StorageService,
@@ -20,6 +21,7 @@ export class ReportsService {
         private robotDataSource: DataSource,
         @InjectDataSource('wf_conn')    // Inject Workforce DB
         private wfDataSource: DataSource, 
+        
     ) { }
 
     async findAll(domain: string): Promise<Report[]> {
@@ -27,6 +29,14 @@ export class ReportsService {
             where: { domain },
             order: { createdAt: 'DESC' },
         });
+    }
+
+    async getRobotSites() {
+        const result = await this.robotDataSource.query(
+            `SELECT distinct site FROM metthier.ml_robots WHERE active IS TRUE ORDER BY site`
+        );
+        const sites = result.map((r: any) => r.site).filter(Boolean);
+        return { sites };
     }
 
     async findOne(id: string): Promise<Report> {
@@ -242,12 +252,7 @@ export class ReportsService {
     }
     
     // 3. Get Sites for Robot (ย้ายมาจาก /api/sites)
-    async getRobotSites(): Promise<string[]> {
-        const result = await this.robotDataSource.query(
-            'SELECT distinct site FROM metthier.ml_robots WHERE active IS TRUE ORDER BY site'
-        );
-        return result.map((r: any) => r.site).filter(Boolean);
-    }
+   
 
     
     // 2. ฟังก์ชันดึง PDF จาก Jasper Server (รวมทุกแบบไว้ในฟังก์ชันเดียว)

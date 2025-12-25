@@ -9,6 +9,12 @@ export const taskService = {
         return data;
     },
 
+    // [เพิ่มส่วนนี้] เพื่อดึง Site จาก Backend
+    async getSites(): Promise<string[]> {
+        const { data } = await apiClient.get<{ sites: string[] }>('/reports/robot-sites');
+        return data.sites;
+    },
+
     async getById(id: string): Promise<Task> {
         const { data } = await apiClient.get<Task>(`/tasks/${id}`);
         return data;
@@ -16,7 +22,6 @@ export const taskService = {
 
     async create(taskData: CreateTaskDTO, domain: string): Promise<Task> {
         const formData = new FormData();
-
         formData.append('taskId', taskData.taskId);
         formData.append('taskName', taskData.taskName);
         formData.append('mapName', taskData.mapName);
@@ -30,16 +35,13 @@ export const taskService = {
         }
 
         const { data } = await apiClient.post<Task>('/tasks', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
         return data;
     },
 
     async update(updateData: UpdateTaskDTO): Promise<Task> {
         const formData = new FormData();
-
         if (updateData.taskId) formData.append('taskId', updateData.taskId);
         if (updateData.taskName) formData.append('taskName', updateData.taskName);
         if (updateData.mapName) formData.append('mapName', updateData.mapName);
@@ -49,9 +51,7 @@ export const taskService = {
         if (updateData.image) formData.append('image', updateData.image);
 
         const { data } = await apiClient.patch<Task>(`/tasks/${updateData.id}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
         return data;
     },
