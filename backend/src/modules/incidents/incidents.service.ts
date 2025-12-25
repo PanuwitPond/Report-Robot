@@ -8,28 +8,23 @@ export class IncidentsService {
         @InjectDataSource('mioc_conn') private miocDataSource: DataSource
     ) {}
 
-    // 1. ดึงเคสที่จบแล้ว (Complete) -> แก้ SQL ให้ดึงทุกคอลัมน์ (*)
+    // 1. ดึงเคสที่จบแล้ว (Complete) -> ตรงกับ mioc_web backend
     async getComplete() {
         const sql = `
-            SELECT *, 
-                -- แปลงวันที่เป็น text เพื่อป้องกัน error เรื่อง timezone ในบางกรณี
-                COALESCE(event_time::text, created_at::text) as event_time_str, 
-                'Completed' as status
+            SELECT * 
             FROM intrusion_truealarms 
             WHERE deleted_at IS NULL 
-            AND conclusion IS NOT NULL 
-            AND conclusion != ''
-            ORDER BY created_at DESC
+            AND updated_at IS NOT NULL
+            AND (conclusion IS NOT NULL OR conclusion<>'')
+            ORDER BY created_at DESC, event_time DESC
         `;
         return this.miocDataSource.query(sql);
     }
 
-    // 2. ดึงเคสที่ยังไม่จบ (Incomplete) -> แก้ SQL ให้ดึงทุกคอลัมน์ (*) เช่นกัน
+    // 2. ดึงเคสที่ยังไม่จบ (Incomplete) -> ตรงกับ mioc_web backend
     async getIncomplete() {
         const sql = `
-            SELECT *, 
-                COALESCE(event_time::text, created_at::text) as event_time_str, 
-                'Incomplete' as status
+            SELECT * 
             FROM intrusion_truealarms 
             WHERE deleted_at IS NULL 
             AND (conclusion IS NULL OR conclusion = '')
