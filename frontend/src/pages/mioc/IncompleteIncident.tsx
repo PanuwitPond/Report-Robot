@@ -113,13 +113,13 @@ const IncompleteIncident: React.FC = () => {
             field: 'event_time',
             headerName: 'เวลาเกิดเหตุ',
             width: 180,
-            valueFormatter: (params) => formatDate(params)
+            valueGetter: (params) => params?.replace?.(/\+\d{2}$/, '') || ''
         },
         {
             field: 'mioc_contract_time',
             headerName: 'เวลาติดต่อเจ้าหน้าที่',
             width: 180,
-            valueFormatter: (params) => formatDate(params)
+            valueGetter: (params) => params?.replace?.(/\+\d{2}$/, '') || ''
         },
         {
             field: 'actions',
