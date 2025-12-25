@@ -6,3 +6,4 @@ export * from './image.service';
 export * from './users.service';
 export * from './storage.service';
 export * from './mroi.service';
+export * from './robots.service';
