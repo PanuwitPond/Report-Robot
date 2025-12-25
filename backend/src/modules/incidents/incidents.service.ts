@@ -12,27 +12,22 @@ export class IncidentsService {
 
     async getComplete() {
         const sql = `
-            SELECT *, 
-                COALESCE(event_time::text, created_at::text) as event_time, 
-                'Completed' as status
+            SELECT * 
             FROM intrusion_truealarms 
             WHERE deleted_at IS NULL 
-            AND conclusion IS NOT NULL 
-            AND conclusion != ''
-            ORDER BY created_at DESC
+            AND updated_at IS NOT NULL 
+            AND (conclusion IS NOT NULL OR conclusion<>'')
+            ORDER BY created_at DESC, event_time DESC
         `;
         return this.miocDataSource.query(sql);
     }
 
     async getIncomplete() {
         const sql = `
-            SELECT *, 
-                COALESCE(event_time::text, created_at::text) as event_time, 
-                'Incomplete' as status
+            SELECT * 
             FROM intrusion_truealarms 
             WHERE deleted_at IS NULL 
-            AND (conclusion IS NULL OR conclusion = '')
-            ORDER BY created_at DESC
+            AND (conclusion IS NULL OR conclusion ='')
         `;
         return this.miocDataSource.query(sql);
     }

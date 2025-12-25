@@ -160,14 +160,26 @@ const PageTrueAlarm: React.FC = () => {
         });
     };
 
+    // ✅ Safe formatter - ตรงกับ mioc_web ที่แสดง "-" สำหรับค่า invalid หรือ NULL
+    const formatTimeValue = (value: any): string => {
+        if (!value) return '-';
+        try {
+            if (typeof value === 'string') {
+                // ลบ timezone suffix เหมือน mioc_web (/\+\d{2}$/)
+                return value.replace(/\+\d{2}$/, '');
+            }
+            return '-';
+        } catch (e) { return '-'; }
+    };
+
     // ✅ กำหนด Columns ตามแบบ mioc_web (ลบ timezone ออกเท่านั้น)
     const columns: GridColDef[] = [
         { field: 'incident_no', headerName: 'Incident NO.', width: 150 },
-        { field: 'event_time', headerName: 'เวลาเกิดเหตุ', width: 170, valueGetter: (params) => params?.replace?.(/\+\d{2}$/, '') || '' },
-        { field: 'mioc_contract_time', headerName: 'เวลาติดต่อเจ้าหน้าที่', width: 170, valueGetter: (params) => params?.replace?.(/\+\d{2}$/, '') || '' },
-        { field: 'officer_check_time', headerName: 'เวลาที่เข้าตรวจสอบ', width: 170, valueGetter: (params) => params?.replace?.(/\+\d{2}$/, '') || '' },
-        { field: 'arrest_time', headerName: 'arrest_time', width: 170, valueGetter: (params) => params?.replace?.(/\+\d{2}$/, '') || '' },
-        { field: 'last_seen_time', headerName: 'last_seen_time', width: 170, valueGetter: (params) => params?.replace?.(/\+\d{2}$/, '') || '' },
+        { field: 'event_time', headerName: 'เวลาเกิดเหตุ', width: 170, valueFormatter: (value) => formatTimeValue(value) },
+        { field: 'mioc_contract_time', headerName: 'เวลาติดต่อเจ้าหน้าที่', width: 170, valueFormatter: (value) => formatTimeValue(value) },
+        { field: 'officer_check_time', headerName: 'เวลาที่เข้าตรวจสอบ', width: 170, valueFormatter: (value) => formatTimeValue(value) },
+        { field: 'arrest_time', headerName: 'arrest_time', width: 170, valueFormatter: (value) => formatTimeValue(value) },
+        { field: 'last_seen_time', headerName: 'last_seen_time', width: 170, valueFormatter: (value) => formatTimeValue(value) },
         { field: 'mioc_staff_name', headerName: 'mioc_staff_name', width: 150 },
         { field: 'mioc_staff_phone', headerName: 'mioc_staff_phone', width: 150 },
         { field: 'security_name', headerName: 'security_name', width: 150 },
