@@ -12,11 +12,7 @@ export const RobotImageConfigPage = () => {
     const queryClient = useQueryClient();
     
     // State สำหรับ Modal
-    const [editingImage, setEditingImage] = useState<RobotImage | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false); // [เพิ่ม] State เปิดปิด Modal Add
-
-    // State สำหรับ Edit Form (แบบ Manual เดิม)
-    const [updateData, setUpdateData] = useState<Partial<UpdateImageDTO>>({});
 
     // React Hook Form สำหรับ Add Image
     const { 
@@ -53,17 +49,6 @@ export const RobotImageConfigPage = () => {
         uploadImageMutation.mutate(formData);
     };
 
-    // Mutation: Update Image
-    const updateMutation = useMutation({
-        mutationFn: (data: UpdateImageDTO) => imageService.update(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['images', currentDomain] });
-            setEditingImage(null);
-            setUpdateData({});
-            alert('Image updated successfully!');
-        },
-    });
-
     // Mutation: Delete Image
     const deleteMutation = useMutation({
         mutationFn: (id: string) => imageService.delete(id),
@@ -72,15 +57,6 @@ export const RobotImageConfigPage = () => {
             alert('Image deleted successfully!');
         },
     });
-
-    const handleUpdate = () => {
-        if (editingImage) {
-            updateMutation.mutate({
-                id: editingImage.id,
-                ...updateData,
-            });
-        }
-    };
 
     const columns: Column<RobotImage>[] = [
         { key: 'site', header: 'Site' },
@@ -127,9 +103,6 @@ export const RobotImageConfigPage = () => {
             header: 'Actions',
             cell: (row) => (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Button size="small" onClick={() => setEditingImage(row)}>
-                        Edit
-                    </Button>
                     <Button
                         size="small"
                         variant="danger"
@@ -216,51 +189,7 @@ export const RobotImageConfigPage = () => {
                 </form>
             </Modal>
 
-            {/* Modal สำหรับ Edit Image (คงเดิม) */}
-            <Modal
-                isOpen={!!editingImage}
-                onClose={() => setEditingImage(null)}
-                title="Edit Image"
-            >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '400px' }}>
-                    <Select
-                        label="Site"
-                        value={updateData.site || editingImage?.site || ''}
-                        onChange={(e) => setUpdateData({ ...updateData, site: e.target.value })}
-                    >
-                        <option value="Site A">Site A</option>
-                        <option value="Site B">Site B</option>
-                        <option value="Site C">Site C</option>
-                    </Select>
 
-                    <Select
-                        label="Image Type"
-                        value={updateData.imageType || editingImage?.imageType || ''}
-                        onChange={(e) => setUpdateData({ ...updateData, imageType: e.target.value })}
-                    >
-                        <option value="Front View">Front View</option>
-                        <option value="Side View">Side View</option>
-                        <option value="Top View">Top View</option>
-                        <option value="Detail">Detail</option>
-                    </Select>
-
-                    <Input
-                        label="New Image (optional)"
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png"
-                        onChange={(e) => setUpdateData({ ...updateData, image: e.target.files?.[0] as any })}
-                    />
-
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                        <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
-                            {updateMutation.isPending ? 'Updating...' : 'Update'}
-                        </Button>
-                        <Button variant="secondary" onClick={() => setEditingImage(null)}>
-                            Cancel
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
         </div>
     );
 };
