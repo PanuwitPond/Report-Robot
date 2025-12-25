@@ -12,8 +12,10 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/material": "^7.3.6",
-    "@mui/x-data-grid": "^8.23.0",
+    "@mui/icons-material": "^6.5.0",
+    "@mui/material": "^6.5.0",
+    "@mui/styled-engine": "^6.1.0",
+    "@mui/x-data-grid": "^7.x.x",
     "@tanstack/react-query": "^5.14.0",
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
