@@ -128,8 +128,14 @@ export const Sidebar = () => {
                             </div>
                         </button>
                         <div className={`sidebar-submenu ${activeTab === 'mioc' ? 'open' : ''}`}>
-                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mioc-dashboard')}>
-                                📊 MIOC Generator
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mioc/report-download')}>
+                                📄 Report Download
+                            </button>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mioc/true-alarm')}>
+                                ✅ True Alarm
+                            </button>
+                            <button className="sidebar-menu-link" onClick={() => handleMenuClick('/mioc/incomplete')}>
+                                ⏳ Incomplete Incident
                             </button>
                         </div>
                     </div>

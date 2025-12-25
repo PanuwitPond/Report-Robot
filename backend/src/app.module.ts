@@ -10,6 +10,7 @@ import { ImagesModule } from './modules/images/images.module';
 import { UsersModule } from './modules/users/users.module';
 import { RobotsModule } from './modules/robots/robots.module';
 import { MroiModule } from './modules/mroi/mroi.module';
+import { IncidentsModule } from './modules/incidents/incidents.module';
 
 @Module({
     imports: [
@@ -79,6 +80,7 @@ import { MroiModule } from './modules/mroi/mroi.module';
         UsersModule,
         RobotsModule,
         MroiModule,
+        IncidentsModule,
     ],
 })
 export class AppModule { }
