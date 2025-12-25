@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Grid, TextField, Button, DialogActions, Typography, Paper
+    Grid, TextField, Button, DialogActions, Typography
 } from '@mui/material';
 
 interface EditFormProps {
@@ -14,12 +14,19 @@ const API_BASE_URL = 'http://localhost:3001/api';
 const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }) => {
     const [loading, setLoading] = useState(false);
     
-    // ฟังก์ชันช่วยแปลงวันที่ให้ลงใน input type="datetime-local" ได้
-    const formatDateTimeForInput = (dateString: string) => {
-        if (!dateString) return '';
+    // ✅ ฟังก์ชันช่วยแปลงค่าให้เป็นเวลา (HH:mm) สำหรับ input type="time"
+    const formatTimeForInput = (val: string) => {
+        if (!val) return '';
         try {
-            // ตัดส่วน Timezone ออกถ้ามี หรือใช้ 16 ตัวอักษรแรก (YYYY-MM-DDThh:mm)
-            return new Date(dateString).toISOString().slice(0, 16);
+            // กรณี 1: ข้อมูลมาเป็น ISO String (เช่น 2025-12-25T14:30:00)
+            if (val.includes('T')) {
+                return val.split('T')[1].substring(0, 5); 
+            }
+            // กรณี 2: ข้อมูลมาเป็น Time String (เช่น 14:30:00)
+            if (val.includes(':')) {
+                return val.substring(0, 5);
+            }
+            return '';
         } catch (e) {
             return '';
         }
@@ -39,7 +46,6 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
         additional_note: '',
         description_of_incident: '',
         conclusion: '',
-        // fields อื่นๆ ที่อาจจะมี
         arrest_flag: false,
         suspect: '',
     });
@@ -48,11 +54,12 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
         if (data) {
             setFormData({
                 incident_no: data.incident_no || '',
-                event_time: formatDateTimeForInput(data.event_time),
-                mioc_contract_time: formatDateTimeForInput(data.mioc_contract_time),
-                officer_check_time: formatDateTimeForInput(data.officer_check_time),
-                arrest_time: formatDateTimeForInput(data.arrest_time),
-                last_seen_time: formatDateTimeForInput(data.last_seen_time),
+                // ✅ ใช้ formatTimeForInput ดึงเฉพาะเวลามาแสดง
+                event_time: formatTimeForInput(data.event_time),
+                mioc_contract_time: formatTimeForInput(data.mioc_contract_time),
+                officer_check_time: formatTimeForInput(data.officer_check_time),
+                arrest_time: formatTimeForInput(data.arrest_time),
+                last_seen_time: formatTimeForInput(data.last_seen_time),
                 mioc_staff_name: data.mioc_staff_name || '',
                 mioc_staff_phone: data.mioc_staff_phone || '',
                 security_name: data.security_name || '',
@@ -115,17 +122,19 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
                         label="Incident NO."
                         name="incident_no"
                         value={formData.incident_no}
-                        disabled // ห้ามแก้เลขเคส
+                        disabled
                         variant="filled"
                         size="small"
                     />
                 </Grid>
 
-                {/* 2. เวลาเกิดเหตุ & 3. เวลาติดต่อเจ้าหน้าที่ */}
+                {/* ✅ เปลี่ยนเป็น type="time" และใช้ InputLabelProps={{ shrink: true }} เพื่อให้ Label ไม่ทับเวลา */}
+                
+                {/* 2. เวลาเกิดเหตุ */}
                 <Grid item xs={6}>
                     <TextField
                         fullWidth
-                        type="datetime-local"
+                        type="time"  
                         label="เวลาเกิดเหตุ"
                         name="event_time"
                         value={formData.event_time}
@@ -134,10 +143,12 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
                         size="small"
                     />
                 </Grid>
+
+                {/* 3. เวลาติดต่อเจ้าหน้าที่ */}
                 <Grid item xs={6}>
                     <TextField
                         fullWidth
-                        type="datetime-local"
+                        type="time"
                         label="เวลาติดต่อเจ้าหน้าที่"
                         name="mioc_contract_time"
                         value={formData.mioc_contract_time}
@@ -151,7 +162,7 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
                 <Grid item xs={12}>
                     <TextField
                         fullWidth
-                        type="datetime-local"
+                        type="time"
                         label="เวลาที่เข้าตรวจสอบ"
                         name="officer_check_time"
                         value={formData.officer_check_time}
@@ -161,11 +172,11 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
                     />
                 </Grid>
 
-                {/* 5. arrest_time & 6. last_seen_time */}
+                {/* 5. arrest_time */}
                 <Grid item xs={6}>
                     <TextField
                         fullWidth
-                        type="datetime-local"
+                        type="time"
                         label="arrest_time"
                         name="arrest_time"
                         value={formData.arrest_time}
@@ -174,10 +185,12 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
                         size="small"
                     />
                 </Grid>
+
+                {/* 6. last_seen_time */}
                 <Grid item xs={6}>
                     <TextField
                         fullWidth
-                        type="datetime-local"
+                        type="time"
                         label="last_seen_time"
                         name="last_seen_time"
                         value={formData.last_seen_time}
@@ -187,106 +200,58 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }
                     />
                 </Grid>
 
-                {/* 7. mioc_staff_name & 8. mioc_staff_phone */}
+                {/* --- ส่วนอื่นๆ คงเดิม --- */}
                 <Grid item xs={6}>
                     <TextField
-                        fullWidth
-                        label="mioc_staff_name"
-                        name="mioc_staff_name"
-                        value={formData.mioc_staff_name}
-                        onChange={handleChange}
-                        size="small"
+                        fullWidth label="mioc_staff_name" name="mioc_staff_name"
+                        value={formData.mioc_staff_name} onChange={handleChange} size="small"
                     />
                 </Grid>
                 <Grid item xs={6}>
                     <TextField
-                        fullWidth
-                        label="mioc_staff_phone"
-                        name="mioc_staff_phone"
-                        value={formData.mioc_staff_phone}
-                        onChange={handleChange}
-                        size="small"
-                    />
-                </Grid>
-
-                {/* 9. security_name & 10. security_phone */}
-                <Grid item xs={6}>
-                    <TextField
-                        fullWidth
-                        label="security_name"
-                        name="security_name"
-                        value={formData.security_name}
-                        onChange={handleChange}
-                        size="small"
+                        fullWidth label="mioc_staff_phone" name="mioc_staff_phone"
+                        value={formData.mioc_staff_phone} onChange={handleChange} size="small"
                     />
                 </Grid>
                 <Grid item xs={6}>
                     <TextField
-                        fullWidth
-                        label="security_phone"
-                        name="security_phone"
-                        value={formData.security_phone}
-                        onChange={handleChange}
-                        size="small"
+                        fullWidth label="security_name" name="security_name"
+                        value={formData.security_name} onChange={handleChange} size="small"
                     />
                 </Grid>
-
-                {/* 11. additional_note */}
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth label="security_phone" name="security_phone"
+                        value={formData.security_phone} onChange={handleChange} size="small"
+                    />
+                </Grid>
                 <Grid item xs={12}>
                     <TextField
-                        fullWidth
-                        multiline
-                        rows={2}
-                        label="additional_note"
-                        name="additional_note"
-                        value={formData.additional_note}
-                        onChange={handleChange}
-                        size="small"
+                        fullWidth multiline rows={2} label="additional_note" name="additional_note"
+                        value={formData.additional_note} onChange={handleChange} size="small"
                     />
                 </Grid>
-
-                {/* 12. คำอธิบาย */}
                 <Grid item xs={12}>
                     <TextField
-                        fullWidth
-                        multiline
-                        rows={3}
-                        label="คำอธิบาย"
-                        name="description_of_incident"
-                        value={formData.description_of_incident}
-                        onChange={handleChange}
+                        fullWidth multiline rows={3} label="คำอธิบาย" name="description_of_incident"
+                        value={formData.description_of_incident} onChange={handleChange}
                     />
                 </Grid>
-
-                {/* 13. สรุป */}
                 <Grid item xs={12}>
                     <TextField
-                        fullWidth
-                        multiline
-                        rows={3}
-                        label="สรุป (ใส่ข้อมูลเพื่อจบงาน)"
-                        name="conclusion"
-                        value={formData.conclusion}
-                        onChange={handleChange}
+                        fullWidth multiline rows={3} label="สรุป (ใส่ข้อมูลเพื่อจบงาน)" name="conclusion"
+                        value={formData.conclusion} onChange={handleChange}
                         placeholder="หากระบุข้อมูลในช่องนี้ ระบบจะถือว่าจบงาน (Complete)"
-                        color="primary"
-                        focused
+                        color="primary" focused
                     />
                 </Grid>
             </Grid>
 
-            {/* 14. Action (Buttons) */}
             <DialogActions sx={{ mt: 3, px: 0 }}>
                 <Button onClick={onClose} color="inherit" disabled={loading}>
                     ยกเลิก
                 </Button>
-                <Button 
-                    type="submit" 
-                    variant="contained" 
-                    color="primary" 
-                    disabled={loading}
-                    sx={{ minWidth: 100 }}
-                >
+                <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ minWidth: 100 }}>
                     {loading ? 'กำลังบันทึก...' : 'บันทึก'}
                 </Button>
             </DialogActions>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { 
     Paper, Button, Dialog, DialogTitle, DialogContent, 
-    IconButton, Typography, Box, Tooltip, Chip 
+    IconButton, Typography, Box, Tooltip 
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -160,26 +160,39 @@ const PageTrueAlarm: React.FC = () => {
         });
     };
 
-    // ✅ Safe formatter - ตรงกับ mioc_web ที่แสดง "-" สำหรับค่า invalid หรือ NULL
-    const formatTimeValue = (value: any): string => {
+    // ✅ เพิ่มฟังก์ชัน formatDate ที่รองรับทั้ง "เวลาอย่างเดียว" และ "วันที่+เวลา"
+    const formatDate = (value: any): string => {
         if (!value) return '-';
+        
+        // กรณี: ค่ามาเป็นเวลาอย่างเดียว (เช่น "20:08:00" หรือ "08:30")
+        if (typeof value === 'string' && value.includes(':') && !value.includes('T') && value.length < 15) {
+            // ตัดเอาแค่ 5 ตัวแรก (HH:mm)
+            return value.substring(0, 5); 
+        }
+
+        // กรณี: ค่ามาเป็น Date Time เต็มรูปแบบ (เช่น "2025-12-25T14:30:00...")
         try {
-            if (typeof value === 'string') {
-                // ลบ timezone suffix เหมือน mioc_web (/\+\d{2}$/)
-                return value.replace(/\+\d{2}$/, '');
-            }
+            const date = new Date(value);
+            // เช็คว่าเป็นวันที่ที่ถูกต้องหรือไม่
+            if (isNaN(date.getTime())) return value.toString(); // ถ้าแปลงไม่ได้ ให้โชว์ค่าเดิม
+
+            return date.toLocaleString('th-TH', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch (e) {
             return '-';
-        } catch (e) { return '-'; }
+        }
     };
 
-    // ✅ กำหนด Columns ตามแบบ mioc_web (ลบ timezone ออกเท่านั้น)
+    // ✅ แก้ไข Columns ให้ใช้ valueFormatter: (value) => formatDate(value)
     const columns: GridColDef[] = [
         { field: 'incident_no', headerName: 'Incident NO.', width: 150 },
-        { field: 'event_time', headerName: 'เวลาเกิดเหตุ', width: 170, valueFormatter: (value) => formatTimeValue(value) },
-        { field: 'mioc_contract_time', headerName: 'เวลาติดต่อเจ้าหน้าที่', width: 170, valueFormatter: (value) => formatTimeValue(value) },
-        { field: 'officer_check_time', headerName: 'เวลาที่เข้าตรวจสอบ', width: 170, valueFormatter: (value) => formatTimeValue(value) },
-        { field: 'arrest_time', headerName: 'arrest_time', width: 170, valueFormatter: (value) => formatTimeValue(value) },
-        { field: 'last_seen_time', headerName: 'last_seen_time', width: 170, valueFormatter: (value) => formatTimeValue(value) },
+        { field: 'event_time', headerName: 'เวลาเกิดเหตุ', width: 170, valueFormatter: (value) => formatDate(value) },
+        { field: 'mioc_contract_time', headerName: 'เวลาติดต่อเจ้าหน้าที่', width: 170, valueFormatter: (value) => formatDate(value) },
+        { field: 'officer_check_time', headerName: 'เวลาที่เข้าตรวจสอบ', width: 170, valueFormatter: (value) => formatDate(value) },
+        { field: 'arrest_time', headerName: 'arrest_time', width: 170, valueFormatter: (value) => formatDate(value) },
+        { field: 'last_seen_time', headerName: 'last_seen_time', width: 170, valueFormatter: (value) => formatDate(value) },
         { field: 'mioc_staff_name', headerName: 'mioc_staff_name', width: 150 },
         { field: 'mioc_staff_phone', headerName: 'mioc_staff_phone', width: 150 },
         { field: 'security_name', headerName: 'security_name', width: 150 },
@@ -189,7 +202,7 @@ const PageTrueAlarm: React.FC = () => {
         { field: 'conclusion', headerName: 'สรุป', width: 250 },
         { 
             field: 'actions', headerName: 'action', width: 150, sortable: false, align: 'center', headerAlign: 'center',
-            pinned: 'right', // ล็อคคอลัมน์ขวาสุด (ถ้าใช้ DataGridPro)
+            pinned: 'right',
             renderCell: (params: GridRenderCellParams) => (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title="Download PDF">
