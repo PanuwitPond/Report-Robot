@@ -1,38 +1,76 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { 
+    Grid, TextField, Button, DialogActions, Typography, Paper
+} from '@mui/material';
 
 interface EditFormProps {
     data?: any;
     onClose?: () => void;
+    onSaveSuccess?: () => void;
 }
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
-const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose }) => {
-    const navigate = useNavigate();
+const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose, onSaveSuccess }) => {
     const [loading, setLoading] = useState(false);
+    
+    // ฟังก์ชันช่วยแปลงวันที่ให้ลงใน input type="datetime-local" ได้
+    const formatDateTimeForInput = (dateString: string) => {
+        if (!dateString) return '';
+        try {
+            // ตัดส่วน Timezone ออกถ้ามี หรือใช้ 16 ตัวอักษรแรก (YYYY-MM-DDThh:mm)
+            return new Date(dateString).toISOString().slice(0, 16);
+        } catch (e) {
+            return '';
+        }
+    };
+
     const [formData, setFormData] = useState({
-        incident_no: data.incident_no || '',
-        event_time: data.event_time || '',
-        mioc_contract_time: data.mioc_contract_time || '',
-        officer_check_time: data.officer_check_time || '',
-        arrest_flag: data.arrest_flag || false,
-        arrest_time: data.arrest_time || '',
-        last_seen_time: data.last_seen_time || '',
-        mioc_staff_name: data.mioc_staff_name || '',
-        mioc_staff_phone: data.mioc_staff_phone || '',
-        security_name: data.security_name || '',
-        security_phone: data.security_phone || '',
-        conclusion: data.conclusion || '',
-        additional_note: data.additional_note || '',
-        description_of_incident: data.description_of_incident || '',
+        incident_no: '',
+        event_time: '',
+        mioc_contract_time: '',
+        officer_check_time: '',
+        arrest_time: '',
+        last_seen_time: '',
+        mioc_staff_name: '',
+        mioc_staff_phone: '',
+        security_name: '',
+        security_phone: '',
+        additional_note: '',
+        description_of_incident: '',
+        conclusion: '',
+        // fields อื่นๆ ที่อาจจะมี
+        arrest_flag: false,
+        suspect: '',
     });
 
+    useEffect(() => {
+        if (data) {
+            setFormData({
+                incident_no: data.incident_no || '',
+                event_time: formatDateTimeForInput(data.event_time),
+                mioc_contract_time: formatDateTimeForInput(data.mioc_contract_time),
+                officer_check_time: formatDateTimeForInput(data.officer_check_time),
+                arrest_time: formatDateTimeForInput(data.arrest_time),
+                last_seen_time: formatDateTimeForInput(data.last_seen_time),
+                mioc_staff_name: data.mioc_staff_name || '',
+                mioc_staff_phone: data.mioc_staff_phone || '',
+                security_name: data.security_name || '',
+                security_phone: data.security_phone || '',
+                additional_note: data.additional_note || '',
+                description_of_incident: data.description_of_incident || '',
+                conclusion: data.conclusion || '',
+                arrest_flag: data.arrest_flag || false,
+                suspect: data.suspect || '',
+            });
+        }
+    }, [data]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target as any;
+        const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+            [name]: value
         }));
     };
 
@@ -57,9 +95,8 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose }) => {
 
             if (!response.ok) throw new Error('Failed to save');
             
-            alert('บันทึกข้อมูลสำเร็จ');
+            if (onSaveSuccess) onSaveSuccess();
             if (onClose) onClose();
-            else navigate(-1);
         } catch (error) {
             console.error('Error:', error);
             alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
@@ -69,175 +106,191 @@ const EditForm: React.FC<EditFormProps> = ({ data = {}, onClose }) => {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-            <h2>แก้ไขข้อมูล Incident</h2>
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Incident No:</label>
-                    <input
-                        type="text"
+        <form onSubmit={handleSubmit} style={{ padding: '10px 0' }}>
+            <Grid container spacing={2}>
+                {/* 1. Incident NO. */}
+                <Grid item xs={12}>
+                    <TextField
+                        fullWidth
+                        label="Incident NO."
                         name="incident_no"
                         value={formData.incident_no}
-                        onChange={handleChange}
-                        disabled
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        disabled // ห้ามแก้เลขเคส
+                        variant="filled"
+                        size="small"
                     />
-                </div>
+                </Grid>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Event Time:</label>
-                    <input
+                {/* 2. เวลาเกิดเหตุ & 3. เวลาติดต่อเจ้าหน้าที่ */}
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
                         type="datetime-local"
+                        label="เวลาเกิดเหตุ"
                         name="event_time"
                         value={formData.event_time}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
                     />
-                </div>
-
-                <div style={{ marginBottom: '15px' }}>
-                    <label>MIOC Contact Time:</label>
-                    <input
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
                         type="datetime-local"
+                        label="เวลาติดต่อเจ้าหน้าที่"
                         name="mioc_contract_time"
                         value={formData.mioc_contract_time}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
                     />
-                </div>
+                </Grid>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Officer Check Time:</label>
-                    <input
+                {/* 4. เวลาที่เข้าตรวจสอบ */}
+                <Grid item xs={12}>
+                    <TextField
+                        fullWidth
                         type="datetime-local"
+                        label="เวลาที่เข้าตรวจสอบ"
                         name="officer_check_time"
                         value={formData.officer_check_time}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
                     />
-                </div>
+                </Grid>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label>MIOC Staff Name:</label>
-                    <input
-                        type="text"
+                {/* 5. arrest_time & 6. last_seen_time */}
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
+                        type="datetime-local"
+                        label="arrest_time"
+                        name="arrest_time"
+                        value={formData.arrest_time}
+                        onChange={handleChange}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                    />
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
+                        type="datetime-local"
+                        label="last_seen_time"
+                        name="last_seen_time"
+                        value={formData.last_seen_time}
+                        onChange={handleChange}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                    />
+                </Grid>
+
+                {/* 7. mioc_staff_name & 8. mioc_staff_phone */}
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
+                        label="mioc_staff_name"
                         name="mioc_staff_name"
                         value={formData.mioc_staff_name}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        size="small"
                     />
-                </div>
-
-                <div style={{ marginBottom: '15px' }}>
-                    <label>MIOC Staff Phone:</label>
-                    <input
-                        type="tel"
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
+                        label="mioc_staff_phone"
                         name="mioc_staff_phone"
                         value={formData.mioc_staff_phone}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        size="small"
                     />
-                </div>
+                </Grid>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Security Name:</label>
-                    <input
-                        type="text"
+                {/* 9. security_name & 10. security_phone */}
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
+                        label="security_name"
                         name="security_name"
                         value={formData.security_name}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        size="small"
                     />
-                </div>
-
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Security Phone:</label>
-                    <input
-                        type="tel"
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField
+                        fullWidth
+                        label="security_phone"
                         name="security_phone"
                         value={formData.security_phone}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        size="small"
                     />
-                </div>
+                </Grid>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Description:</label>
-                    <textarea
-                        name="description_of_incident"
-                        value={formData.description_of_incident}
-                        onChange={handleChange}
-                        rows={3}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                    />
-                </div>
-
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Conclusion:</label>
-                    <textarea
-                        name="conclusion"
-                        value={formData.conclusion}
-                        onChange={handleChange}
-                        rows={3}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                    />
-                </div>
-
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Additional Note:</label>
-                    <textarea
+                {/* 11. additional_note */}
+                <Grid item xs={12}>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        label="additional_note"
                         name="additional_note"
                         value={formData.additional_note}
                         onChange={handleChange}
-                        rows={3}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        size="small"
                     />
-                </div>
+                </Grid>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label>
-                        <input
-                            type="checkbox"
-                            name="arrest_flag"
-                            checked={formData.arrest_flag}
-                            onChange={handleChange}
-                        />
-                        {' '}Arrest Flag
-                    </label>
-                </div>
+                {/* 12. คำอธิบาย */}
+                <Grid item xs={12}>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label="คำอธิบาย"
+                        name="description_of_incident"
+                        value={formData.description_of_incident}
+                        onChange={handleChange}
+                    />
+                </Grid>
 
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                    <button
-                        type="button"
-                        onClick={onClose || (() => navigate(-1))}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#ccc',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                        disabled={loading}
-                    >
-                        ยกเลิก
-                    </button>
-                    <button
-                        type="submit"
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#2563eb',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                        disabled={loading}
-                    >
-                        {loading ? 'กำลังบันทึก...' : 'บันทึก'}
-                    </button>
-                </div>
-            </form>
-        </div>
+                {/* 13. สรุป */}
+                <Grid item xs={12}>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label="สรุป (ใส่ข้อมูลเพื่อจบงาน)"
+                        name="conclusion"
+                        value={formData.conclusion}
+                        onChange={handleChange}
+                        placeholder="หากระบุข้อมูลในช่องนี้ ระบบจะถือว่าจบงาน (Complete)"
+                        color="primary"
+                        focused
+                    />
+                </Grid>
+            </Grid>
+
+            {/* 14. Action (Buttons) */}
+            <DialogActions sx={{ mt: 3, px: 0 }}>
+                <Button onClick={onClose} color="inherit" disabled={loading}>
+                    ยกเลิก
+                </Button>
+                <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    disabled={loading}
+                    sx={{ minWidth: 100 }}
+                >
+                    {loading ? 'กำลังบันทึก...' : 'บันทึก'}
+                </Button>
+            </DialogActions>
+        </form>
     );
 };
 
