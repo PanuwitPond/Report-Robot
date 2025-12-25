@@ -429,7 +429,8 @@ export const RobotImageConfigPage = () => {
                         <Button type="submit" disabled={updateMutation.isPending}>
                             {updateMutation.isPending ? 'Updating...' : 'Update'}
                         </Button>
-                        <Button type="button" variant="secondary" onClick={() => setEditingImage(null)}>
+                        <Button type="button" variant="secondary" onClick={() => setEditingImage(null)} 
+                            >
                             Cancel
                         </Button>
                     </div>
