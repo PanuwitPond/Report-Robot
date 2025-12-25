@@ -1,44 +1,44 @@
 import { Controller, Get, Post, Delete, Param, Body, Res, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
+import { Response } from 'express'; // สำคัญ: ต้อง import จาก express
 import { IncidentsService } from './incidents.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('incidents')
-// @UseGuards(JwtAuthGuard, RolesGuard)  // Temporarily disabled for testing
 export class IncidentsController {
     constructor(private readonly incidentsService: IncidentsService) {}
 
     @Get('complete')
     async getComplete() {
-        const data = await this.incidentsService.getComplete();
-        return data;
+        return this.incidentsService.getComplete();
     }
 
     @Get('incomplete')
     async getIncomplete() {
-        const data = await this.incidentsService.getIncomplete();
-        return data;
+        return this.incidentsService.getIncomplete();
     }
 
     @Get(':id')
     async getById(@Param('id') id: string) {
-        const data = await this.incidentsService.getById(id);
-        return data;
+        return this.incidentsService.getById(id);
     }
 
     @Get(':id/report')
     async getReport(@Param('id') id: string, @Res() res: Response) {
         try {
             const buffer = await this.incidentsService.getIncidentReport(id);
+            
+            // ตั้งค่า Header ให้ Browser รู้ว่าเป็นไฟล์ PDF
             res.set({
                 'Content-Type': 'application/pdf',
                 'Content-Disposition': `attachment; filename="incident_${id}.pdf"`,
                 'Content-Length': buffer.length,
             });
+            
             res.send(buffer);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to generate report' });
+            console.error('Download Error:', error);
+            res.status(500).json({ error: 'Failed to generate report', details: error.message });
         }
     }
 

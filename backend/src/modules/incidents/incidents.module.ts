@@ -1,3 +1,4 @@
+// report_web/back/src/modules/incidents/incidents.module.ts
 import { Module } from '@nestjs/common';
 import { IncidentsController } from './incidents.controller';
 import { IncidentsService } from './incidents.service';
