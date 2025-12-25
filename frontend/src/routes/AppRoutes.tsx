@@ -17,7 +17,9 @@ import { RobotReportPage } from '@/pages/RobotReportPage';
 
 
 // นำเข้าหน้า MIOC
-import MiocDashboardPage from '../pages/MiocDashboardPage';
+import PageReport from '../pages/mioc/PageReport';
+import PageTrueAlarm from '../pages/mioc/PageTrueAlarm';
+import IncompleteIncident from '../pages/mioc/IncompleteIncident';
 
 // นำเข้าหน้า MROI
 import { MroiEmbedPage, DevicesPage, RoisPage, SchedulesPage, RoiEditor } from '../pages/mroi';
@@ -108,13 +110,47 @@ export const AppRoutes = () => {
                     }
                 />
 
-                {/* --- ส่วนที่เพิ่มใหม่สำหรับ MIOC --- */}
+                {/* --- MIOC Sub-Routes --- */}
+                <Route
+                    path="/mioc/report-download"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <PageReport />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mioc/true-alarm"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <PageTrueAlarm />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/mioc/incomplete"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <IncompleteIncident />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Backward Compatibility: Redirect old /mioc-dashboard to /mioc/report-download */}
                 <Route
                     path="/mioc-dashboard"
                     element={
                         <ProtectedRoute>
                             <Layout>
-                                <MiocDashboardPage />
+                                <Navigate to="/mioc/report-download" replace />
                             </Layout>
                         </ProtectedRoute>
                     }
