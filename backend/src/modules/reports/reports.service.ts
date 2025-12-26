@@ -155,8 +155,8 @@ export class ReportsService {
 
     async fetchRobotCleaningReport(site: string, month: string, year: string, format: string): Promise<{ buffer: Buffer, filename: string, mimeType: string }> {
         const jasperBaseUrl = 'http://192.168.100.135:8080/jasperserver/rest_v2/reports/robot_report';
-        const username = process.env.JASPER_USERNAME || 'jasperadmin';
-        const password = process.env.JASPER_PASSWORD || 'jasperadmin';
+        const username = process.env.JASPER_ROBOT_USERNAME || 'jasperadmin';
+const password = process.env.JASPER_ROBOT_PASSWORD || 'jasperadmin';
 
         // คำนวณวันที่ Start/End
         const m = parseInt(month);
