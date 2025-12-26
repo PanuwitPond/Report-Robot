@@ -10,7 +10,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import EditForm from './EditForm';
 import Swal from 'sweetalert2';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 interface Incident {
     id: string;
