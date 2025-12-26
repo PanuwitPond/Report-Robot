@@ -27,6 +27,8 @@ interface Incident {
     description_of_incident: string;
     conclusion: string;
     status: string;
+    controllable?: boolean;
+    suspect?: string;
     [key: string]: any;
 }
 
