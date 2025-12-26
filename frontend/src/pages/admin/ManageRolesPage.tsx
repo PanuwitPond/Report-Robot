@@ -227,7 +227,7 @@ export const ManageRolesPage = () => {
             {showRoleModal && selectedUser && (
                 <div className="modal-overlay" onClick={() => setShowRoleModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>Add Role to {selectedUser.username}</h2>
+                        <h2>Add Role by {selectedUser.username}</h2>
                         <div className="role-options">
                             {availableRoles.filter((role: string) => !selectedUser.roles.includes(role)).map((role: string) => (
                                 <button
