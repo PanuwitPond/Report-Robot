@@ -20,8 +20,13 @@ export const getDefaultRouteByRole = (roles?: string[]): string => {
     }
 
     // Service role - go to MROI dashboard (one of service's main pages)
-    if (roles.includes('service')) {
-        return '/mroi';
+    if (roles.includes('service_engineer')) {
+        return '/robot-cleaning-report';
+    }
+
+        // Service role - go to MROI dashboard (one of service's main pages)
+    if (roles.includes('implement_engineer')) {
+        return '/download-report';
     }
 
     // Unknown role - redirect to signin
