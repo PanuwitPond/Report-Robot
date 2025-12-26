@@ -1,225 +1,52 @@
 version: '3.8'
 
-# ============================================
-# Report Robot Complete Docker Setup
-# ============================================
-# Usage:
-#   1. Create .env file with required variables
-#   2. Run: docker-compose up -d
-#   3. Run migrations: docker-compose exec backend npm run migrate
-#   4. Access: http://localhost
-
 services:
-  # ============================================
-  # Frontend Service (React + Nginx)
-  # ============================================
-  frontend:
-    container_name: report-robot-frontend
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "${FRONTEND_PORT:-80}:80"
-    environment:
-      # These are build-time variables, passed to React build
-      # Frontend reads these at runtime from JavaScript
-      - VITE_API_BASE_URL=http://backend:3001/api
-      - VITE_KEYCLOAK_URL=http://${DOCKER_HOST:-host.docker.internal}:${KEYCLOAK_PORT:-8080}
-      - VITE_KEYCLOAK_REALM=${KEYCLOAK_REALM:-robot-report}
-      - VITE_KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-robot-report-client}
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - report-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
-
-  # ============================================
-  # Backend Service (NestJS API)
-  # ============================================
+  # --- Backend Service ---
   backend:
-    container_name: report-robot-backend
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    build: ./report_web/back
+    container_name: robot_report_backend
     ports:
-      - "${BACKEND_PORT:-3001}:3001"
+      - "3000:3000"
     environment:
-      # Application Configuration
-      NODE_ENV: ${NODE_ENV:-production}
-      PORT: 3001
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
-      
-      # Primary Database Connection (know_db)
-      DATABASE_HOST: ${DATABASE_HOST}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_USERNAME: ${DATABASE_USERNAME}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_NAME: ${DATABASE_NAME}
-      
-      # MROI Database Connection (ivs_service)
-      MROI_DB_HOST: ${MROI_DB_HOST}
-      MROI_DB_PORT: ${MROI_DB_PORT:-5432}
-      MROI_DB_USERNAME: ${MROI_DB_USERNAME}
-      MROI_DB_PASSWORD: ${MROI_DB_PASSWORD}
-      MROI_DB_NAME: ${MROI_DB_NAME}
-      
-      # MIOC Database Connection (metlink_app_db)
-      MIOC_DB_HOST: ${MIOC_DB_HOST}
-      MIOC_DB_PORT: ${MIOC_DB_PORT:-5432}
-      MIOC_DB_USERNAME: ${MIOC_DB_USERNAME}
-      MIOC_DB_PASSWORD: ${MIOC_DB_PASSWORD}
-      MIOC_DB_NAME: ${MIOC_DB_NAME}
-      
-      # Robot Database Connection (data_robot) - GCP with SSL
-      ROBOT_DB_HOST: ${ROBOT_DB_HOST}
-      ROBOT_DB_PORT: ${ROBOT_DB_PORT:-5432}
-      ROBOT_DB_USER: ${ROBOT_DB_USER}
-      ROBOT_DB_PASSWORD: ${ROBOT_DB_PASSWORD}
-      ROBOT_DB_NAME: ${ROBOT_DB_NAME}
-      
-      # Workforce Database Connection (ms_workforce) - GCP with SSL
-      WF_DB_HOST: ${WF_DB_HOST}
-      WF_DB_PORT: ${WF_DB_PORT:-5432}
-      WF_DB_USER: ${WF_DB_USER}
-      WF_DB_PASSWORD: ${WF_DB_PASSWORD}
-      WF_DB_NAME: ${WF_DB_NAME}
-      
-      # MinIO Storage Configuration (Report Bucket)
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_PORT: ${MINIO_PORT:-443}
-      MINIO_USE_SSL: ${MINIO_USE_SSL:-true}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-      MINIO_BUCKET: ${MINIO_BUCKET}
-      
-      # MinIO Storage Configuration (Robot Bucket)
-      MINIO_ROBOT_ENDPOINT: ${MINIO_ROBOT_ENDPOINT}
-      MINIO_ROBOT_PORT: ${MINIO_ROBOT_PORT:-443}
-      MINIO_ROBOT_USE_SSL: ${MINIO_ROBOT_USE_SSL:-true}
-      MINIO_ROBOT_ACCESS_KEY: ${MINIO_ROBOT_ACCESS_KEY}
-      MINIO_ROBOT_SECRET_KEY: ${MINIO_ROBOT_SECRET_KEY}
-      MINIO_ROBOT_BUCKET: ${MINIO_ROBOT_BUCKET}
-      
-      # Keycloak Authentication Configuration
-      KEYCLOAK_URL: http://keycloak:8080
-      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      
-      # JWT Configuration
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400}
-      USER_SECRET_KEY: ${USER_SECRET_KEY}
-      
-      # Jasper Reports Configuration
-      JASPER_USERNAME: ${JASPER_USERNAME}
-      JASPER_PASSWORD: ${JASPER_PASSWORD}
-      
-      # True Alarm Web Configuration
-      TRUE_ALARM_WEB_USERNAME: ${TRUE_ALARM_WEB_USERNAME}
-      TRUE_ALARM_WEB_PASSWORD: ${TRUE_ALARM_WEB_PASSWORD}
-      
-      # FFmpeg Configuration (optional, auto-detection if not set)
-      FFMPEG_PATH: ${FFMPEG_PATH:-/usr/bin/ffmpeg}
-      FFMPEG_TIMEOUT: ${FFMPEG_TIMEOUT:-15000}
-    
-    # Docker compose will wait for Keycloak to be ready
-    # before starting backend
+      - NODE_ENV=production
+      # ตัวอย่าง Config DB (ต้องตรงกับ .env ของคุณ)
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - DB_DATABASE=robot_report
     depends_on:
-      keycloak:
-        condition: service_healthy
-    
+      - postgres
     networks:
-      - report-network
-    
-    restart: unless-stopped
-    
-    # Volume for FFmpeg temporary files
-    tmpfs:
-      - /tmp
-    
-    # Health check configuration
-    # Queries the health endpoint to verify service is ready
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/mroi/iv-cameras/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
+      - app-network
 
-  # ============================================
-  # Keycloak Service (Authentication Provider)
-  # ============================================
-  keycloak:
-    container_name: report-robot-keycloak
-    image: keycloak:26.0.0
+  # --- Frontend Service ---
+  frontend:
+    build: ./report_web/front
+    container_name: robot_report_frontend
     ports:
-      - "${KEYCLOAK_PORT:-8080}:8080"
-    environment:
-      # Admin credentials
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USERNAME}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      
-      # Database configuration (H2 in-memory, change for production)
-      DB: h2
-      
-      # HTTP configuration
-      KC_HTTP_ENABLED: "true"
-    
+      - "8080:80" # เข้าเว็บผ่าน http://localhost:8080
+    depends_on:
+      - backend
     networks:
-      - report-network
-    
-    restart: unless-stopped
-    
-    # Health check for Keycloak service
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 60s
+      - app-network
 
-# ============================================
-# Network Configuration
-# ============================================
+  # --- Database (PostgreSQL) ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: robot_report_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: robot_report
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
 networks:
-  report-network:
+  app-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.21.0.0/16
 
-# ============================================
-# Notes:
-# ============================================
-# 1. All database connections use external databases
-#    - Ensure database hosts are reachable from Docker container
-#    - Update /etc/hosts or use public IPs as needed
-#
-# 2. Database migrations must be run separately:
-#    docker-compose exec backend psql ... < scripts/mroi_migration.sql
-#
-# 3. For production use:
-#    - Use proper secret management instead of .env
-#    - Enable Keycloak database persistence
-#    - Configure proper SSL/TLS certificates
-#    - Use Docker secrets or secret management system
-#
-# 4. Environment variables:
-#    - Create .env file in project root
-#    - See .env.example for template
-#    - All 47+ variables required
-#
-# 5. Keycloak configuration:
-#    - Default: H2 in-memory database
-#    - Production: Configure PostgreSQL backend
-#    - Admin console: http://localhost:8080
+volumes:
+  pgdata:
